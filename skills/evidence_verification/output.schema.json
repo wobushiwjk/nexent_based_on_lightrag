@@ -1,0 +1,479 @@
+{
+  "$defs": {
+    "ClaimCheck": {
+      "additionalProperties": false,
+      "description": "The verification result for one claim pointer.",
+      "properties": {
+        "checks": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "title": "Checks",
+          "type": "object"
+        },
+        "claim_id": {
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "evidence_count": {
+          "title": "Evidence Count",
+          "type": "integer"
+        },
+        "exists": {
+          "title": "Exists",
+          "type": "boolean"
+        },
+        "issues": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "supported": {
+          "title": "Supported",
+          "type": "boolean"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_type": {
+          "title": "Target Type",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "claim_id",
+        "target_type",
+        "target_id",
+        "exists",
+        "evidence_count",
+        "supported"
+      ],
+      "title": "ClaimCheck",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A verbatim evidence fragment returned by ``trace_evidence``.",
+      "properties": {
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "char_end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char Start"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "file_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Name"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "quote_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quote Hash"
+        },
+        "review_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Status"
+        },
+        "section_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section Path"
+        },
+        "targets": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "via": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Via",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "quote"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "SkillErrorPayload": {
+      "additionalProperties": false,
+      "description": "A machine-readable skill error, mirroring the MCP error payload.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "SkillErrorPayload",
+      "type": "object"
+    },
+    "SkillMeta": {
+      "additionalProperties": false,
+      "description": "Versions and scope shared by every skill response.",
+      "properties": {
+        "ontology_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ontology Version"
+        },
+        "read_only": {
+          "default": true,
+          "title": "Read Only",
+          "type": "boolean"
+        },
+        "skill": {
+          "title": "Skill",
+          "type": "string"
+        },
+        "skill_version": {
+          "title": "Skill Version",
+          "type": "string"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        }
+      },
+      "required": [
+        "skill",
+        "skill_version"
+      ],
+      "title": "SkillMeta",
+      "type": "object"
+    },
+    "ToolCallTrace": {
+      "additionalProperties": false,
+      "description": "One audit record for a tool call made by a skill.",
+      "properties": {
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "arguments",
+        "ok"
+      ],
+      "title": "ToolCallTrace",
+      "type": "object"
+    },
+    "TreeValidation": {
+      "additionalProperties": false,
+      "description": "The subset of ``validate_fault_tree`` output a skill reports.",
+      "properties": {
+        "draft_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Draft Id"
+        },
+        "error_count": {
+          "title": "Error Count",
+          "type": "integer"
+        },
+        "issues": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "top_event_uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top Event Uid"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "warning_count": {
+          "title": "Warning Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "valid",
+        "error_count",
+        "warning_count"
+      ],
+      "title": "TreeValidation",
+      "type": "object"
+    },
+    "VerificationData": {
+      "additionalProperties": false,
+      "description": "Verification payload for all claims and the optional tree.",
+      "properties": {
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/ClaimCheck"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "rejected_count": {
+          "title": "Rejected Count",
+          "type": "integer"
+        },
+        "tree_validation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TreeValidation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "verdict": {
+          "title": "Verdict",
+          "type": "string"
+        },
+        "verified_count": {
+          "title": "Verified Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "verified_count",
+        "rejected_count",
+        "verdict"
+      ],
+      "title": "VerificationData",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/skills/evidence_verification/output.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Skill envelope with a typed verification payload.",
+  "properties": {
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VerificationData"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SkillErrorPayload"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "meta": {
+      "$ref": "#/$defs/SkillMeta"
+    },
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "tool_calls": {
+      "items": {
+        "$ref": "#/$defs/ToolCallTrace"
+      },
+      "title": "Tool Calls",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ok",
+    "status",
+    "meta"
+  ],
+  "title": "VerificationResponse",
+  "type": "object",
+  "x-skill-name": "evidence_verification",
+  "x-skill-version": "0.1.0"
+}

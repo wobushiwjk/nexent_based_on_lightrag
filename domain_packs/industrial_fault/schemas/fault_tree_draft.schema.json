@@ -1,0 +1,232 @@
+{
+  "$defs": {
+    "FaultTreeEdge": {
+      "additionalProperties": false,
+      "description": "A directed edge in a projected fault-tree draft.",
+      "properties": {
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "relation_code": {
+          "enum": [
+            "CAUSES",
+            "HAS_CAUSE_RULE",
+            "INPUT_OF",
+            "OUTPUT_TO"
+          ],
+          "title": "Relation Code",
+          "type": "string"
+        },
+        "source_uid": {
+          "minLength": 1,
+          "title": "Source Uid",
+          "type": "string"
+        },
+        "target_uid": {
+          "minLength": 1,
+          "title": "Target Uid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_uid",
+        "target_uid",
+        "relation_code"
+      ],
+      "title": "FaultTreeEdge",
+      "type": "object"
+    },
+    "FaultTreeNode": {
+      "additionalProperties": false,
+      "description": "A node in a projected fault-tree draft.",
+      "properties": {
+        "class_code": {
+          "enum": [
+            "FaultEvent",
+            "FaultCauseRule",
+            "LogicGate"
+          ],
+          "title": "Class Code",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uid",
+        "class_code",
+        "label"
+      ],
+      "title": "FaultTreeNode",
+      "type": "object"
+    },
+    "ValidationIssue": {
+      "additionalProperties": false,
+      "description": "One structural or evidence problem found in a bundle or tree.",
+      "properties": {
+        "code": {
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        }
+      },
+      "required": [
+        "code",
+        "severity",
+        "message"
+      ],
+      "title": "ValidationIssue",
+      "type": "object"
+    },
+    "ValidationResult": {
+      "additionalProperties": false,
+      "description": "The result of validating a fault-tree draft.",
+      "properties": {
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/ValidationIssue"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "valid"
+      ],
+      "title": "ValidationResult",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/fault_tree_draft.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A reviewable projection of rules and facts into a fault tree.",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "created_by": {
+      "minLength": 1,
+      "title": "Created By",
+      "type": "string"
+    },
+    "draft_id": {
+      "minLength": 1,
+      "title": "Draft Id",
+      "type": "string"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/FaultTreeEdge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/FaultTreeNode"
+      },
+      "minItems": 1,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "ontology_version": {
+      "minLength": 1,
+      "title": "Ontology Version",
+      "type": "string"
+    },
+    "review_status": {
+      "default": "proposed",
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "merged",
+        "deprecated",
+        "needs_more_evidence"
+      ],
+      "title": "Review Status",
+      "type": "string"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "top_event_uid": {
+      "minLength": 1,
+      "title": "Top Event Uid",
+      "type": "string"
+    },
+    "validation": {
+      "$ref": "#/$defs/ValidationResult"
+    },
+    "version": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "draft_id",
+    "tenant_id",
+    "top_event_uid",
+    "nodes",
+    "validation",
+    "ontology_version",
+    "created_at",
+    "created_by"
+  ],
+  "title": "FaultTreeDraft",
+  "type": "object",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

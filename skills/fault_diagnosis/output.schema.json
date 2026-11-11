@@ -1,0 +1,631 @@
+{
+  "$defs": {
+    "Candidate": {
+      "additionalProperties": false,
+      "description": "One candidate fault with its verbatim evidence.",
+      "properties": {
+        "appears_in_rule_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Appears In Rule Uids",
+          "type": "array"
+        },
+        "canonical_name": {
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "cause_rule_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cause Rule Uids",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "evidence_complete": {
+          "title": "Evidence Complete",
+          "type": "boolean"
+        },
+        "evidence_count": {
+          "title": "Evidence Count",
+          "type": "integer"
+        },
+        "fault_uid": {
+          "title": "Fault Uid",
+          "type": "string"
+        },
+        "linked_by_equipment": {
+          "default": false,
+          "title": "Linked By Equipment",
+          "type": "boolean"
+        },
+        "matched_terms": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Matched Terms",
+          "type": "array"
+        },
+        "review_statuses": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Review Statuses",
+          "type": "array"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Severity"
+        }
+      },
+      "required": [
+        "fault_uid",
+        "canonical_name",
+        "evidence_count",
+        "evidence_complete"
+      ],
+      "title": "Candidate",
+      "type": "object"
+    },
+    "DiagnosisData": {
+      "additionalProperties": false,
+      "description": "Successful or degraded diagnosis payload.",
+      "properties": {
+        "candidates": {
+          "items": {
+            "$ref": "#/$defs/Candidate"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "conclusion": {
+          "title": "Conclusion",
+          "type": "string"
+        },
+        "equipment": {
+          "$ref": "#/$defs/EquipmentSummary"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "fault_tree": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TreeSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Query"
+        }
+      },
+      "required": [
+        "equipment",
+        "query",
+        "conclusion"
+      ],
+      "title": "DiagnosisData",
+      "type": "object"
+    },
+    "EquipmentSummary": {
+      "additionalProperties": false,
+      "description": "The identifying fields copied from ``get_equipment``.",
+      "properties": {
+        "equipment_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Equipment Name"
+        },
+        "equipment_tag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Equipment Tag"
+        },
+        "equipment_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Equipment Type"
+        },
+        "lifecycle_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lifecycle Status"
+        },
+        "matched_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Matched By"
+        },
+        "uid": {
+          "title": "Uid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uid"
+      ],
+      "title": "EquipmentSummary",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A verbatim evidence fragment returned by ``trace_evidence``.",
+      "properties": {
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "char_end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char Start"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "file_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Name"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "quote_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quote Hash"
+        },
+        "review_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Status"
+        },
+        "section_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section Path"
+        },
+        "targets": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "via": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Via",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "quote"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "SkillErrorPayload": {
+      "additionalProperties": false,
+      "description": "A machine-readable skill error, mirroring the MCP error payload.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "SkillErrorPayload",
+      "type": "object"
+    },
+    "SkillMeta": {
+      "additionalProperties": false,
+      "description": "Versions and scope shared by every skill response.",
+      "properties": {
+        "ontology_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ontology Version"
+        },
+        "read_only": {
+          "default": true,
+          "title": "Read Only",
+          "type": "boolean"
+        },
+        "skill": {
+          "title": "Skill",
+          "type": "string"
+        },
+        "skill_version": {
+          "title": "Skill Version",
+          "type": "string"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        }
+      },
+      "required": [
+        "skill",
+        "skill_version"
+      ],
+      "title": "SkillMeta",
+      "type": "object"
+    },
+    "ToolCallTrace": {
+      "additionalProperties": false,
+      "description": "One audit record for a tool call made by a skill.",
+      "properties": {
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "arguments",
+        "ok"
+      ],
+      "title": "ToolCallTrace",
+      "type": "object"
+    },
+    "TreeSummary": {
+      "additionalProperties": false,
+      "description": "The fault-tree facts a diagnosis cites.",
+      "properties": {
+        "counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counts",
+          "type": "object"
+        },
+        "draft_id": {
+          "title": "Draft Id",
+          "type": "string"
+        },
+        "top_event_uid": {
+          "title": "Top Event Uid",
+          "type": "string"
+        },
+        "validation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TreeValidation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "draft_id",
+        "top_event_uid"
+      ],
+      "title": "TreeSummary",
+      "type": "object"
+    },
+    "TreeValidation": {
+      "additionalProperties": false,
+      "description": "The subset of ``validate_fault_tree`` output a skill reports.",
+      "properties": {
+        "draft_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Draft Id"
+        },
+        "error_count": {
+          "title": "Error Count",
+          "type": "integer"
+        },
+        "issues": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "top_event_uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top Event Uid"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        },
+        "warning_count": {
+          "title": "Warning Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "valid",
+        "error_count",
+        "warning_count"
+      ],
+      "title": "TreeValidation",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/skills/fault_diagnosis/output.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Skill envelope with a typed diagnosis payload.",
+  "properties": {
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DiagnosisData"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SkillErrorPayload"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "meta": {
+      "$ref": "#/$defs/SkillMeta"
+    },
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "tool_calls": {
+      "items": {
+        "$ref": "#/$defs/ToolCallTrace"
+      },
+      "title": "Tool Calls",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ok",
+    "status",
+    "meta"
+  ],
+  "title": "DiagnosisResponse",
+  "type": "object",
+  "x-skill-name": "fault_diagnosis",
+  "x-skill-version": "0.1.0"
+}

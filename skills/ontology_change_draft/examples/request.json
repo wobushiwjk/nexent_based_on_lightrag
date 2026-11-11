@@ -1,0 +1,18 @@
+{
+  "tenant_id": "tenant-demo",
+  "rationale": "巡检记录需要独立表达振动传感器，现有类只能复用 Equipment。",
+  "change": {
+    "change_type": "add_class",
+    "code": "Sensor",
+    "label": "传感器",
+    "parent": "Asset",
+    "required_fields": ["uid", "sensor_type"],
+    "standards": ["ISO 13374"]
+  },
+  "source_targets": [
+    {
+      "target_type": "fact",
+      "target_id": "FACT-1"
+    }
+  ]
+}

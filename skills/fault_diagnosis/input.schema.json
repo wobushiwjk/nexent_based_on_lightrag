@@ -1,0 +1,50 @@
+{
+  "$id": "https://pump-copilot.local/skills/fault_diagnosis/input.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Input contract for the fault-diagnosis skill.",
+  "properties": {
+    "equipment_ref": {
+      "minLength": 1,
+      "title": "Equipment Ref",
+      "type": "string"
+    },
+    "include_tree": {
+      "default": true,
+      "title": "Include Tree",
+      "type": "boolean"
+    },
+    "max_candidates": {
+      "default": 5,
+      "maximum": 10,
+      "minimum": 1,
+      "title": "Max Candidates",
+      "type": "integer"
+    },
+    "symptom": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Symptom"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "equipment_ref"
+  ],
+  "title": "DiagnosisRequest",
+  "type": "object",
+  "x-skill-name": "fault_diagnosis",
+  "x-skill-version": "0.1.0"
+}

@@ -1,0 +1,19 @@
+{
+  "skills": [
+    {
+      "source": "fault_diagnosis",
+      "name": "fault-diagnosis",
+      "tags": ["fault-diagnosis", "industrial", "diagnosis"]
+    },
+    {
+      "source": "evidence_verification",
+      "name": "evidence-verification",
+      "tags": ["evidence", "verification", "industrial"]
+    },
+    {
+      "source": "ontology_change_draft",
+      "name": "ontology-change-draft",
+      "tags": ["ontology", "governance", "industrial"]
+    }
+  ]
+}

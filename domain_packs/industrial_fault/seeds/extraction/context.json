@@ -1,0 +1,115 @@
+{
+  "tenant_id": "tenant-demo",
+  "ontology_version": "industrial-fault-v0.1",
+  "top_event_uid": "FAULT-LOW-PRESSURE",
+  "draft_id": "TREE-P101A-LOW-PRESSURE-v1",
+  "review_status": "approved",
+  "created_by": "seed-v1",
+  "created_at": "2026-10-20T09:00:00+08:00",
+  "tree_created_at": "2026-10-20T09:25:00+08:00",
+  "extraction_files": [
+    "manual.json",
+    "record_2026_09_12.json",
+    "record_2026_10_03.json",
+    "inspection_2026q3.json"
+  ],
+  "assets": [
+    {
+      "uid": "DEPT-UTILITY",
+      "class_code": "Department",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "公用工程部",
+      "description": "负责冷却水系统运行与维护",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 1.0,
+      "source_uids": [],
+      "evidence_ids": [],
+      "created_at": "2026-10-20T09:00:00+08:00",
+      "updated_at": "2026-10-20T09:00:00+08:00",
+      "created_by": "seed-v1",
+      "department_code": "UTIL",
+      "department_path": "/工厂/公用工程部",
+      "status": "active",
+      "external_refs": {}
+    }
+  ],
+  "files": [
+    {
+      "asset_uid": "FILE-P101A-MANUAL",
+      "path": "seeds/documents/pump_manual_excerpt.md",
+      "canonical_name": "P-101A 冷却水泵维护手册（节选）",
+      "description": "P-101A 的出口压力不足、汽蚀与处理措施说明",
+      "modality": "text",
+      "mime_type": "text/markdown",
+      "language": "zh-CN",
+      "chunk_count": 3,
+      "upload_time": "2026-10-20T09:05:00+08:00",
+      "last_parsed_at": "2026-10-20T09:06:00+08:00"
+    },
+    {
+      "asset_uid": "FILE-P101A-RECORD",
+      "path": "seeds/documents/maintenance_record.md",
+      "canonical_name": "P-101A 维修记录",
+      "description": "P-101A 两次出口压力不足的维修记录",
+      "modality": "text",
+      "mime_type": "text/markdown",
+      "language": "zh-CN",
+      "chunk_count": 2,
+      "upload_time": "2026-10-20T09:07:00+08:00",
+      "last_parsed_at": "2026-10-20T09:08:00+08:00"
+    },
+    {
+      "asset_uid": "FILE-P101A-INSPECTION",
+      "path": "seeds/documents/inspection_table.md",
+      "canonical_name": "2026 年第三季度设备巡检表",
+      "description": "包含 P-101A 出口压力不足与初步判断的巡检表",
+      "modality": "table",
+      "mime_type": "text/markdown",
+      "language": "zh-CN",
+      "chunk_count": 1,
+      "upload_time": "2026-10-20T09:09:00+08:00",
+      "last_parsed_at": "2026-10-20T09:10:00+08:00"
+    }
+  ],
+  "chunks": [
+    {
+      "asset_id": "FILE-P101A-MANUAL",
+      "chunk_id": "manual-4.2",
+      "text": "P-101A 冷却水泵出口压力不足的常见原因包括入口过滤器堵塞和叶轮汽蚀。\n\n入口过滤器堵塞会降低泵的入口流量，并进一步造成出口压力不足。\n\n当入口过滤器堵塞且吸入管法兰漏气时，泵会发生汽蚀。\n\n叶轮汽蚀会导致出口压力不足，并伴随异常振动。",
+      "char_base": 38,
+      "page": 12,
+      "section_path": "4.2 出口压力不足",
+      "modality": "text"
+    },
+    {
+      "asset_id": "FILE-P101A-RECORD",
+      "chunk_id": "record-2026-09-12",
+      "text": "2026-09-12，P-101A 出现出口压力不足。检查发现入口过滤器堵塞，清理过滤器后压力恢复。",
+      "char_base": 15,
+      "page": 1,
+      "section_path": "2026-09-12 维修记录",
+      "modality": "text"
+    },
+    {
+      "asset_id": "FILE-P101A-RECORD",
+      "chunk_id": "record-2026-10-03",
+      "text": "2026-10-03，P-101A 再次出现出口压力不足。检查发现吸入管法兰漏气，导致叶轮汽蚀。",
+      "char_base": 67,
+      "page": 1,
+      "section_path": "2026-10-03 维修记录",
+      "modality": "text"
+    },
+    {
+      "asset_id": "FILE-P101A-INSPECTION",
+      "chunk_id": "inspection-2026q3-row1",
+      "text": "P-101A | 2026-09-12 | 出口压力不足 | 入口过滤器堵塞 | 清理过滤器",
+      "char_base": 86,
+      "page": 1,
+      "section_path": "P-101A 2026-09-12 行",
+      "modality": "table"
+    }
+  ]
+}

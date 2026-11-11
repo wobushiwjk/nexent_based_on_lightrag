@@ -1,0 +1,11 @@
+{
+  "display_name": "industrial-fault-kb",
+  "description": "工业设备故障诊断的术语、报告规范与证据政策知识库，供知识库检索工具补充 MCP 工具之外的非结构化知识。",
+  "embedding_model_display_name": null,
+  "chunking_strategy": "basic",
+  "files": [
+    "nexent/kb/01-diagnosis-report-guide.md",
+    "nexent/kb/02-pump-fault-terminology.md",
+    "nexent/kb/03-evidence-policy.md"
+  ]
+}

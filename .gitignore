@@ -58,6 +58,9 @@ output/
 rag_storage/
 data/
 
+# Domain import output; regenerate with scripts/import_seed_domain.py
+domain_packs/*/storage/
+
 
 
 # User-defined UI template bundle (UI_TEMPLATES_DIR).

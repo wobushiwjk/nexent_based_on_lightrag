@@ -1,0 +1,62 @@
+{
+  "schema_version": "1",
+  "note": "Versions this integration was developed against. Documentation only: no script reads this file, so update it by hand when a pin changes.",
+  "nexent": {
+    "version": "v2.8.3",
+    "commit": "5876d6ec80da07e3cd44282bba2733535853151f",
+    "source": "https://gitcode.com/gh_mirrors/ne/nexent.git",
+    "deploy": "bash deploy.sh docker",
+    "ports": {
+      "web": 3000,
+      "management_config_api": 5010,
+      "runtime_api": 5014,
+      "northbound_api": 5013
+    },
+    "default_admin": {
+      "email": "suadmin@nexent.com",
+      "password_env": "NEXENT_SUPER_ADMIN_PASSWORD",
+      "note": "The password below is the upstream default; it is only used when NEXENT_SUPER_ADMIN_PASSWORD was not set before the first deploy."
+    }
+  },
+  "domain": {
+    "pack": "industrial_fault",
+    "ontology_version": "industrial-fault-v0.1",
+    "schema_version": "industrial-fault-schema-v0.1",
+    "skill_manifest_version": "0.1.0",
+    "skill_runtime_version": "0.1.0"
+  },
+  "mcp": {
+    "server_name": "industrial-fault-domain",
+    "transport": "streamable-http",
+    "container_url": "http://host.docker.internal:8765/mcp",
+    "native_url": "http://localhost:8765/mcp",
+    "initialize_path": "/mcp",
+    "tools": [
+      "get_ontology",
+      "get_equipment",
+      "search_faults",
+      "get_fault_tree",
+      "trace_evidence",
+      "validate_fault_tree"
+    ]
+  },
+  "agent": {
+    "name": "industrial_fault_agent",
+    "display_name": "工业设备故障诊断助手",
+    "max_steps": 15,
+    "skills": [
+      "fault-diagnosis",
+      "evidence-verification",
+      "ontology-change-draft"
+    ]
+  },
+  "knowledge_base": {
+    "display_name": "industrial-fault-kb",
+    "chunking_strategy": "basic",
+    "embedding_model": "resolved from the tenant's configured embedding model at import time; pin model_id in nexent/config/knowledge_base.json once chosen"
+  },
+  "python": {
+    "tested": "3.13.5",
+    "scripts_are_stdlib_only": true
+  }
+}

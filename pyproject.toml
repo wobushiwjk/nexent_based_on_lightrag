@@ -63,6 +63,10 @@ pytest = [
     "httpx2>=2.0.0",  # starlette>=1.3 testclient prefers httpx2 over httpx
 ]
 
+mcp = [
+    "mcp>=1.30.0,<2.0.0",
+]
+
 api = [
     # Core dependencies
     "aiohttp",
@@ -170,11 +174,11 @@ offline-llm = [
 
 offline = [
     # Complete offline package (includes api for document processing, plus storage and LLM)
-    "lightrag-hku[api,offline-storage,offline-llm]",
+    "lightrag-hku[api,offline-storage,offline-llm,mcp]",
 ]
 
 test = [
-    "lightrag-hku[api]",
+    "lightrag-hku[api,mcp]",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-xdist>=3.6.0",  # local `-n auto` full-suite runs; see AGENTS.md
@@ -202,6 +206,7 @@ lightrag-hash-password = "lightrag.tools.hash_password:main"
 lightrag-download-cache = "lightrag.tools.download_cache:main"
 lightrag-clean-llmqc = "lightrag.tools.clean_llm_query_cache:main"
 lightrag-rebuild-vdb = "lightrag.tools.rebuild_vdb:main"
+lightrag-domain-mcp = "mcp_server.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/HKUDS/LightRAG"
@@ -209,8 +214,17 @@ Documentation = "https://github.com/HKUDS/LightRAG"
 Repository = "https://github.com/HKUDS/LightRAG"
 "Bug Tracker" = "https://github.com/HKUDS/LightRAG/issues"
 
+[tool.uv]
+# MCP 1.30 requires pyjwt>=2.10.1 for its OAuth bearer support, while zhipuai
+# 2.1.5 still declares pyjwt<2.9.0. zhipuai only calls jwt.encode(...,
+# algorithm="HS256"), whose API is unchanged in PyJWT 2.10; its ceiling is
+# stale metadata, not a code incompatibility. Override it here instead of
+# dropping the Zhipu provider from the offline extra, which would also make
+# `offline` and `mcp` impossible to install together.
+override-dependencies = ["pyjwt>=2.10.1,<3.0.0"]
+
 [tool.setuptools.packages.find]
-include = ["lightrag*"]
+include = ["lightrag*", "mcp_server*", "skills*"]
 exclude = ["data*", "tests*", "scripts*", "examples*", "dickens*", "reproduce*", "output_complete*", "rag_storage*", "inputs*"]
 
 [tool.setuptools]
@@ -221,6 +235,10 @@ version = {attr = "lightrag._version.__version__"}
 
 [tool.setuptools.package-data]
 lightrag = ["api/webui/**/*", "api/static/**/*"]
+skills = ["*.md", "*.json"]
+"skills.fault_diagnosis" = ["*.json", "*.md", "examples/*.json"]
+"skills.evidence_verification" = ["*.json", "*.md", "examples/*.json"]
+"skills.ontology_change_draft" = ["*.json", "*.md", "examples/*.json"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -1,23 +1,25 @@
-# Fault-tree ontology integration
 
-This package adds a fault-tree profile on top of the existing LightRAG JSON
-entity extraction pipeline. It does not replace `extract_entities`,
-`merge_nodes_and_edges`, the LLM cache, or the graph storage backends.
+# 故障树本体集成
 
-## Components
+本包在现有 LightRAG JSON 实体抽取流水线之上增加了一个故障树配置档（profile）。它不替换 `extract_entities`、`merge_nodes_and_edges`、LLM 缓存或图存储后端。
 
-- `../../prompts/entity_type/industrial_fault.yml`: ontology classes,
-  prompt-visible properties and relations, plus JSON extraction examples.
-- `schemas.py`: Pydantic contracts used to validate domain payloads.
-- `ontology.py`: loads the profile and validates relation domains and ranges.
-- `validator.py`: consumes the parser payload, verifies evidence and relation
-  endpoints, and optionally emits a normalized candidate batch.
-- `graph.py`: projects validated candidates into `Equipment`, `FaultEvent`,
-  `FaultCauseRule`, and `LogicGate` graph records.
+规范的领域数据位于 [`domain_packs/industrial_fault/`](https://../domain_packs/industrial_fault/README.md)：`ontology.yml`、标准对照表、JSON Schema 和种子文档。用 `python scripts/validate_domain.py` 校验它。
 
-## Configuration
+## 组件
 
-```python
+* `../../prompts/entity_type/industrial_fault.yml`：本体类、提示词可见的属性和关系，以及 JSON 抽取示例。
+* `schemas.py`：用于校验抽取载荷的 Pydantic 契约。
+* `contracts.py`：LightRAG、MCP 和 Nexent 之间交换的规范记录（实体、证据、事实、规则、树草稿、决策轨迹）。
+* `domain_validation.py`：根据本体、源文档和已检入的 JSON Schema 校验一个自包含的领域包。
+* `ontology.py`：加载配置档并校验关系的定义域（domain）和值域（range）。
+* `validator.py`：消费解析器载荷，验证证据和关系端点，并可选择输出一批规范化候选。
+* `graph.py`：将已验证的候选投影为 `Equipment`、`FaultEvent`、`FaultCauseRule` 和 `LogicGate` 图记录。
+
+## 配置
+
+**python**
+
+```
 from lightrag import LightRAG
 from lightrag.fault_tree import FaultCandidateValidator
 
@@ -33,15 +35,15 @@ rag = LightRAG(
 )
 ```
 
-`PROMPT_DIR` defaults to `./prompts`, so the profile is resolved from
-`prompts/entity_type/industrial_fault.yml`.
+`PROMPT_DIR` 默认为 `./prompts`，因此配置档从 `prompts/entity_type/industrial_fault.yml` 解析。
 
-## Extraction payload
+## 抽取载荷
 
-The existing JSON extraction format remains unchanged. Domain fields are
-preserved in a scalar `_fault_payload` on each entity or relationship:
+现有 JSON 抽取格式保持不变。领域字段保留在每个实体或关系的标量字段 `_fault_payload` 中：
 
-```json
+**json**
+
+```
 {
   "local_id": "e2",
   "class": "FaultEvent",
@@ -50,53 +52,39 @@ preserved in a scalar `_fault_payload` on each entity or relationship:
 }
 ```
 
-The validator removes invalid entities or relations, verifies that evidence
-quotes occur verbatim in the chunk, and checks relation endpoint classes.
-Valid relation codes are prepended to the existing edge ``keywords`` field, so
-the current WebUI graph can display values such as
-``HAS_FAULT, 设备故障``.
+验证器会移除无效实体或关系，验证证据引文在文本块中逐字出现，并检查关系端点的类。有效的关系代码会被前置到现有边的 `keywords` 字段中，因此当前 WebUI 图可以显示诸如 `HAS_FAULT, 设备故障` 这样的值。
 
-``CAUSES`` relations may include ``gate_type_hint`` and ``gate_key``. The
-validator projects them into a deterministic ``LogicGate`` node plus
-``INPUT_OF`` and ``OUTPUT_TO`` edges. The gate name is derived from the target
-fault and gate key, not the chunk ID, so branches discovered in different
-chunks accumulate on the same gate in the current graph.
+`CAUSES` 关系可以包含 `gate_type_hint` 和 `gate_key`。验证器会将它们投影为一个确定性的 `LogicGate` 节点，外加 `INPUT_OF` 和 `OUTPUT_TO` 边。门（gate）的名称由目标故障和 gate key 派生，而不是由文本块 ID 派生，因此在不同文本块中发现的同一逻辑分支会在当前图中累积到同一个门上。
 
-## Graph projection
+## 图投影
 
-```python
+**python**
+
+```
 from lightrag.fault_tree import project_candidate_batch
 
 graph = project_candidate_batch(candidate_batch)
 ```
 
-The result contains property-graph-shaped nodes and edges, including nested
-gates for expressions such as:
+结果包含属性图形状的节点和边，包括针对如下表达式的嵌套门：
 
-```text
+**text**
+
+```
 (A OR B) AND (C OR D) -> E
 ```
 
-The projection is a pure data transformation. A deployment adapter remains
-responsible for writing it to PostgreSQL or a graph database.
+该投影是纯数据变换。部署适配器仍负责将其写入 PostgreSQL 或图数据库。
 
-## WebUI projections
+## WebUI 投影
 
-The persisted workspace graph is exposed as four bounded views:
+已持久化的工作区图以四个有边界的视图暴露：
 
-- `department-files` (`OWNS_FILE`)
-- `department-equipment` (`HAS_EQUIPMENT`)
-- `equipment-faults` (`HAS_FAULT`, one hop)
-- `fault-causes` (`CAUSES`, `HAS_CAUSE_RULE`, `INPUT_OF`, `OUTPUT_TO`, lazy causal
-  expansion from one selected fault)
+* `department-files`（`OWNS_FILE`）
+* `department-equipment`（`HAS_EQUIPMENT`）
+* `equipment-faults`（`HAS_FAULT`，一跳）
+* `fault-causes`（`CAUSES`、`HAS_CAUSE_RULE`、`INPUT_OF`、`OUTPUT_TO`，从选定的一个故障出发的惰性因果展开）
 
-The full contract is
-[`docs/design/GraphViewProjectionContract.md`](../../docs/design/GraphViewProjectionContract.md).
-Domain classes and relations stay in the ontology profile; colors, layouts and
-the active view stay in the WebUI.
+完整契约见 [`docs/design/GraphViewProjectionContract.md`](https://../docs/design/GraphViewProjectionContract.md)。领域类和关系保留在本体配置档中；颜色、布局和当前激活视图保留在 WebUI 中。
 
-Validated entity and relation properties are persisted as
-`domain_properties_json` / `relation_properties_json` plus `class_code`,
-`canonical_name`, `relation_code` and `ontology_version`. This keeps graph
-backends on scalar properties while allowing the projection API to expose the
-decoded maps for node and edge detail panels.
+已验证的实体和关系属性会持久化为 `domain_properties_json` / `relation_properties_json`，外加 `class_code`、`canonical_name`、`relation_code` 和 `ontology_version`。这样图后端只需处理标量属性，同时投影 API 可以为节点和边详情面板暴露解码后的映射。

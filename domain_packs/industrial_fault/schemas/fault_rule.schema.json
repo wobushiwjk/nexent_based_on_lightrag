@@ -1,0 +1,159 @@
+{
+  "$defs": {
+    "UidExpression": {
+      "additionalProperties": false,
+      "description": "A recursive AND/OR expression over durable fault-event UIDs.",
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/$defs/UidExpression"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "event_uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Uid"
+        },
+        "op": {
+          "anyOf": [
+            {
+              "enum": [
+                "AND",
+                "OR"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Op"
+        }
+      },
+      "title": "UidExpression",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/fault_rule.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The reviewed causal rule that produces one fault event.",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "created_by": {
+      "minLength": 1,
+      "title": "Created By",
+      "type": "string"
+    },
+    "effect_fault_uid": {
+      "minLength": 1,
+      "title": "Effect Fault Uid",
+      "type": "string"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "expression": {
+      "$ref": "#/$defs/UidExpression"
+    },
+    "ontology_version": {
+      "minLength": 1,
+      "title": "Ontology Version",
+      "type": "string"
+    },
+    "review_status": {
+      "default": "proposed",
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "merged",
+        "deprecated",
+        "needs_more_evidence"
+      ],
+      "title": "Review Status",
+      "type": "string"
+    },
+    "rule_uid": {
+      "minLength": 1,
+      "title": "Rule Uid",
+      "type": "string"
+    },
+    "scenario": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scenario"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "valid_from": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valid From"
+    },
+    "valid_to": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valid To"
+    }
+  },
+  "required": [
+    "rule_uid",
+    "tenant_id",
+    "effect_fault_uid",
+    "expression",
+    "evidence_ids",
+    "ontology_version",
+    "created_at",
+    "created_by"
+  ],
+  "title": "FaultCauseRule",
+  "type": "object",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

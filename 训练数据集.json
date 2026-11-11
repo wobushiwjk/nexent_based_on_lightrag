@@ -1,0 +1,2402 @@
+[
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "飞行器维修记录表显示，多次发生故障：ENGINE IDLE OVERRIDE KILLED ENGINE（发动机怠速超驰导致熄火）。现场初步排查时，多次尝试调整怠速（TRIED TO ADJUST IDLE SEVERAL TIMES, WOULDN'T ADJUST），但无法成功调节。随后执行地面试车排查（A/C WAS RUN UP, MIXTURE OK, NO LEAKS），最终确认为核心控制部件故障，机务人员通过拆换燃油伺服器（REMOVED & REPLACED FUEL SERVO）并重新设定怠速（SET IDLE SPEED），成功排除故障。",
+    "context": "航空发动机燃油伺服器（Fuel Servo）：负责根据油门位置和空气流量精确控制进入发动机的燃油量。若内部膜片破损或计量活门卡滞，会导致怠速状态下燃油混合比严重失调，进而引发发动机熄火。怠速超驰（Idle Override）测试高度依赖伺服器的精准调节。机械调整机构失效时，单纯的外部螺钉调整无法恢复系统功能，必须整件更换。",
+    "thought": "1. 首先识别顶层事件：明确记录为“ENGINE IDLE OVERRIDE KILLED ENGINE”（发动机怠速超驰熄火）。\n2. 查找故障原因：根据维修动作和现象，故障存在两个层级的排查。浅层原因是“怠速设定偏差”，深层原因是“燃油伺服器损坏”（导致无法调节）。\n3. 联结背景知识：燃油伺服器是核心控制件，其损坏是导致怠速无法调节并最终熄火的根本物理原因（底事件）。两者构成逻辑上的‘或’（OR）关系或进阶导致关系，这里以并列的可能原因构建故障树。",
+    "output": {
+      "top_event": "发动机怠速超驰导致熄火",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "怠速设定机构偏差",
+          "type": "Basic Event",
+          "treatment": "进行发动机试车，重新设定怠速，检查混合比无漏油",
+          "evidence": "A/C WAS RUN UP, SET IDLE SPEED, MIXTURE OK, NO LEAKS"
+        },
+        {
+          "node_name": "燃油伺服器硬件失效",
+          "type": "Basic Event",
+          "treatment": "拆卸并更换燃油伺服器总成",
+          "evidence": "TRIED TO ADJUST IDLE SEVERAL TIMES, WOULDN'T ADJUST; REMOVED & REPLACED FUEL SERVO"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "飞行员报告：起飞时全油门状态下发生发动机窒息并短暂失去动力（HAD ENGINE CHOKE & BRIEFLY LOSE POWER ON DEPARTURE. FULL THR）。机务人员进行发动机试车排查（PERFORMED ENGINE RUN UP），检查发现第2气缸下部火花塞严重积碳污染（FOUND CYL 2 LOWER PLUG FOULED）。",
+    "context": "航空活塞发动机火花塞（Spark Plug）：每个气缸通常配备上下两个火花塞以保证燃烧效率和冗余安全。火花塞污染（Fouled Plug）通常由燃油铅沉淀、机油积碳或混合气过富引起，会导致点火能量减弱或失火。在全油门（FULL THR）起飞等高负荷阶段，单侧火花塞失效容易引起气缸工作不正常，表现为发动机窒息（Choke）和瞬时动力丧失。",
+    "thought": "1. 识别顶层事件：起飞阶段全油门时发动机窒息并短暂失去动力。\n2. 查找故障原因：试车检查直接定位到物理组件“CYL 2 LOWER PLUG FOULED”（第2气缸下部火花塞污染）。\n3. 联结背景知识：火花塞污染导致点火不良，进而引发动力丧失，逻辑路径单一清晰，直接将火花塞污染作为底事件。",
+    "output": {
+      "top_event": "起飞全油门阶段发动机短暂失去动力",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "气缸点火系统失效",
+          "logic_gate": "AND",
+          "evidence": "HAD ENGINE CHOKE & BRIEFLY LOSE POWER",
+          "children": [
+            {
+              "node_name": "第2缸下部火花塞污染/积碳",
+              "type": "Basic Event",
+              "treatment": "执行发动机试车排查，清理或更换积碳的火花塞",
+              "evidence": "PERFORMED ENGINE RUN UP, FOUND CYL 2 LOWER PLUG FOULED."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "机务例行检查发现多处漏油及紧固件松动现象：2号和4号气缸的摇臂室盖垫片漏油（#2 & 4 CYL ROCKER COVER GASKETS ARE LEAKING），且所有气缸的摇臂室盖螺丝均有松动（ROCKER BOX COVER SCREWS LOOSE (ALL CYL)）。此外，进气管路软管卡箍也存在松动（INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYL)）。机务人员执行了以下处理：紧固了所有盖板螺丝和软管卡箍（TIGHTENED SCREWS; TIGHTENED HOSE CLAMPS），并拆卸更换了漏油破损的垫片（REMOVED & REPLACED GASKETS）。",
+    "context": "摇臂室盖垫片（Rocker Cover Gasket）与进气系统紧固件：垫片用于密封气缸头部的摇臂室，防止润滑油外泄。由于航空发动机长期处于高温与高频震动环境，橡胶/软木垫片极易老化破损失去弹性。同时，震动会导致固定螺丝（Cover Screws）和进气管卡箍（Hose Clamps）退扣松动。螺丝松动会引起密封压紧力不足，加速漏油现象的发生。",
+    "thought": "1. 识别顶层事件：发动机外部附件漏油及管路松动（综合症状）。\n2. 查找故障原因：涉及两个主要物理现象——“垫片漏油”和“紧固件松动”。垫片漏油发生在2、4缸，紧固件松动发生在所有气缸的螺丝和进气卡箍上。\n3. 联结背景知识：震动导致螺丝松动和垫片老化是引发泄漏的常见关联原因，这里应当将“密封件损坏”与“机械紧固失效”作为并行的两类底层原因建立故障树。",
+    "output": {
+      "top_event": "气缸附件区域漏油及连接松动",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "机械紧固失效",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "所有气缸摇臂室盖螺丝松动",
+              "type": "Basic Event",
+              "treatment": "重新紧固所有摇臂室盖螺丝至标准扭矩",
+              "evidence": "ROCKER BOX COVER SCREWS LOOSE (ALL CYL); TIGHTENED SCREWS."
+            },
+            {
+              "node_name": "进气管软管卡箍松动",
+              "type": "Basic Event",
+              "treatment": "紧固所有进气软管卡箍",
+              "evidence": "INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYL); TIGHTENED HOSE CLAMPS."
+            }
+          ]
+        },
+        {
+          "node_name": "密封垫片老化/破损",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "2号和4号气缸摇臂室盖垫片损坏",
+              "type": "Basic Event",
+              "treatment": "拆卸并更换损坏的垫片",
+              "evidence": "#2 & 4 CYL ROCKER COVER GASKETS ARE LEAKING; REMOVED & REPLACED GASKETS."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "定检中发现发动机冷却导流板存在结构性损伤：左后侧发动机导流板出现裂纹（L/H REAR ENGINE BAFFLE CRACKED），同时1号发动机导流板也存在裂纹（#1 ENGINE BAFFLE CRACKED）。机务人员针对左后侧裂纹执行了止裂孔钻孔处理（STOP DRILLED CRACK），针对1号导流板裂纹则使用同材质金属板制作了补丁并按标准进行了铆接修复（FABRICATED PATCH OF LIKE MATERIAL & RIVETED IAW）。",
+    "context": "航空发动机导流板（Engine Baffle）：主要用于引导冷却空气流经气缸散热片，以维持发动机正常工作温度。由于长期处于高频震动和热应力交替环境中，薄金属材质的导流板极易产生疲劳裂纹。 若不及时处理，裂纹扩展可能导致导流板断裂，碎片可能损伤发动机。对于微小裂纹，通常在裂纹末端钻止裂孔（Stop Drill）以释放应力防止扩展；对于较大裂纹，则需要切除并使用同材质金属板进行打补丁铆接（Patch & Rivet）。",
+    "thought": "1. 识别顶层事件：明确故障为“发动机冷却导流板金属疲劳开裂”。\n2. 查找故障分支及处理：记录中包含两处不同位置的开裂（左后侧和1号位置），且根据维修动作（钻孔 vs 铆接补丁），可以推断两处裂纹的严重程度不同。\n3. 联结背景知识：震动和热应力是物理诱因。这两处裂纹作为并列的底事件，归入导流板结构损伤树中，并分别对应其标准修复工艺。",
+    "output": {
+      "top_event": "发动机冷却导流板开裂损伤",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "左后侧导流板产生微小裂纹",
+          "type": "Basic Event",
+          "treatment": "在裂纹末端钻止裂孔以防止进一步扩展",
+          "evidence": "L/H REAR ENGINE BAFFLE CRACKED; STOP DRILLED CRACK."
+        },
+        {
+          "node_name": "1号导流板产生较大裂纹",
+          "type": "Basic Event",
+          "treatment": "使用同等材质的金属板制作补丁并按标准规范铆接",
+          "evidence": "#1 ENGINE BAFFLE CRACKED; FABRICATED PATCH OF LIKE MATERIAL & RIVETED IAW"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "飞行员报告：飞机在跑道外等待时，完成试车后发动机出现运转异常（HOLDING SHORT OF RUNWAY, AFTER COMPLETION OF RUN UP, ENGINE...）。机务随后再次执行发动机地面试车排查（PERFORMED ENGINE RUN UP），对发动机怠速进行了重新调整（ADJUSTED IDLE），并清洁了火花塞（CLEANED SPARK）。",
+    "context": "发动机试车（Engine Run-up）与怠速等待：飞机在起飞前进行高转速试车以检查磁电机和螺旋桨。但在低转速（怠速）等待期间，若混合比设定过富，极易导致燃烧不充分，产生积碳污染火花塞（Spark Plug Fouling），进而引发发动机运转粗暴或熄火。排故时，不仅需要物理清洁火花塞恢复点火能力，还必须调整供油系统的怠速设定（Idle Adjustment）以消除根本诱因。",
+    "thought": "1. 识别顶层事件：跑道等待及试车后发生的发动机运转异常。\n2. 查找故障原因：机务采取了两个独立的修复动作：“调整怠速”和“清洁火花塞”，这表明故障是混合比设定偏差与点火部件污染共同导致的结果。\n3. 联结背景知识：低速等待易引发火花塞积碳，加之怠速本身设定不当，构成了混合诱发机制。两者在故障树中应作为并列的底层原因。",
+    "output": {
+      "top_event": "试车及等待期间发动机运转异常",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "火花塞积碳污染",
+          "type": "Basic Event",
+          "treatment": "拆卸并清洁火花塞，恢复点火效能",
+          "evidence": "CLEANED SPARK"
+        },
+        {
+          "node_name": "怠速混合比/转速设定偏差",
+          "type": "Basic Event",
+          "treatment": "执行发动机试车，重新调整怠速螺钉或混合比控制",
+          "evidence": "PERFORMED ENGINE RUN UP, ADJUSTED IDLE"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "定检期间发现气缸区域存在大面积的密封不良与紧固件松动：所有气缸的进气管软管卡箍松动（INDUCTION TUBE HOSE CLAMPS LOOSE），摇臂室盖螺丝松动（ROCKER BOX COVER SCREWS LOOSE）。同时发现严重的漏气及漏油现象：1、2、3号气缸的摇臂室盖垫片漏油（#1, 2 & 3 ROCKER BOX COVER GASKETS LEAKING），且1号气缸不仅进气垫片泄漏（#1 INTAKE GASKET LEAKING），其摇臂室盖本体也出现泄漏（ROCKER COVER FOR CYL #1 IS LEAKING）。机务紧固了所有螺丝和卡箍，安装了全新的摇臂室盖垫片，更换了1号进气垫片，并直接整体更换了1号摇臂室盖（REPLACED ROCKER COVER）。",
+    "context": "气缸外围组件密封系统：包含摇臂室盖（防止机油外流）和进气管组件（维持进气压力）。密封失效通常由三种原因引起：1. 紧固件松动（螺丝退扣、软管卡箍松弛），导致压紧力不足；2. 耗材老化（软木或硅胶垫片破损变形）；3. 结构件本体损坏（金属盖板因受热不均或外力发生翘曲变形、出现砂眼）。对于本体损坏，单纯更换垫片无效，必须整体更换金属件。",
+    "thought": "1. 识别顶层事件：发动机气缸区域发生综合性泄漏与连接松动。\n2. 查找故障分支：此案例情况复杂，必须根据不同的部件和损坏性质进行分类。可分为“紧固件松动”、“密封垫片失效”以及“结构件本体损坏”。\n3. 联结背景知识：区分因震动导致的松动（需重新紧固）、耗材老化导致的泄漏（需换垫片）和硬件变形导致的泄漏（需换摇臂盖整体），构建具有层级结构（复杂逻辑）的故障树。",
+    "output": {
+      "top_event": "气缸区域综合泄漏与连接松动",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "机械紧固件松脱",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "进气管软管卡箍松动",
+              "type": "Basic Event",
+              "treatment": "紧固所有气缸的进气管软管卡箍",
+              "evidence": "INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYLS); TIGHTENED HOSE CLAMPS."
+            },
+            {
+              "node_name": "摇臂室盖固定螺丝松动",
+              "type": "Basic Event",
+              "treatment": "按力矩要求重新紧固摇臂室盖螺丝",
+              "evidence": "ROCKER BOX COVER SCREWS LOOSE; TIGHTENED SCREWS."
+            }
+          ]
+        },
+        {
+          "node_name": "密封材料(垫片)老化破损",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "1, 2, 3号气缸摇臂室盖垫片损坏",
+              "type": "Basic Event",
+              "treatment": "拆卸并安装全新的摇臂室盖垫片",
+              "evidence": "#1, 2 & 3 ROCKER BOX COVER GASKETS LEAKING; INSTALLED NEW ROCKER BOX COVER GASKETS."
+            },
+            {
+              "node_name": "1号气缸进气管垫片损坏",
+              "type": "Basic Event",
+              "treatment": "更换全新的进气垫片",
+              "evidence": "#1 INTAKE GASKET LEAKING; REPLACED W/ NEW GASKET."
+            }
+          ]
+        },
+        {
+          "node_name": "结构件本体变形/损坏",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "1号气缸摇臂室金属盖板本体泄漏",
+              "type": "Basic Event",
+              "treatment": "整体更换1号气缸摇臂室盖",
+              "evidence": "ROCKER COVER FOR CYL #1 IS LEAKING; REPLACED ROCKER COVER."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "定检发现多个气缸区域存在泄漏与松动现象：4号气缸进气泄漏（CYL #4 INTAKE LEAKING），且2号和4号气缸摇臂室盖垫片泄漏（#2 & 4 CYLINDER ROCKER COVER GASKETS LEAKING）。在紧固件方面，发现摇臂室盖螺丝松动（ROCKER BOX COVER SCREWS ARE LOOSE），同时所有气缸的进气管软管卡箍均存在松动（INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYL)）。维修人员更换了失效的进气垫片和摇臂室盖垫片，并紧固了所有松动的螺栓与卡箍，最后泄漏测试正常（LEAK CHECK GOOD）。",
+    "context": "活塞发动机外部主要包含进气系统和气缸润滑密封系统。震动是导致外围机械紧固件（如软管卡箍、摇臂室盖固定螺丝）松脱退扣的主要诱因。同时，热循环会导致各类橡胶或软木材质的密封垫片（Gasket）老化开裂，进而产生漏气或漏机油现象。这两类物理失效机制通常独立发生，需分别处理。",
+    "thought": "1. 识别顶层事件：发动机气缸外围综合性泄漏与紧固件松脱。\n2. 查找故障分支：记录中明确包含了'耗材老化'（垫片泄漏）和'机械松动'（螺丝、卡箍）两大类问题。\n3. 联结逻辑：构建包含两个 OR 门的中间层，将垫片损坏和紧固件松动分别归类，形成逻辑清晰的树状结构。",
+    "output": {
+      "top_event": "气缸外围综合泄漏与松动",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "密封垫片老化失效",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "2号和4号气缸摇臂室盖垫片损坏",
+              "type": "Basic Event",
+              "treatment": "拆除并更换摇臂室盖垫片，清理漏油痕迹",
+              "evidence": "#2 & 4 CYLINDER ROCKER COVER GASKETS LEAKING; REMOVED & REPLACED... CLEANED LEAKS"
+            },
+            {
+              "node_name": "4号气缸进气垫片损坏",
+              "type": "Basic Event",
+              "treatment": "更换进气垫片并执行密封检查",
+              "evidence": "CYL #4 INTAKE LEAKING; REPLACED GASKET. LEAK CHECK GOOD."
+            }
+          ]
+        },
+        {
+          "node_name": "机械紧固件震动松脱",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "摇臂室盖固定螺丝松动",
+              "type": "Basic Event",
+              "treatment": "重新紧固盖板螺丝",
+              "evidence": "ROCKER BOX COVER SCREWS ARE LOOSE; TIGHTENED SCREWS."
+            },
+            {
+              "node_name": "进气管软管卡箍松动",
+              "type": "Basic Event",
+              "treatment": "紧固所有气缸的进气管卡箍",
+              "evidence": "INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYL); TIGHTENED HOSE CLAMPS."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "机务在处理两处外围故障时发现深层损坏：首先是排查1号进气垫片泄漏（#1 INTAKE GASKET LEAKING）时，拆卸进气管后发现其实是进气管本体开裂（REMOVED INTAKE TUBE, FOUND TUBE TO BE CRACKED）。其次，发现右侧磁电机冷却通风管脱落（R/H MAG BLAST TUBE FELL OFF），机务为此拆除了右后侧导流板以方便维修，并重新制作了管路（REMOVED R/H AFT BAFFLE TO FACILITATE REPAIR. FABRICATED）。",
+    "context": "进气管（Intake Tube）负责将混合气导入气缸。表观的'接口漏气'有时并非垫片损坏，而是金属管路本体因疲劳震动产生的结构性开裂，此时必须更换或修复管路本体。磁电机通风管（Mag Blast Tube）用于引导冲压冷空气冷却磁电机，固定支架断裂会导致其脱落，影响核心部件散热。",
+    "thought": "1. 识别顶层事件：发动机外围管路及附件结构损坏。\n2. 查找故障原因：包含两个独立分支。一是进气管本体开裂（表现为疑似垫片漏气）；二是磁电机通风管脱落。\n3. 联结背景知识：强调进气管开裂是深度排查（拆卸后）才发现的真实底层原因，构建包含结构损坏逻辑的故障树。",
+    "output": {
+      "top_event": "管路附件结构性损坏与脱落",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "1号气缸进气管路结构破坏",
+          "logic_gate": "AND",
+          "evidence": "初始表现为 #1 INTAKE GASKET LEAKING",
+          "children": [
+            {
+              "node_name": "进气管金属本体疲劳开裂",
+              "type": "Basic Event",
+              "treatment": "拆卸并更换/修复开裂的进气管路",
+              "evidence": "REMOVED INTAKE TUBE, FOUND TUBE TO BE CRACKED."
+            }
+          ]
+        },
+        {
+          "node_name": "右侧磁电机冷却管路脱落",
+          "type": "Basic Event",
+          "treatment": "拆除周边导流板以提供操作空间，重新制作并安装通风管",
+          "evidence": "R/H MAG BLAST TUBE FELL OFF; REMOVED R/H AFT BAFFLE TO FACILITATE REPAIR. FABRICATED"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "飞行员报告：启动时发动机开始运转粗暴，在1200转下试车排查（ON START UP, ENGINE BEGAN TO RUN ROUGH. RAN ENGINE @ 1200 RP...）。机务按手册检查了1、2、4号气缸均正常（INSPECTED CYL 1, 2 & 4 IAW - CK'ED OK）。随后执行气缸压力测试（PERFORMED COMPRESSION CHECK），发现3号气缸压力指示为零（CYL #3 INDICATED ZERO PSI）。深度维修后，机务完成了导流板、注油管及火花塞的恢复安装作业（COMPLETED BAFFLE INSTALL, OIL FILLER TUBE, SPARK PLUGS）。",
+    "context": "活塞发动机在启动和低转速时抖动粗暴（Run Rough），通常与个别气缸不工作或工作不良有关。气缸压力测试（Compression Check）是核心诊断手段。气缸压力为零（Zero PSI）意味着该气缸完全丧失压缩做功能力（常见原因为气门卡死、活塞环断裂或气缸头穿孔），这属于严重的机械核心故障，需要进行深度拆解维修。",
+    "thought": "1. 识别顶层事件：发动机启动及低速运行时运转粗暴。\n2. 查找中间原因及底事件：排查了1、2、4缸排除了嫌疑，最终精确定位到3号气缸压力为零。这是一个决定性的物理故障点。\n3. 联结背景知识：将'3号气缸完全丧失压缩能力'作为核心底事件。由于是严重故障，后续提及的部件安装（导流板、火花塞）属于大修后的组装复原动作，应视为维修方案的一部分，而非故障原因。",
+    "output": {
+      "top_event": "发动机启动及运转粗暴",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "单气缸做功失效",
+          "logic_gate": "AND",
+          "evidence": "排除了1、2、4缸故障 (INSPECTED CYL 1, 2 & 4 - CK'ED OK)",
+          "children": [
+            {
+              "node_name": "3号气缸压力为零(丧失压缩能力)",
+              "type": "Basic Event",
+              "treatment": "进行气缸深度维修/更换，并重新组装导流板、注油管和火花塞",
+              "evidence": "PERFORMED COMPRESSION CHECK, CYL #3 INDICATED ZERO PSI; COMPLETED BAFFLE INSTALL, OIL FILLER TUBE, SPARK PLUGS."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录综合(100038-100040)：飞行员报告在飞行中发动机运转粗暴，且发现右侧磁电机失效（IN FLIGHT, ENGINE BECAME ROUGH. DISCOVERED RIGHT MAG INOP）。然而，机务在地面执行试车排查时，磁电机检查正常，动力与密封检查也正常（RAN A/C, MAGS CHECK GOOD. POWER & LEAK CHECK GOOD）。由于地面无法复现空中故障，机务进行了深度拆解排查：拆除了3号气缸，断开燃油分配管路（REMOVED #3 CYL, DISCONNECTED FUEL DISTRIBUTOR LINE），最终对3号气缸的干式气门挺柱间隙进行了检查与调整（#3 CYL DRY TAPPET CLEARANCE CHECK），随后重新组装发动机，排除了在特定负荷下诱发的运转粗暴问题。",
+    "context": "航空活塞发动机点火与气门系统：飞行中出现“单侧磁电机失效且运转粗暴”的表象，如果地面试车（Ground Run-up）正常，通常意味着点火系统本身无硬件损坏，而是发动机在空中高负荷、高温状态下，特定气缸出现了机械性异常（如气门卡滞、挺柱间隙过小导致漏气）。这种机械故障在负载消失后（地面怠速）会隐藏，极具欺骗性，必须拆解问题气缸检查气门机构（Tappet Clearance）和燃油分配（Fuel Distributor）才能根治。",
+    "thought": "1. 识别顶层事件：飞行中发动机运转粗暴且右磁电机疑似失效。\n2. 识别中间逻辑与冲突：地面测试正常（MAGS CHECK GOOD）排除了单纯的点火器损坏，构成一个逻辑转折点。故障焦点从电气系统转移到机械系统。\n3. 定位底层原因：根据维修动作，深层原因是3号气缸在负荷下的气门/燃油工作异常。提取‘拆除3号缸’、‘检查挺柱间隙’作为底事件，构建带有排故时间线的复杂故障树。",
+    "output": {
+      "top_event": "飞行中发动机运转粗暴伴随单侧磁电机掉转",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "地面测试无法复现的间歇性故障",
+          "logic_gate": "OR",
+          "evidence": "RAN A/C, MAGS CHECK GOOD. POWER & LEAK CHECK GOOD.",
+          "children": [
+            {
+              "node_name": "3号气缸负荷状态下机械/燃油异常",
+              "logic_gate": "OR",
+              "children": [
+                {
+                  "node_name": "燃油分配管路异常",
+                  "type": "Basic Event",
+                  "treatment": "断开并检查燃油分配器管路",
+                  "evidence": "DISCONNECTED FUEL DISTRIBUTOR LINE"
+                },
+                {
+                  "node_name": "气门挺柱间隙超标",
+                  "type": "Basic Event",
+                  "treatment": "拆除气缸，执行干式气门挺柱间隙检查并重新组装",
+                  "evidence": "REMOVED #3 CYL... #3 CYL DRY TAPPET CLEARANCE CHECK"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100037：左发2号进气管泄漏（L/H ENG #2 INTAKE LEAKING）。维修人员拆卸管路后，发现实际故障并非垫片老化，而是进气管本体出现了开裂（REMOVED TUBE, FOUND TO BE CRACKED. REMOVED TUBE FROM CO）。\n【待校验故障树】：\n{\n  \"top_event\": \"左发2号气缸进气泄漏\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"进气接口密封垫片破损\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"更换进气垫片\"\n    }\n  ]\n}",
+    "context": "进气系统（Intake System）：进气泄漏通常表现为接口处的嘶嘶声或气缸动力下降。最常见的诱因是耗材（垫片 Gasket）老化。但在高频震动下，金属进气管（Intake Tube）本体也可能产生疲劳裂纹。若管路本体开裂，单纯更换垫片属于误判，无法解决漏气问题。",
+    "thought": "1. 识别顶层事件：左发2号进气泄漏，待校验树的顶事件无误。\n2. 核对归属与逻辑：待校验树将底事件归因为“密封垫片破损”。但输入文本明确说明维修人员拆卸后发现“FOUND TO BE CRACKED”（管路开裂）。待校验树犯了经验主义错误，与实际发生的物理事实相悖。\n3. 生成修正：判定为 false，修改底事件为管路本体开裂，并更新处理建议。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "逻辑冲突与归属错误。待校验故障树将漏气原因错误归结为常见的'垫片破损'，但根据现场维修记录，实际排查出的深层原因是'进气管金属本体开裂'，两者维修方案完全不同。",
+      "corrected_tree": {
+        "top_event": "左发2号气缸进气泄漏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "进气管本体疲劳开裂",
+            "type": "Basic Event",
+            "treatment": "拆除并更换开裂的进气管路",
+            "evidence": "REMOVED TUBE, FOUND TO BE CRACKED."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100048：3号后部导流板支架松动（#3 AFT BAFFLE BRACKET LOOSE）。机务检查发现原有的固定铆钉已经缺失，因此移除了残余部分，并使用螺栓和螺母重新进行了固定（REMOVED & REPLACED MISSING RIVETS W/ SCREWS & NUTS）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号后部导流板支架松动\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"支架固定螺丝震动退扣\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"重新紧固松动的螺丝即可\"\n    }\n  ]\n}",
+    "context": "航空钣金与结构件固定：导流板等薄板结构在出厂时常使用实心铆钉（Rivets）进行永久性铰接。当铆钉因震动断裂或脱落（Missing Rivets）导致部件松动时，由于现场通常不具备重新铆接的条件或强度已受损，标准的适航修复工艺是扩孔后使用航空螺栓加自锁螺母（Screws & Nuts）进行替代固定。",
+    "thought": "1. 识别顶层事件：支架松动，无误。\n2. 核对归属与逻辑：待校验树给出的底事件是“螺丝震动退扣”，处理建议是“重新紧固”。这与输入文本严重冲突：原文指出原紧固件是“铆钉（Rivets）”且已“缺失（Missing）”，根本没有螺丝可供紧固。\n3. 生成修正：判定为 false，修正底事件为结构件铆钉脱落丢失，维修动作更新为更改固定方式（改用螺母螺栓）。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理归属与维修逻辑错误。待校验故障树假设紧固件是'螺丝'且仅仅是'退扣松动'。但实际记录表明，原始紧固件为'铆钉'，且已经发生断裂/丢失。因此无法通过简单的'重新紧固'修复，必须采用螺栓加螺母的形式进行工程替代。",
+      "corrected_tree": {
+        "top_event": "3号后部导流板支架松动",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "结构件固定铆钉断裂/缺失",
+            "type": "Basic Event",
+            "treatment": "移除残余铆钉，使用航空螺栓和螺母进行替代固定",
+            "evidence": "REPLACED MISSING RIVETS W/ SCREWS & NUTS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "定检中发现发动机外围结构与柔性密封件存在不同程度的梯次损坏（100034, 100043, 100046, 100050）：在金属钣金件方面，顶部左侧导流板发现单条裂纹（TOP L/H BAFFLE HAS A CRACK），而左发4号后部导流板则存在多处严重开裂（#4 AFT BAFFLE CRACKED IN MULTIPLE PLACES）。在柔性部件方面，右侧导流板的橡胶密封挡板撕裂（BAFFLE SEALS ON R/H SIDE ARE TORN），且1、2、6号发动机整流罩减震基座也出现撕裂（#1, 2, & 6 COWL MOUNTS ARE TORN）。机务针对单条裂纹打了止裂孔（STOP DRILLED）；针对多处开裂整体更换了导流板组件（REPLACED BAFFLE ASSY）；对撕裂的密封橡胶涂抹了硅胶修复（APPLIED SILICONE TO TORN AREAS）；并彻底更换了损坏的减震基座（REMOVED & REPLACED MOUNTS）。",
+    "context": "发动机外围结构损伤梯度：航空发动机的高频震动对周边附件的破坏呈现分级特征。对于金属导流板，轻微损伤表现为单点应力裂纹，可通过钻孔（Stop Drill）释放应力；严重损伤表现为多处网状开裂，必须整体更换总成。对于橡胶柔性材质（如 Baffle Seals 和 Cowl Mounts），轻度的边缘撕裂可使用航空硅胶（Silicone）进行粘合修复，而承受主要载荷的减震基座撕裂则意味着彻底失效，必须进行硬件更换。",
+    "thought": "1. 识别顶层事件：发动机外围结构与柔性附件综合退化。\n2. 识别逻辑分支：按照材料属性分为“金属薄板结构损伤”和“柔性橡胶材料撕裂”两大分支。\n3. 深层梯度逻辑：在每个分支下，再根据损伤的严重程度，映射不同的维修手段。比如导流板分支下，区分“微裂纹（钻孔）”和“多处开裂（换总成）”。构建出具有层级梯度的复杂故障树。",
+    "output": {
+      "top_event": "发动机外围附件结构与柔性材料综合退化",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "金属钣金导流板疲劳损伤",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "单点轻度应力裂纹",
+              "type": "Basic Event",
+              "treatment": "在裂纹尖端钻止裂孔以抑制扩展",
+              "evidence": "TOP L/H BAFFLE HAS A CRACK; STOP DRILLED CRACK."
+            },
+            {
+              "node_name": "多处严重结构开裂",
+              "type": "Basic Event",
+              "treatment": "拆除并更换导流板组件(Assy)",
+              "evidence": "#4 AFT BAFFLE CRACKED IN MULTIPLE PLACES; REPLACED BAFFLE ASSY."
+            }
+          ]
+        },
+        {
+          "node_name": "柔性橡胶材质老化撕裂",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "非承力橡胶密封挡板撕裂",
+              "type": "Basic Event",
+              "treatment": "在撕裂区域涂抹航空硅胶进行粘接修复",
+              "evidence": "BAFFLE SEALS ON R/H SIDE ARE TORN; APPLIED SILICONE TO TORN AREAS."
+            },
+            {
+              "node_name": "主承力整流罩减震基座撕裂",
+              "type": "Basic Event",
+              "treatment": "拆卸并更换全新的减震基座",
+              "evidence": "#1, 2, & 6 COWL MOUNTS ARE TORN; REMOVED & REPLACED MOUNTS."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "综合运行参数异常记录 (100054, 100062, 100066)：多架次试车及飞行中出现发动机运行参数越限。地面试车时，飞行员注意到发动机机油压力过高（DURING GROUND RUN PILOT NOTICED HIGH OIL PRESS），同时在怠速检查时发动机直接熄火（DURING IDLE CHECK ON RUN UP, ENGINE QUIT）。在另一架次的降落后，发现发动机怠速过高，达到 970 RPM（AFTER LANDING, A/C IDLE @ 970 RPM）。机务人员针对机油问题调整了机油压力释放阀并全功率试车验证正常（ADJUSTED ENGINE OIL PRESS RELIEF VALVE... OIL PRESS CHECKED OK）；针对怠速熄火和怠速过高问题，分别重新调整了怠速设定，使其恢复到标准的 650 RPM 及正常限制范围内（ADJUSTED IDLE SETTING, IDLE INDICATING 650 RPM... ADJUSTED IDLE SETTING BY LOWERING）。",
+    "context": "发动机运行参数控制：活塞发动机的机油压力（Oil Pressure）和怠速（Idle Speed）受机械调节阀门控制。机油压力过高通常是因为机油压力释放阀（Oil Press Relief Valve）设定偏紧或弹簧力过大，需要手动旋松调校。怠速异常（过高导致降落滑跑距离长，过低导致试车熄火）则是由于化油器或燃油伺服器的节气门限位螺钉设定漂移所致。这类故障不存在物理零件损坏，属于'软故障'，纯靠机械校准（Adjustment）修复。",
+    "thought": "1. 识别顶层事件：发动机核心运行参数（油压、转速）偏离正常基准。\n2. 识别逻辑分支：按照物理系统分为'滑油压力系统'和'燃油/怠速控制系统'。\n3. 深层提取：在怠速分支下，进一步拆分为'怠速过低(熄火)'和'怠速过高'两个表现，构建并列的调节恢复逻辑，形成无零件更换的校准型故障树。",
+    "output": {
+      "top_event": "发动机运行参数偏离标准限值",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "机油压力超标 (偏高)",
+          "type": "Basic Event",
+          "treatment": "调节机油压力释放阀，随后进行全功率地面试车验证",
+          "evidence": "PILOT NOTICED HIGH OIL PRESS; ADJUSTED ENGINE OIL PRESS RELIEF VALVE... GROUND RAN TO FULL PWR"
+        },
+        {
+          "node_name": "怠速设定漂移",
+          "logic_gate": "OR",
+          "children": [
+            {
+              "node_name": "怠速过低导致熄火",
+              "type": "Basic Event",
+              "treatment": "提高怠速设定值，校准至 650 RPM",
+              "evidence": "ENGINE QUIT... ADJUSTED IDLE SETTING, IDLE INDICATING 650 RPM"
+            },
+            {
+              "node_name": "怠速过高 (970 RPM)",
+              "type": "Basic Event",
+              "treatment": "调低怠速设定，使其处于手册容许范围内",
+              "evidence": "A/C IDLE @ 970 RPM; ADJUSTED IDLE SETTING BY LOWERING."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 (100065, 100067)：机务在排故中遇到两起特殊问题。一是飞行员报告燃油压力表指示在 32-33 之间，并会突然跳入红色超标区域（FUEL PRESS 32 - 33 W/ JUMPS INTO RED）。二是目视检查发现真空管路与机油冷却器管路发生摩擦干涉（VACUUM TUBE & OIL COOLER LINE ARE RUBBING TOGETHER）。机务对燃油压力问题的处理是清洁了传感器的接地路径，随后压力检查恢复正常（CLEANED TRANSDUCER GROUND PATH, FUEL PRESS CHECKED GOOD）。对于管路摩擦，机务移动了 Adel 夹箍并使用了两根扎带进行固定隔离，未发现管路受损（MOVED ADEL CLAMP & APPLIED 2 ZIP TIES, NO DEFECTS NOTED）。",
+    "context": "发动机附件外围隐患与仪表假指示：仪表指针的剧烈跳动（Jumps）通常不是流体系统的真实压力波动（真实波动会有物理迟滞），而是压力传感器（Transducer）的电气接地不良（Ground Path）导致的干扰信号。管路摩擦（Rubbing/Chafing）是由于震动导致管路位移，若不及时隔离，长期摩擦会磨穿管壁引发漏油/漏气，标准的预防性维修是使用 Adel 夹箍或尼龙扎带（Zip Ties）重新规划管路走线。",
+    "thought": "1. 识别顶层事件：发动机舱管路布局干涉与仪表指示异常。\n2. 识别逻辑分支：明显是两个独立的子系统故障。一个是流体管路的物理干涉，另一个是电气传感器的虚假信号。\n3. 深层提取：对于燃油压力跳动，明确其底层原因是'电气接地不良'而非'油泵损坏'；对于管路摩擦，底层动作是'物理隔离防护'。这种跨学科（电气+机械）的聚合非常锻炼模型的分类能力。",
+    "output": {
+      "top_event": "附件管路干涉与仪表电气干扰",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "燃油压力表跳动 (假指示)",
+          "logic_gate": "AND",
+          "evidence": "FUEL PRESS 32 - 33 W/ JUMPS INTO RED",
+          "children": [
+            {
+              "node_name": "压力传感器电气接地不良",
+              "type": "Basic Event",
+              "treatment": "清洁压力传感器(Transducer)的接地路径，消除电阻干扰",
+              "evidence": "CLEANED TRANSDUCER GROUND PATH, FUEL PRESS CHECKED GOOD"
+            }
+          ]
+        },
+        {
+          "node_name": "管路布局干涉隐患",
+          "logic_gate": "AND",
+          "evidence": "VACUUM TUBE & OIL COOLER LINE ARE RUBBING TOGETHER",
+          "children": [
+            {
+              "node_name": "真空管与滑油散热器管路物理摩擦",
+              "type": "Basic Event",
+              "treatment": "移动 Adel 夹箍位置，并使用扎带捆绑隔离，防止进一步磨损",
+              "evidence": "MOVED ADEL CLAMP & APPLIED 2 ZIP TIES, NO DEFECTS NOTED."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100061：1号气缸摇臂室盖垫片泄漏（#1 ROCKER COVER GASKET LEAKING）。维修人员拆除了旧的摇臂室盖，并整体更换了一个全新的摇臂室盖（REMOVED & REPLACED ROCKER COVER W/ NEW）。\n【待校验故障树】：\n{\n  \"top_event\": \"1号气缸摇臂室漏油\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"摇臂室盖垫片老化/破损\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"更换全新的摇臂室盖垫片 (Gasket)\"\n    }\n  ]\n}",
+    "context": "摇臂室漏油（Rocker Cover Leaking）：通常情况下漏油是由耗材垫片（Gasket）老化引起的，常规维修只需换垫片。但如果金属摇臂室盖由于过热或安装力矩过大发生了法兰面翘曲变形，那么只换垫片将无济于事，此时必须直接更换金属盖板本体（Rocker Cover W/ NEW）。维修日志的实际动作是判断深层原因的唯一依据。",
+    "thought": "1. 识别顶层事件：1号气缸摇臂室漏油，无误。\n2. 核对归属与逻辑：记录现象虽然写着“垫片泄漏（GASKET LEAKING）”，但实际执行的维修动作是更换了整个“摇臂盖本体（REPLACED ROCKER COVER W/ NEW）”。待校验树依然机械地判定为“换垫片”，没有抓住维修动作反映出的深层逻辑（盖板本体变形）。\n3. 生成修正：判定为 false。这是典型的“表象与实际操作背离”的案例，需修正底事件为结构件本体损坏。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "逻辑归属错误。待校验故障树仅根据表面故障描述推断为垫片损坏。但现场维修动作是更换了整个'摇臂室盖本体'而非'垫片'。这表明实际故障是由金属盖板本体变形导致无法密封，而非单纯的垫片老化。",
+      "corrected_tree": {
+        "top_event": "1号气缸摇臂室漏油",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "摇臂室金属盖板本体变形失效",
+            "type": "Basic Event",
+            "treatment": "整体拆除并更换全新的摇臂室金属盖",
+            "evidence": "REMOVED & REPLACED ROCKER COVER W/ NEW."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100064：学员无法启动飞机发动机（STUDENT COULDN'T START A/C）。机务人员到达现场后，直接为学员启动了飞机（STARTED A/C FOR STUDENT），未更换或修理任何零部件。\n【待校验故障树】：\n{\n  \"top_event\": \"发动机无法启动\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"启动电机系统机械故障\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"排查并维修启动电机或点火系统\"\n    }\n  ]\n}",
+    "context": "飞行器启动流程与操作失误：活塞发动机的启动涉及复杂的混合比控制、注油（Priming）和磁电机打火时机。如果飞行学员（Student）操作不当（如注油过多导致淹缸，或混合比未推入），飞机将无法启动。机务到场后如果能一次性顺利启动且无维修动作，说明飞机本身处于100%完好状态，纯粹是人为操作失误（Operator Error）。",
+    "thought": "1. 识别顶层事件：学员报告无法启动。\n2. 核对归属与逻辑：待校验树将其归类为“机械系统故障”。但这违背了常理，因为机务仅仅是“STARTED A/C FOR STUDENT”（帮他启动了），根本没修。这是把“人为操作失误”误判成了“机械硬件故障”。\n3. 生成修正：判定为 false。该事件实际上不能算是机械系统的故障树，应当归类为人为因素/操作异常。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障定性严重错误。待校验树将事件判定为硬件机械故障，但机务的反馈动作仅仅是'代为启动'，未进行任何物理维修。这明确表明飞机系统工作正常，根本原因是学员的操作程序错误导致无法启动。",
+      "corrected_tree": {
+        "top_event": "表象：发动机无法启动",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "人为因素: 学员启动操作不当",
+            "type": "Basic Event",
+            "treatment": "由机务/教员代为执行正确的启动程序，无需更换机械部件",
+            "evidence": "STARTED A/C FOR STUDENT."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "定检故障记录摘要 (100088, 100091, 100094)：机务检查时发现多处外围连接与密封问题。首先是1号气缸和左发4号气缸的进气管垫片发生泄漏（#1 INTAKE LEAKING; L/H ENG #4 CYL INTAKE GASKET IS LEAKING）。其次发现摇臂室盖固定螺丝松动（ROCKER BOX COVER SCREWS LOOSE）。机务拆除并更换了全新的1号和4号进气垫片（REMOVED & REPLACED #1 INTAKE GASKET W/ NEW...），并重新紧固了所有摇臂室盖的螺丝（TIGHTENED SCREWS）。",
+    "context": "航空发动机外围维护（简单逻辑）：外围密封（垫片 Gasket）和紧固件（螺丝 Screws）是活塞发动机最常见的耗损件。由于发动机震动和冷热交替，垫片老化漏气和螺丝震动松弛常常同时发生，但它们属于物理上相互独立的单点故障，排故手段也非常直接：耗材损坏即更换，螺丝松脱即紧固。",
+    "thought": "1. 识别顶层事件：发动机气缸外围密封泄漏与紧固件松脱。\n2. 查找故障分支：记录中明确包含两个独立问题：垫片漏气和螺丝松动。结构简单，没有复杂的因果嵌套。\n3. 构建简单逻辑故障树：使用一个 OR 门连接两个底事件，直接映射对应的现象与维修动作。",
+    "output": {
+      "top_event": "气缸外围密封与紧固失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "进气管垫片老化/破损",
+          "type": "Basic Event",
+          "treatment": "拆除并更换全新的进气垫片",
+          "evidence": "#1 INTAKE LEAKING; L/H ENG #4 CYL INTAKE GASKET IS LEAKING; REMOVED & REPLACED... W/ NEW"
+        },
+        {
+          "node_name": "摇臂室盖固定螺丝松动",
+          "type": "Basic Event",
+          "treatment": "按标准扭矩重新紧固螺丝",
+          "evidence": "ROCKER BOX COVER SCREWS LOOSE; TIGHTENED SCREWS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 (100076 - 100080)：飞行员报告发动机启动后运转极其粗暴且震动剧烈（ENGINE STARTED RUNNING ROUGH & VIBRATING A LOT）。机务地面试车确认了故障（RAN A/C. CONFIRMED DISCREPANCY），并发现了两个核心机械问题：首先，3号气缸存在严重内部缺陷，机务直接拆除了3号气缸并整体更换了一个可用气缸总成（REMOVED #3 CYL. INSTALLED SERVICEABLE CYL ASSY）。其次，排查发现多缸排气门存在问题，机务拆卸了1、2、4号气缸的排气门，并按手册扩孔清理了气门导管（DISASSEMBLED #1, 2, 4 EXHAUST VALVES, REAMED GUIDES IAW）。",
+    "context": "严重运转粗暴与深层机械故障（复杂逻辑）：严重的发动机震动（Vibrating a lot）通常意味着某几个气缸未能正常做功。如果是单缸完全失效（如活塞环断裂、气门掉落），需要整体更换气缸总成（Cylinder Assembly）。同时，排气气门卡滞（Exhaust Valve Sticking）是活塞发动机的常见顽疾，铅沉积物和积碳会导致气门在导管中卡死，引发剧烈震动。标准的深度维修工艺是“扩孔（Ream）”，即使用专用铰刀清理排气门导管（Exhaust Valve Guides）内的积碳，恢复标准间隙。",
+    "thought": "1. 识别顶层事件：发动机运转粗暴且伴随剧烈机械震动。\n2. 识别故障原因：地面试车排查出了两套平行的深层硬件故障。一是3号缸的整体失效；二是1、2、4号缸的排气气门导管积碳卡滞。\n3. 构建复杂故障树：震动是由这两个硬件故障共同导致的综合结果。故障树的底层事件将直接指向核心机械部件的深度拆解与精密修复（更换总成、导管扩孔）。",
+    "output": {
+      "top_event": "发动机运转极其粗暴且剧烈震动",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "单缸组件整体严重损坏",
+          "type": "Basic Event",
+          "treatment": "拆除损坏的3号气缸，并安装测试合格的备用气缸总成",
+          "evidence": "FOUND #3 CYL HAD VERY L... REMOVED #3 CYL. INSTALLED SERVICEABLE CYL ASSY."
+        },
+        {
+          "node_name": "多缸排气气门导管积碳卡滞",
+          "type": "Basic Event",
+          "treatment": "拆解排气气门机构，使用专用铰刀清理(扩孔)气门导管内部沉积物",
+          "evidence": "DISASSEMBLED #1, 2, 4 EXHAUST VALVES, REAMED GUIDES IAW"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 (100098 - 100099)：飞行员报告冷车启动时发动机运转粗暴，但随着发动机温度升高（热车），运转逐渐变得平稳（ROUGH RUNNING ENGINE ON START. ENGINE RAN SMOOTHER AS IT WARMED UP）。为了根治此问题，机务拆除了发动机整流罩和所有火花塞，对3号气缸的排气门导管进行了扩孔清理，随后完成了所有4个气缸排气门导管的扩孔作业（REMOVED ALL SPARK PLUGS. REAMED #3 EXH... FINISHED REAMING ALL 4 EXHAUST VALVE GUIDES）。",
+    "context": "晨起症状 (Morning Sickness) 与气门卡滞：活塞发动机“冷车粗暴、热车平顺”是非常典型的“晨起症状”。其根本原因是排气门导管内积聚了燃油铅沉淀物。冷车时间隙极小，导致气门卡滞、气缸不工作而产生抖动；当发动机变热后，金属膨胀使得导管间隙变大，气门恢复活动，发动机随之平顺。这种带有强烈温度特征的故障，唯一的物理解决途径就是对所有排气门导管进行扩孔除碳（Reaming Valve Guides）。",
+    "thought": "1. 识别顶层事件：带有温度特征的发动机运转粗暴（冷车粗暴，热车平稳）。\n2. 定位底层原因：明确的物理学机制指向“排气门积碳导致的冷缩卡滞”。\n3. 提取维修动作：无需更换气缸，而是进行深度的机械加工（Reamed Guides）。将其映射为针对深层物理机制的单层直接原因。",
+    "output": {
+      "top_event": "发动机冷车启动运转粗暴(热车后平顺)",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "排气气门导管积碳引发冷缩卡滞",
+          "logic_gate": "AND",
+          "evidence": "ENGINE RAN SMOOTHER AS IT WARMED UP",
+          "children": [
+            {
+              "node_name": "全缸排气门导管间隙不足",
+              "type": "Basic Event",
+              "treatment": "拆卸火花塞释放压力，对所有气缸的排气门导管进行扩孔(Ream)除碳作业",
+              "evidence": "REMOVED ALL SPARK PLUGS... FINISHED REAMING ALL 4 EXHAUST VALVE GUIDES."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100085：发动机无法启动（ENGINE WOULD NOT START）。机务人员到场后，成功启动了发动机，并通过贫油混合气运转的方式清理了火花塞积碳，随后工作正常（STARTED ENGINE, LEANED MIXTURE TO CLEAN SPARK PLUGS）。\n【待校验故障树】：\n{\n  \"top_event\": \"发动机无法启动\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"点火系统硬件损坏\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除并更换损坏的火花塞或磁电机\"\n    }\n  ]\n}",
+    "context": "火花塞积碳（Spark Plug Fouling）与混合气调节：如果启动前过度注油（Over-priming）或长时间地面富油怠速，会导致燃油未完全燃烧，在火花塞电极上形成积碳或积液，进而导致无法启动。这种情况下硬件并未损坏。机务的通常做法是用特殊技巧强行启动后，将混合气拉杆推向贫油位置（Leaned Mixture），通过提高燃烧温度将积碳烧掉（Clean Plugs），从而恢复点火能力，无需更换任何零件。",
+    "thought": "1. 识别顶层事件：发动机无法启动，无误。\n2. 核对逻辑归属：待校验树判定为“点火系统硬件损坏”并建议“更换零部件”。然而原始记录明确显示，机务直接启动了发动机，仅仅依靠“调整贫油混合气（Leaned Mixture）”就完成了自我清洁（Clean），没有物理拆换动作。\n3. 生成修正：判定为 false。这是典型的“软件/操作性故障”，而非硬件物理损坏。需修正底事件为火花塞被附着物污染，治疗方案更新为通过燃烧自我清洁。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障定性错误。待校验故障树判定为点火硬件损坏。但根据维修记录，机务仅通过调节贫油混合气(Leaned Mixture)就烧掉了积碳清除了故障，没有更换任何部件。这表明这是由于前期富油导致的火花塞暂时性污染，而非永久性硬件失效。",
+      "corrected_tree": {
+        "top_event": "发动机无法启动",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "火花塞被燃油/积碳暂时性污染",
+            "type": "Basic Event",
+            "treatment": "启动发动机后采用贫油混合气设定运转，利用高温烧蚀清理火花塞表面",
+            "evidence": "STARTED ENGINE, LEANED MIXTURE TO CLEAN SPARK PLUGS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100087：右前顶部导流板的橡胶密封挡板固定铆钉被拉脱（TOP FRONT R/H BAFFLE, BAFFLE SEAL RIVET PULLED THROUGH）。机务将残余的铆钉钻掉，并安装了螺丝和螺母来重新连接固定（DRILLED OUT RIVET & INSTALLED SCREW & NUT TO ATTACH R/H...）。\n【待校验故障树】：\n{\n  \"top_event\": \"导流板密封挡板失效\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"橡胶密封挡板撕裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"使用航空硅胶重新粘合撕裂的橡胶挡板\"\n    }\n  ]\n}",
+    "context": "铆钉拉脱（Rivet Pulled Through）：这是一个非常具体的机械失效模式。指的是紧固件（铆钉的头）受力过大，硬生生地从较软的被连接材料（如橡胶密封条或薄铝板）上撕开扯了出去，留下一个被破坏扩大的孔洞。因此，单纯涂硅胶粘合是无用的，原始孔已经变大，必须钻掉废旧铆钉（Drilled out），改用带垫片的航空螺丝和螺母（Screw & Nut）来提供更大的接触面积以重新夹紧材料。",
+    "thought": "1. 识别顶层事件：导流板密封部件失效，大方向没问题。\n2. 核对逻辑归属：待校验树把问题判断为了“橡胶撕裂”并用“硅胶粘合”。原文描述的现象是“RIVET PULLED THROUGH（铆钉拉脱）”，机务的动作是钻掉旧紧固件，换用新形态的紧固件（螺母+螺丝）。待校验树完全偏离了紧固件失效的本质。\n3. 生成修正：判定为 false。修正为机械紧固件破坏失效，修复动作为更改紧固方式。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "失效模式判断错误。待校验故障树将故障判定为材料撕裂并建议硅胶粘合。但原文明确指出是'铆钉拉脱(Rivet Pulled Through)'，说明连接孔已破损。此时必须更改紧固件类型，使用接触面更大的螺栓螺母组来替代原有的铆钉。",
+      "corrected_tree": {
+        "top_event": "顶部导流板密封件脱落",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "密封件固定铆钉发生拉脱穿孔",
+            "type": "Basic Event",
+            "treatment": "钻除残余的失效铆钉，采用螺丝和螺母进行扩口重新固定",
+            "evidence": "DRILLED OUT RIVET & INSTALLED SCREW & NUT TO ATTACH R/H"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "定检中发现两处导致发动机单缸性能下降的严重物理故障：首先，2号气缸气缸压力测试未达标（#2 CYLINDER HAS LOW COMPRESSION）；其次，目视检查发现左发1号气缸进气管表面存在巨大的机械凿痕/深槽（#1 L/H INTAKE HAS LARGE GOUGE）。针对2号缸，机务拆除了摇臂室盖，并敲击/震击了进气气门，随后气缸压力测试通过（REMOVED ROCKER COVER & STAKED INTAKE VALVE. PASSED COMP）；针对1号缸，机务直接拆除并更换了一根可用的进气管（REMOVED & REPLACED #1 L/H INTAKE PIPE W/ SERVICEABLE PI）。",
+    "context": "核心机械故障与物理复位：气缸压力低（Low Compression）通常因为气门关闭不严。除了更换气缸，针对因轻微积碳导致的进气气门卡滞，机务常用的物理干预手段是“敲击气门（Staking the Valve）”，即用软锤震击气门杆，使其打破卡滞状态重新贴合气门座，恢复气缸密封性。此外，对于金属管路，如果是轻微划痕可打磨，但如果是严重的凿痕（Large Gouge），意味着管壁变薄、应力集中极易断裂，必须整体更换管路件。",
+    "thought": "1. 识别顶层事件：发动机气缸性能下降及结构严重受损。\n2. 分支逻辑分析：记录涉及两个独立的严重物理故障。一是内部气门卡滞导致失压，二是外部管路深度损伤。\n3. 底层动作映射：1号缸的底事件指向物理撞击造成的不可逆材料损伤（换管）；2号缸的底事件指向积碳卡滞（通过Staking物理复位）。这展现了完全不同的修复逻辑维度。",
+    "output": {
+      "top_event": "发动机气缸物理结构及做功性能下降",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "进气管深度机械损伤",
+          "type": "Basic Event",
+          "treatment": "不可修复的深层凿痕，需拆除并更换完好的进气管组件",
+          "evidence": "#1 L/H INTAKE HAS LARGE GOUGE; REMOVED & REPLACED #1 L/H INTAKE PIPE W/ SERVICEABLE PI."
+        },
+        {
+          "node_name": "进气气门卡滞导致气缸失压",
+          "type": "Basic Event",
+          "treatment": "拆除摇臂室盖，对进气气门执行敲击复位(Staked Valve)操作，重新打压测试",
+          "evidence": "#2 CYLINDER HAS LOW COMPRESSION; REMOVED ROCKER COVER & STAKED INTAKE VALVE. PASSED COMP."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100105：发动机在进行磁电机检查时突然熄火（ENGINE DIED DURING MAG CK）。机务人员接手后，执行了“淹缸启动程序”，成功启动了飞机并运转正常（STARTED A/C USING FLOODED START PROCEDURE & RAN A/C TO...）。\n【待校验故障树】：\n{\n  \"top_event\": \"发动机试车熄火\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"磁电机内部线圈/触点断路损坏\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆卸并更换损坏的磁电机\"\n    }\n  ]\n}",
+    "context": "磁电机检查（Mag Check）与淹缸（Flooded Engine）：在试车时将点火开关拨至单侧磁电机以检查压降是标准程序。如果此时发动机熄火，可能是由于磁电机本身损坏，但也极可能是由于气缸内燃油过多（混合比过富），在单侧点火能量较弱时无法点燃而“淹死”。机务未更换磁电机，而是直接使用“淹缸启动程序（Flooded Start Procedure，通常是全开油门切断燃油打马达吹除积油）”成功恢复，这反证了磁电机硬件完好。",
+    "thought": "1. 识别顶层事件：发动机试车（磁电机检查时）熄火。顶事件描述无误。\n2. 核查逻辑与归属：待校验树看到了“MAG CK”，就草率归因于“磁电机线圈损坏”。但结合实际维修动作（使用了淹缸启动程序且无零件更换），说明这又是一个“人为操作失误/供油状态异常”导致的假性硬件故障。\n3. 生成修正：判定为 false。底事件必须修正为“气缸内燃油过多导致淹缸”，维修方案修正为执行特定的启动除油程序。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "硬件定性严重误判。待校验故障树仅凭'在磁电机检查时发生'就判定磁电机损坏。然而机务的实际解决方案是执行'淹缸启动程序(Flooded Start Procedure)'并成功运转，这表明点火硬件完全正常，真实原因是在该测试节点气缸内燃油过量（淹缸）导致无法维持燃烧。",
+      "corrected_tree": {
+        "top_event": "发动机在单侧点火测试时熄火",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "混合比过富导致气缸淹缸 (Flooded)",
+            "type": "Basic Event",
+            "treatment": "无需更换硬件，直接执行飞行手册规定的淹缸启动程序吹除多余燃油即可",
+            "evidence": "STARTED A/C USING FLOODED START PROCEDURE."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "综合钣金损伤记录 (100111, 100112, 100120, 100127)：多架次发动机导流板存在不同程度的疲劳损坏。右前侧导流板和左后上角导流板分别发现有一处裂纹（R/H BAFFLE FRONT SIDE HAS A CRACK; TOP BACK L/H CORNER BAFFLE IS CRACKED）。然而，左发4号后部导流板则破损严重，在多个位置开裂（L/H ENGINE #4 AFT BAFFLE CRACKED IN MULTIPLE PLACES）。机务对于单处裂纹的部位，统一采用了钻止裂孔并使用同材质金属板制作补丁修复的方式（STOP DRILLED CRACK & FABRICATED PATCH W/ LIKE MATERIAL）；而对于多处开裂的4号导流板，则拆除了导流板并调换相关附件，安装了经过全面修复/重构的导流板总成（REMOVED BAFFLE & SWAPPED ACCESSORIES... INSTALLED REPAIRED BAFFLING）。",
+    "context": "钣金疲劳的梯次修复逻辑：面对航空器薄金属件（钣金）的裂纹，适航要求根据受损面积采取不同策略。单一的应力集中裂纹（A Crack）可以通过“止裂孔+打补丁（Stop Drill & Patch）”进行局部加强；但一旦出现网络状的多处开裂（Multiple Places），意味着整体结构强度已崩溃，局部打补丁无效，必须将其整体拆除，剥离上面的附属零件（Swap Accessories），并更换全新的或厂内彻底重构的总成部件（Repaired Baffling）。",
+    "thought": "1. 识别顶层事件：发动机冷却导流板金属疲劳损坏。\n2. 层级划分：明确体现出“损伤程度”对“维修工艺”的决定性影响。\n3. 结构重组：构建一个包含两个逻辑分支（单裂纹 vs 多处开裂）的树状结构，分别映射其对应的特定钣金修理标准动作。这是训练大模型理解“维修工程分级标准”的绝佳素材。",
+    "output": {
+      "top_event": "导流板金属疲劳开裂",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "单点/局部疲劳裂纹",
+          "type": "Basic Event",
+          "treatment": "在裂纹尖端钻止裂孔，并使用同材质金属板制作补丁覆盖铆接",
+          "evidence": "HAS A CRACK... STOP DRILLED CRACK & FABRICATED PATCH W/ LIKE MATERIAL."
+        },
+        {
+          "node_name": "大面积网络状结构崩溃 (多处开裂)",
+          "type": "Basic Event",
+          "treatment": "整体拆除受损导流板，转移相关附件，安装整体修复或全新的导流板总成",
+          "evidence": "CRACKED IN MULTIPLE PLACES... REMOVED BAFFLE & SWAPPED ACCESSORIES / INSTALLED REPAIRED BAFFLING."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100101：目视检查发现机身右侧完全被机油覆盖（OIL FOUND ON ENTIRE RIGHT SIDE OF FUSELAGE）。由于漏油面积过大无法定位源头，机务人员拆除了发动机整流罩，对整个发动机进行了清洗。随后启动发动机进行地面试车观察，以准确排查泄漏点（REMOVED COWLING, CLEANED ENGINE, PERFORMED ENGINE RUN UP）。",
+    "context": "宏观症状与调查性维修（Investigative Action）：在航空器维护中，有时候故障现象极其夸张（如整个机身沾满机油），此时泄漏源可能只是一个微小的垫片或松动的接头。直接盲目更换部件是不符合工程逻辑的。标准的第一步排故动作是清理现场（Clean Engine）并在受控环境下复现故障（Run Up），这属于“诊断前置动作”。",
+    "thought": "1. 识别顶层事件：机身右侧发生灾难性的大面积滑油污染。\n2. 明确底层原因：在当前工单节点，具体的物理泄漏点（底事件）是“未知”的。\n3. 映射逻辑：将底事件定性为“源头未知的滑油泄漏”，并将维修动作设定为“调查性动作（清洗+试车复现）”。这能教会模型在信息不足时不要强行编造坏了哪个零件，而是给出诊断步骤。",
+    "output": {
+      "top_event": "机身右侧大面积滑油污染",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "源头未知的严重滑油泄漏",
+          "type": "Basic Event",
+          "treatment": "执行调查性维修动作：拆卸整流罩，深度清洗发动机油污，随后进行地面试车以准确定位漏点",
+          "evidence": "OIL FOUND ON ENTIRE RIGHT SIDE OF FUSELAGE; REMOVED COWLING, CLEANED ENGINE, PERFORMED ENGINE RUN UP."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 (100149-100152)：飞行员报告在自转降落(Auto)结束时发动机发生严重超速，转速高达 3400 RPM（ENGINE OVERSPEED UP TO 3400 RPM @ TERMINATION OF AN AUTO）。机务并未发现直观漏油（LEAK CHECK GOOD），但按法规开始执行了一系列深度拆解检查：首先启动了气门传动机构超速检查（BEGAN VALVE TRAIN OVERSPEED INSP），同时进行了发动机整体超速检查（BEGAN ENG OVERSPEED INSP IAW）。最终完成了所有气门机构的探伤排查并恢复（FINISHED VALVE TRAIN OVERSPEED INSP. WAS COMPLET）。",
+    "context": "发动机超速（Overspeed）：当发动机转速越过设计的红线极值（例如达到 3400 RPM）时，极易对内部高速运动件造成致命内伤，尤其是气门“浮动”导致活塞撞击气门。因此，即使表面看起来运转正常且无漏油，适航法规也强制要求触发一整套“超速检查（Overspeed Inspection）”，重点探伤排查气门传动机构（Valve Train）是否出现微观弯曲或变形。这属于基于事件触发的系统性排故逻辑。",
+    "thought": "1. 识别顶层事件：飞行操作诱发的发动机严重超速事件。\n2. 识别故障逻辑：超速并非某个零件损坏的结果，而是诱发系统性排查的原因。排故动作是法定程序的执行，而非针对特定破损件的更换。\n3. 构建树状结构：将超速事件作为顶层事件，将触发的两大核心检查序列（气门传动机构检查、整体检查）作为并列的基本应对事件输出。",
+    "output": {
+      "top_event": "发动机极端超速事件 (达到 3400 RPM)",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "系统性强制检查序列",
+          "logic_gate": "AND",
+          "evidence": "ENGINE OVERSPEED UP TO 3400 RPM",
+          "children": [
+            {
+              "node_name": "气门传动机构损伤排查",
+              "type": "Basic Event",
+              "treatment": "执行并完成专门的气门传动机构超速检查，排查隐性变形",
+              "evidence": "BEGAN VALVE TRAIN OVERSPEED INSP... FINISHED VALVE TRAIN OVERSPEED INSP."
+            },
+            {
+              "node_name": "发动机整体结构性能检查",
+              "type": "Basic Event",
+              "treatment": "按照技术手册(IAW)执行发动机整体超速检查程序",
+              "evidence": "BEGAN ENG OVERSPEED INSP IAW ."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100135：飞行员报告气缸头温度计指针剧烈跳动，且发动机出现瞬间运转粗暴（CHT NEEDLE BOUNCES & HAD ENGINE RUN ROUGH MOMENTARILY）。机务全面检查发动机后未发现机械缺陷（INSP ENGINE, NO DEFECTS N），最终排查确认故障，拆卸并更换了 CHT 温度探头（REMOVED & REPLACED CHT PROBE）。\n【待校验故障树】：\n{\n  \"top_event\": \"气缸头温度异常跳动伴随运转粗暴\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"气缸内部产生异常高温(拉缸/爆震)\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆解气缸进行大修，检查机械磨损状态\"\n    }\n  ]\n}",
+    "context": "气缸头温度（CHT）监测系统：用于实时监控气缸过热状况。物理热力学温度的变化是缓慢且具连续性的。如果 CHT 指针出现剧烈跳动（Bounces），通常是传感探头（Probe）短路或线路搭铁导致的电信号异常，而非真实的机械温度瞬间剧变。错误的温度电信号可能干扰混合气调节系统，引发短暂的“运转粗暴”。确认发动机本体无缺陷后，只需更换电气探头即可。",
+    "thought": "1. 识别顶层事件：温度表指针跳动伴随发动机瞬间抖动。顶事件描述符合事实。\n2. 核查逻辑与归属：待校验树被“温度”字眼误导，将其定性为“气缸产生异常高温”的机械故障，并建议“大修”。这完全忽略了原文中指针“跳动(Bounces)”的电气特性，且与维修记录中“无机械缺陷(NO DEFECTS)”以及“更换探头(REPLACED PROBE)”的动作严重背离。\n3. 生成修正：判定为 false。底事件修正为传感器探头电气失效，维修方案修正为更换探头。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理系统定性错误。待校验树将仪表的瞬间异常跳动误判为严重的气缸热力学机械故障。但根据维修记录，发动机本体无任何缺陷，实际故障仅是负责采集信号的 CHT 温度探头发生电气损坏，引发了虚假的仪表跳动和短暂的系统干涉。",
+      "corrected_tree": {
+        "top_event": "CHT温度指针跳动伴随短暂运转粗暴",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "CHT温度传感探头电气失效/短路",
+            "type": "Basic Event",
+            "treatment": "检查发动机机械本体无恙后，拆除并更换损坏的CHT温度探头",
+            "evidence": "REMOVED & REPLACED CHT PROBE. INSP ENGINE, NO DEFECTS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "综合故障记录 (100136-100138)：日常检查中发现核心承力部件受损：发动机悬置挂架上存在磨损痕迹，起因是发动机通气管支架长时间摩擦干涉导致的（NOTED WEAR ON ENGINE MOUNT CAUSED BY ENGINE BREATHER SUPPORT）。为了彻底修复受损的结构挂架，机务执行了重度维修：将整台发动机吊离机身（REMOVED ENGINE），随后更换了全新的发动机悬置挂架，并按标准力矩固定后将发动机重新安装回机身（REPLACED ENGINE MOUNT, TORQUED ENGINE M... FINISHED INSTALLATION OF ENGINE）。",
+    "context": "物理干涉与大修逻辑：发动机悬置挂架（Engine Mount）是连接发动机与飞机骨架的核心承力部件。如果在高频震动下，周边附件（如通气管支架 Breather Support）与之发生干涉摩擦（Wear），会产生应力集中，极易在飞行中引发灾难性结构断裂。挂架属于深层底层硬件，更换挂架必须执行大规模的系统工程，即先拆卸吊离整台发动机（Engine Removal），这属于极高成本的纠正性维修。",
+    "thought": "1. 识别顶层事件：发动机核心悬置挂架遭受物理损伤。\n2. 锁定中间逻辑：明确指出了导致磨损的“元凶”是通气管支架摩擦。干涉摩擦是导致硬件损坏的传导链。\n3. 提取维修动作：这是难得的重度维修案例，底事件的维修动作不仅仅是“更换零件”，而是包含了“拆除整台发动机”的工程级指令，这让故障树的应对方案具备了现实的重量感。",
+    "output": {
+      "top_event": "发动机核心承力挂架物理磨损",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "周边管路支架结构干涉",
+          "logic_gate": "AND",
+          "evidence": "NOTED WEAR ON ENGINE MOUNT CAUSED BY ENGINE BREATHER SUPPORT",
+          "children": [
+            {
+              "node_name": "发动机通气管支架摩擦损伤悬置挂架",
+              "type": "Basic Event",
+              "treatment": "执行大修程序吊离整台发动机，更换受损悬置挂架按力矩紧固后，重新安装发动机",
+              "evidence": "REMOVED ENGINE. REPLACED ENGINE MOUNT, TORQUED ENGINE M... FINISHED INSTALLATION OF ENGINE."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100160：飞行员报告在地面滑行时发动机突然熄火（WHILE TAXIING, ENGINE QUIT）。机务进行故障排查，发现4号进气管路存在漏气问题（FOUND #4 INTAKE WAS LEAKING）。随后直接拆卸并更换了损坏的进气组件，排除了故障（REMOVED & REPLACED INTAKE）。",
+    "context": "地面低速工况与进气泄漏：在地面低速滑行（Taxiing）时，发动机节气门开度极小，吸入的空气量和喷油量都很低。此时如果进气管（Intake Pipe）出现裂纹或密封破损导致漏气，大量未被化油器/伺服器计量的额外外部空气会被吸入气缸。这会导致可燃混合气在瞬间变得极其贫油（Too Lean），从而直接引发低速状态下的发动机熄火（Engine Quit）。",
+    "thought": "1. 识别顶层事件：飞机地面滑行期间发动机意外熄火。\n2. 查找底层原因：记录直接指出了由于漏气导致。虽然记录中没写漏气为何导致熄火，但Context中补充了贫油熄火的物理机制。\n3. 构建单线故障树：形成直接对应的简单因果逻辑，将进气管泄漏作为引起熄火的底层硬件诱因。",
+    "output": {
+      "top_event": "地面滑行工况下发动机熄火",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "未经计量的空气大量渗入",
+          "logic_gate": "AND",
+          "evidence": "FOUND #4 INTAKE WAS LEAKING",
+          "children": [
+            {
+              "node_name": "4号进气系统密封破损漏气",
+              "type": "Basic Event",
+              "treatment": "拆卸并整体更换损坏的4号进气组件",
+              "evidence": "REMOVED & REPLACED INTAKE."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "深度维修记录 (100184-100186)：机务记录显示需要为了维修防火墙而移除发动机（REMOVE ENGINE TO FACILITATE FIREWALL REPAIR）。维修动作分为三个主要阶段：首先是拆除发动机（REMOVED ENGINE）；随后由专业的第三方结构维修公司完成防火墙修复（FIREWALL REPAIRED BY ODEGAARD WINGS）；最后在防火墙修复完成后，将发动机重新安装回机身（INSTALLED ENGINE AFTER REPAIR TO FIREWALL WAS COMPLETED）。",
+    "context": "防火墙 (Firewall) 与为维修提供便利 (Facilitate Repair)：飞机防火墙是隔离发动机舱与驾驶舱的关键受力与防火结构。如果防火墙出现结构损伤，由于前方被庞大的发动机本体完全遮挡，机务必须执行“移除发动机”这一极其耗时的宏观动作，仅仅是为了给后续的结构修复“提供空间/便利”。这种维修逻辑中，发动机本身并没有坏，拆卸它属于“接近性拆卸（Access Removal）”。",
+    "thought": "1. 识别顶层事件：飞机防火墙结构受损需要大修。\n2. 识别中间逻辑：由于物理空间干涉，必须先将发动机整体拆除才能接触到维修面。\n3. 构建时间线故障树：将大修过程按逻辑顺序拆解为三大底事件：前置动作(拆除发动机)、核心动作(第三方专业结构修复)、后置恢复动作(重新安装发动机)。这能教会模型理解航空维修中的“工程依赖关系”。",
+    "output": {
+      "top_event": "防火墙结构性损伤修复大修",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "前置工程拆卸 (提供接近空间)",
+          "type": "Basic Event",
+          "treatment": "将发动机总成从机架上整体拆除",
+          "evidence": "REMOVE ENGINE TO FACILITATE FIREWALL REPAIR; REMOVED ENGINE."
+        },
+        {
+          "node_name": "核心结构件修复",
+          "type": "Basic Event",
+          "treatment": "由专业结构维修单位(Odegaard Wings)完成防火墙的钣金/结构修复",
+          "evidence": "FIREWALL REPAIRED BY ODEGAARD WINGS."
+        },
+        {
+          "node_name": "后置系统恢复",
+          "type": "Basic Event",
+          "treatment": "在防火墙修复达标后，重新吊装并安装发动机",
+          "evidence": "REINSTALL ENGINE AFTER REPAIR TO FIREWALL; INSTALLED ENGINE AFTER REPAIR TO FIREWALL WAS COMPLETED"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "复杂机械故障记录 (100199-100200)：飞行员报告发动机在启动后运转粗暴，且在推油门施加动力时发动机直接熄火（ENGINE RUNS ROUGH AFTER START. ENGINE SHUT DOWN WHEN POWER T...）。机务启动飞机验证了运转极度粗暴的现象，并观察到3号气缸排气温度异常（STARTED A/C, VERIFIED ENGINE RUNS VERY ROUGH. #3 EGT WA...）。为此，机务强制执行了 SI 388C 服务指令程序，对所有4个气缸的排气门导管进行了扩孔除碳作业（PERFORMED SI 388C ON ALL 4 CYLINDERS. REAMED EXHAUST VA...）。",
+    "context": "服务指令 SI 388C 与气门卡滞：加推力熄火伴随特定气缸 EGT（排气温度）异常，是典型的排气门卡滞（Exhaust Valve Sticking）现象。当排气门因高温积碳卡在开启位置时，气缸丧失压缩比，不仅引发剧烈震动，还会在节气门全开时导致系统性进气紊乱从而熄火。莱康明等发动机厂商发布的“SI 388C”是针对此类顽疾的标准服务指令，要求机务使用专用工具测量气门导管间隙，并强制进行全面扩孔清理（Reaming）。",
+    "thought": "1. 识别顶层事件：启动后运转粗暴且加推力时熄火。\n2. 识别中间逻辑：机务通过 EGT (排气温度) 仪表排查，将疑似点缩小到了核心机械做功单元（尤其是3号缸）。\n3. 构建底事件：由于现象严重，触发了厂家规定的系统性维护指令（SI 388C）。将执行该指令并清理气门导管作为消除震动和熄火的根本物理解决方案。",
+    "output": {
+      "top_event": "发动机严重运转粗暴伴随加推力熄火",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "气缸排气系统机械卡滞失效",
+          "logic_gate": "AND",
+          "evidence": "VERIFIED ENGINE RUNS VERY ROUGH. #3 EGT WA...",
+          "children": [
+            {
+              "node_name": "排气门导管积碳导致间隙不足",
+              "type": "Basic Event",
+              "treatment": "依照厂家指令(SI 388C)对所有气缸执行排气门导管间隙测量与扩孔清理",
+              "evidence": "PERFORMED SI 388C ON ALL 4 CYLINDERS. REAMED EXHAUST VA..."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100193：3号气缸排气系统密封圈泄漏（#3 CYL EXHAUST SEAL LEAKING）。机务人员进行了相应的处理，拆除并更换了损坏的密封圈（REMOVED & REPLACED SEAL）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸排气泄漏\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"气缸内部排气气门烧蚀破损\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除整个3号气缸总成，更换损坏的气门机构\"\n    }\n  ]\n}",
+    "context": "排气密封圈 (Exhaust Seal/Gasket) vs 排气门 (Exhaust Valve)：排气密封圈是位于气缸体外部排气口与排气管/消音器法兰之间的软质密封垫。它的泄漏只会导致高温废气在发动机舱内窜逸，不影响气缸内部的做功与压缩。这属于外部耗材老化，只需松开排气管法兰更换垫片即可。而排气气门烧蚀属于严重的内部核心机械故障，需要拆卸整个气缸大修。两者不可混淆。",
+    "thought": "1. 识别顶层事件：排气系统泄漏，大方向正确。\n2. 校验逻辑归属：待校验树将外部密封圈（Seal）的泄漏，错误定性为了气缸内部的气门（Valve）烧蚀，并给出了“拆除整个气缸”这种夸张的过度维修建议。这与日志中仅“换密封圈（REPLACED SEAL）”的低难度操作严重相悖。\n3. 生成修正：判定为 false。底事件修正为外部排气法兰密封圈损坏，维修方案修改为更换外围耗材。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "混淆了内外物理边界。待校验树将外部法兰的'密封圈(Seal)'泄漏误判为内部核心机件'排气门(Valve)'的烧蚀。根据维修记录，机务仅更换了密封圈，说明这是典型的外围耗材老化，不需要进行气缸总成的深度拆解大修。",
+      "corrected_tree": {
+        "top_event": "3号气缸排气口废气泄漏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "外部排气法兰密封圈老化损坏",
+            "type": "Basic Event",
+            "treatment": "松开排气歧管法兰，拆除并更换新的排气密封圈",
+            "evidence": "REMOVED & REPLACED SEAL."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100196：3号气缸摇臂室盖上丢失了一颗螺丝（MISSING SCREW ON #3 ROCKER COVER）。维修人员为其安装了一颗新的螺丝（INSTALLED NEW SCREW）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸摇臂室盖螺丝缺失\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"摇臂室盖垫片被内部机油压力冲毁\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除摇臂室盖，更换全新的密封垫片\"\n    }\n  ]\n}",
+    "context": "机械紧固件缺失（Missing Screw）：螺丝丢失通常是由于初始扭矩不足加上高频震动导致的机械物理脱落。如果故障描述中并未提及“漏油（Leaking）”，说明剩余的螺丝提供的压紧力依然维持了垫片的密封状态。此时只需补齐缺失的紧固件并打满力矩即可，盲目更换内部垫片属于过度推理。",
+    "thought": "1. 识别顶层事件：紧固件丢失，无误。\n2. 校验逻辑归属：待校验树过度发散，将一个单纯的螺丝丢失事件，臆想为“垫片被冲毁”。日志里根本没提漏油，也没提换垫片，只有“安装新螺丝”。\n3. 生成修正：判定为 false。去掉无中生有的垫片故障，回归基础的机械脱落逻辑。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障过度推理。待校验树将单纯的紧固件丢失臆想为严重的内部密封冲毁。维修记录中既没有漏油现象的描述，也没有更换垫片的动作。该故障纯粹是震动导致的机械脱落，补充紧固件即可解决。",
+      "corrected_tree": {
+        "top_event": "3号气缸摇臂室盖紧固件缺失",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "震动导致单颗螺丝退扣脱落",
+            "type": "Basic Event",
+            "treatment": "安装一颗符合标准的新螺丝并施加正确扭矩",
+            "evidence": "INSTALLED NEW SCREW."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "复合密封与耗材记录 (100194, 100195)：定检中发现发动机导流系统的辅助柔性耗材出现老化脱落。首先是1号和3号导流板上的减震毛毡条开始脱落（FELT ON #1 & 3 BAFFLE COMING LOOSE）。其次是左右两侧发动机的导流板防磨胶塞均出现严重磨损（ENGINE BAFFLE BUTTONS WORN）。机务人员对毛毡脱落区域进行了表面预处理并重新施加了密封胶粘合（PREPPED AREA & APPLIED SEALANT），随后拆除并彻底更换了所有磨损的防磨胶塞（REMOVED & REPLACED ENGINE BAFFLE BUTTONS ON L/H & R/H）。",
+    "context": "导流系统辅助耗材（Baffle Accessories）：除了金属板本身，导流系统严重依赖毛毡条（Felt Seals）来填补与发动机舱罩间的缝隙，以及防磨胶塞/缓冲垫（Baffle Buttons）来防止金属件之间的刚性摩擦。毛毡脱落通常因为原胶水老化，必须清洁表面后重新打胶（Sealant）。胶塞则是物理磨损件，只能更换。",
+    "thought": "1. 识别顶层事件：发动机冷却导流系统的辅助柔性组件老化失效。\n2. 分支逻辑：分为“粘贴类耗材（毛毡）”和“物理嵌固类耗材（防磨胶塞）”两种。\n3. 构建简单并列逻辑：这属于外围简单故障，两个底事件并行，分别对应“重新涂胶粘合”和“更换固体耗材”两种不同的处理工艺。",
+    "output": {
+      "top_event": "发动机导流板辅助柔性耗材退化",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "减震密封毛毡开胶脱落",
+          "type": "Basic Event",
+          "treatment": "清洁预处理粘接面，重新涂抹航空级密封胶/粘合剂进行固定",
+          "evidence": "FELT ON #1 & 3 BAFFLE COMING LOOSE; PREPPED AREA & APPLIED SEALANT."
+        },
+        {
+          "node_name": "导流板防磨缓冲胶塞物理磨损",
+          "type": "Basic Event",
+          "treatment": "拆除旧件，全面更换左右两侧的防磨胶塞",
+          "evidence": "ENGINE BAFFLE BUTTONS WORN; REMOVED & REPLACED ENGINE BAFFLE BUTTONS ON L/H & R/H."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100191：4号后部发动机导流板产生裂纹（#4 REAR ENGINE BAFFLE CRACKED）。机务人员在裂纹末端钻了止裂孔处理（STOP DRILLED CRACK）。\n【待校验故障树】：\n{\n  \"top_event\": \"4号后部导流板出现结构损伤\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"导流板金属结构疲劳开裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除并整体更换新的4号导流板总成\"\n    }\n  ]\n}",
+    "context": "裂纹修复原则（Crack Repair vs Replacement）：对于发动机薄金属导流板，如果是初期的单点/小面积应力裂纹，航空维修手册允许采用钻止裂孔（Stop Drilling）的方式释放尖端应力，防止其继续扩展，这属于低成本的现场修理。只有在多处开裂或撕裂无法挽救时，才需要整体更换（Replacement）。",
+    "thought": "1. 识别顶层事件：导流板裂纹，描述正确。\n2. 校验逻辑归属：底事件的故障定性正确（疲劳开裂），但维修处理方案错误。待校验树直接建议“整体更换总成”，这违背了原文记录中仅仅“钻止裂孔（STOP DRILLED）”的事实，过度放大了维修成本和级别。\n3. 生成修正：判定为 false。保留底层原因，但将过度维修的动作修正为微小修复动作（钻孔）。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "维修方案级别判定错误。待校验故障树针对普通的单点裂纹给出了'整体更换总成'的过度维修建议。实际维修日志表明，该裂纹较小，机务仅采用了标准的'钻止裂孔'原位修复工艺，无需进行整体拆换。",
+      "corrected_tree": {
+        "top_event": "4号后部导流板出现结构损伤",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "导流板金属结构局部应力开裂",
+            "type": "Basic Event",
+            "treatment": "在裂纹尖端钻止裂孔以抑制裂纹扩展，继续监控",
+            "evidence": "STOP DRILLED CRACK."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "系统集成重建记录 (100171, 100173, 100174)：记录显示左发在经历了大修/拆卸后需要重新集成安装（L/H ENGINE NEEDS TO BE REMOVED TO FACILITATE REPAIR）。维修人员执行了繁琐的系统接驳工作：首先安装并校准了磁电机的点火正时（INSTALLED & TIMED MAGNETOS）。其次，重新布线并连接电气网络，将电缆穿过防火墙并固定（ROUTED, CONNECTED WIRING... RAN CABLES THROUGH FIREWAL）。最后，全面梳理并连接了电气线路、燃油管、滑油管以及机械控制线缆（ROUTED & SECURED WIRING, FUEL & OIL LINES, CONTROL CABL...）。",
+    "context": "发动机重新安装（Engine Reinstallation）与子系统集成：发动机不是孤立存在的，它必须与飞机的四大子系统网络交联才能工作：1. 电气系统（发电机、传感器布线 Wiring）；2. 点火系统（磁电机安装与正时调校 Timing Magnetos）；3. 流体系统（燃油管线与滑油管线 Fuel & Oil Lines）；4. 机械控制（油门与混合气拉线 Control Cables）。这些步骤繁琐且必须严格按照防火墙的走线布局规范执行。",
+    "thought": "1. 识别顶层事件：发动机大修后的整机系统物理集成与复原。\n2. 结构化任务节点：这不是狭义的“坏了修哪”，而是工程装配逻辑。大模型的树状结构非常适合用于表达“复杂系统集成清单”。分为点火、电气、管路控制三大分支。\n3. 输出复杂逻辑树：将这些安装动作转化为树的底事件，这能拓宽模型对“故障树”应用边界的理解，使其也能生成“装配树”。",
+    "output": {
+      "top_event": "大修后发动机跨系统集成与连结",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "点火系统安装与校准",
+          "type": "Basic Event",
+          "treatment": "安装磁电机总成并使用专用工具校对点火正时",
+          "evidence": "INSTALLED & TIMED MAGNETOS."
+        },
+        {
+          "node_name": "全机电气网络布线与穿舱",
+          "type": "Basic Event",
+          "treatment": "连接发动机传感器/发电机线束，并将其安全穿过防火墙隔离孔",
+          "evidence": "ROUTED, CONNECTED WIRING... RAN CABLES THROUGH FIREWAL."
+        },
+        {
+          "node_name": "流体管路与机械控制线缆驳接",
+          "type": "Basic Event",
+          "treatment": "重新走线并固定燃油管路、滑油管路及油门/混合气等机械控制钢索",
+          "evidence": "ROUTED & SECURED WIRING, FUEL & OIL LINES, CONTROL CABL..."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "系统性进气泄漏排查记录 (100187, 100188, 100197)：机务在多次定检中发现特定侧气缸的进气端存在规律性的泄漏问题：首先发现2号和4号气缸的进气管垫片同时泄漏（#2 & 4 INTAKE GASKET LEAKING）；接着又处理了单纯2号缸的进气泄漏（#2 INTAKE LEAKING）；最后在另一次排查中再次发现2号和4号进气系统同时泄漏（#2 & 4 INTAKES ARE LEAKING）。所有的处理手段均是直接拆除并更换相关的进气密封垫片（REMOVED & REPLACED #2 & 4 INTAKE GASKETS... REMOVED & REPLACED INTAKE GASKET）。",
+    "context": "同侧附件规律性耗损：航空活塞发动机（如常见的对置四缸/六缸）分为左右两组气缸。2号和4号属于同一侧气缸（通常是右侧）。由于它们共享同一侧的冷却气流和进气歧管谐振环境，往往会经历相似的热应力和震动频率。因此，同一侧的多个进气垫片（Intake Gaskets）同时发生热老化失效并漏气是非常典型的集群耗损现象。只需常规更换同批次耗材即可。",
+    "thought": "1. 识别顶层事件：右侧气缸进气系统呈现集群/规律性密封泄漏。\n2. 寻找共性：记录反复强调 2 号和 4 号缸（均为偶数侧）。这不是巧合，是物理环境导致的一致性老化。\n3. 构建简单合并逻辑：将多次独立的同一侧漏气事件，归类为一个底事件，展示出模型能够对冗余重复信息进行特征合并和降维的能力。",
+    "output": {
+      "top_event": "同侧气缸进气系统集群密封失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "右侧(偶数缸)进气接口垫片同步老化",
+          "type": "Basic Event",
+          "treatment": "松开进气管法兰，同步拆换2号和4号气缸失效的进气密封垫片",
+          "evidence": "#2 & 4 INTAKE GASKET LEAKING; #2 INTAKE LEAKING; REMOVED & REPLACED #2 & 4 INTAKE GASKETS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 (100206-100207)：右侧发动机启动后运转极度粗暴（ON RIGHT ENG START, ENGINE RAN VERY ROUGH）。机务通过试车排查，发现3号气缸的排气温度（EGT）为零，且手动盘车（PULLED PROP THROUGH）确认了压缩情况（RAN ENGINE, #3 CYL NO EGT...）。最终，机务拆除并整体更换了3号气缸总成，同时对1、2、4号气缸的排气门导管进行了扩孔清理（REMOVED & REPLACED #3 CYL ASSY. REEMED 1, 2, 4 EXHAUST）。",
+    "context": "单缸完全失效与伴随性维护：EGT（排气温度）为零且伴随剧烈震动，是单侧气缸完全停止做功（死缸）的铁证。手动盘车（Pulling the Prop）是感知气缸压缩阻力的常用物理手段。当确认某气缸彻底损坏（如内部结构碎裂、活塞环断裂）时，需更换气缸总成（Cyl Assy）。同时，为防止其他气缸出现类似的气门卡滞顽疾，机务通常会一并对剩余气缸的气门导管进行扩孔（Ream）作为预防性维护。",
+    "thought": "1. 识别顶层事件：右发启动后运转极度粗暴。\n2. 查找故障表现与定位：试车发现“3号气缸无排气温度(NO EGT)”，锁定故障源头为3号缸完全失效。\n3. 构建树状逻辑：3号缸失效是核心底事件，其维修方案是更换总成；但同时记录中还包含了针对其他气缸的预防性维修（扩孔），这虽然不是本次震动的直接原因，但属于整个排故工单的衍生动作，应一并纳入维修建议中。",
+    "output": {
+      "top_event": "右侧发动机运转极度粗暴",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "单气缸(3号)完全丧失做功能力",
+          "logic_gate": "AND",
+          "evidence": "RAN ENGINE, #3 CYL NO EGT.",
+          "children": [
+            {
+              "node_name": "3号气缸总成内部严重硬件损坏",
+              "type": "Basic Event",
+              "treatment": "整体拆除并更换3号气缸总成，并对其余气缸(1,2,4)进行排气门扩孔预防性清理",
+              "evidence": "REMOVED & REPLACED #3 CYL ASSY. REEMED 1, 2, 4 EXHAUST."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100212：3号气缸摇臂室盖漏油（#3 ROCKER COVER LEAKING）。机务拆除了旧盖子，并整体更换了一个全新的摇臂室盖（REMOVED & REPLACED ROCKER COVER W/ NEW）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸摇臂室漏油\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"摇臂室盖密封垫片老化\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"更换密封垫片即可\"\n    }\n  ]\n}",
+    "context": "摇臂室盖本体损坏：漏油通常由垫片（Gasket）引起，但高强度的冷热交替或安装扭矩不当会导致摇臂盖金属本体发生翘曲变形甚至产生砂眼开裂。如果是本体变形，即便换新垫片依然会漏油，必须整体更换金属外盖（Rocker Cover）。",
+    "thought": "1. 识别顶层事件：摇臂室盖漏油。\n2. 逻辑校验：文本中明确写了“更换全新的摇臂室盖(REPLACED ROCKER COVER W/ NEW)”，而并没有写换垫片。待校验树习惯性地认为是“垫片老化”，忽略了维修动作揭示的硬件本体失效。\n3. 生成修正：判定为 false。底事件修正为结构件变形，维修手段修正为更换摇臂室盖本体。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "混淆了耗材与结构件。待校验树基于经验假设为垫片故障。但维修记录中明确的动作是更换了整个'摇臂室金属盖'。这表明漏油的原因是金属盖板本体发生翘曲或变形，无法再提供平整的密封压紧面，而非单纯的垫片老化。",
+      "corrected_tree": {
+        "top_event": "3号气缸摇臂室漏油",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "摇臂室金属外盖本体翘曲变形",
+            "type": "Basic Event",
+            "treatment": "整体拆除并更换全新的摇臂室金属盖",
+            "evidence": "REMOVED & REPLACED ROCKER COVER W/ NEW."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100232：排查4号气缸无压缩的故障时（#4 CYL HAS NO COMPRESSION），机务检查了气门，发现没有任何缺陷（INSPECTED VALVES, FOUND NO DEFECTS）。随后进行了发动机地面试车，再次检查压缩恢复了正常（RAN A/C & RECHECKED）。\n【待校验故障树】：\n{\n  \"top_event\": \"4号气缸无压缩\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"活塞环完全断裂或气门烧蚀\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆解气缸进行大修\"\n    }\n  ]\n}",
+    "context": "假性无压缩与积碳碎屑：气缸压力测试为零时，最常见的原因是气门闭合不严。但在航空活塞发动机中，经常会有一小块积碳碎屑（Carbon Debris）或铅沉积物卡在气门座面上，导致瞬间的“假性无压缩”。此时气门本身并无损坏（No Defects）。只需运行发动机（Ran A/C），利用燃烧和排气气流将碎屑吹走，气缸压缩即可瞬间自愈恢复。",
+    "thought": "1. 识别顶层事件：4号气缸无压缩测试结果。\n2. 逻辑校验：待校验树给出了极其严重的硬件损坏结论（活塞环断裂/气门烧蚀）。但原文说明“气门无缺陷”，且仅仅通过“地面试车(RAN A/C)”就排除了故障。这说明硬件完全没坏。\n3. 生成修正：判定为 false。必须将底事件定性为“异物导致的瞬间卡滞”，并将处理方式修正为利用试车进行排气吹除。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理系统定性严重误判。待校验树将假性的压缩流失判定为毁灭性的硬件损坏。根据机务检查'未发现气门缺陷'且'试车后恢复正常'，这证明气缸内部硬件完好。真实的物理原因是燃烧室脱落的积碳碎屑暂时卡在了气门座上导致密封不严，试车运转后异物被吹走，故障随之消失。",
+      "corrected_tree": {
+        "top_event": "测试时4号气缸显示无压缩",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "积碳/杂质碎屑卡滞在气门座面上(假性失压)",
+            "type": "Basic Event",
+            "treatment": "执行地面试车运转发动机，利用气流吹除气门座面的沉积物，随后重新测试气缸压力",
+            "evidence": "INSPECTED VALVES, FOUND NO DEFECTS. RAN A/C & RECHECKED."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "复合机械干涉磨损记录 (100245-100246)：机务检查时发现右前侧发动机导流板被消音器隔热罩磨穿（FRONT R/H BAFFLE WORN THROUGH FROM MUFFLER SHROUD）。为了修复这一损伤，机务首先拆除了受损的导流板（REMOVED BAFFLE），随后使用同等材质的金属板制作了补丁，并按航空维修标准进行了铆接修复（FABRICATED PATCH W/ LIKE MATERIALS. RIVETED IAW）。",
+    "context": "物理干涉与磨穿（Worn Through）：消音器隔热罩（Muffler Shroud）温度极高且伴随发动机排气震动。如果其与铝制的导流板（Baffle）间隙不足，长期的物理摩擦会直接将导流板“磨穿”。这不同于应力开裂，它是明显的材料物理损耗。修复时不能钻孔，必须剪切掉破损边缘，并用同材质材料打补丁（Patch）进行覆盖铆接。",
+    "thought": "1. 识别顶层事件：右前侧导流板出现孔洞损伤。\n2. 寻找诱因：记录明确给出了外部诱因“由消音器隔热罩引起(FROM MUFFLER SHROUD)”，这是一种异物干涉摩擦。\n3. 构建底层逻辑：明确这是一起“物理干涉导致的材料损耗”，并将打补丁铆接作为对应的标准化工程修复手段提取出来。",
+    "output": {
+      "top_event": "右前侧导流板出现孔洞损伤",
+      "logic_gate": "AND",
+      "evidence": "FRONT R/H BAFFLE WORN THROUGH FROM MUFFLER SHROUD.",
+      "children": [
+        {
+          "node_name": "与消音器隔热罩发生物理干涉摩擦",
+          "type": "Basic Event",
+          "treatment": "拆卸导流板，裁切磨损区域，制作同材质金属补丁并按标准铆接复原",
+          "evidence": "REMOVED BAFFLE; FABRICATED PATCH W/ LIKE MATERIALS. RIVETED IAW"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100211：3号气缸后部导流板内侧固定支架的铆钉被剪断/切断（CYL #3 AFT BAFFLE I/B SCREW BRACKET RIVETS ARE SHEARED OFF）。维修人员拆除了该导流板，更换了断裂的紧固件（REMOVED CYL #3 AFT BAFFLE, REPLACED BROKEN FASTENERS）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸导流板支架脱落\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"支架固定螺丝退扣脱落\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"寻找丢失的螺丝或安装一颗新螺丝\"\n    }\n  ]\n}",
+    "context": "剪切断裂（Sheared Off）与震动应力：航空器紧固件面临复杂的受力环境。“退扣/脱落(Missing/Loose)”是指螺纹旋出，而“Sheared Off（剪断）”是指紧固件（通常是铆钉 Rivet 或螺栓）受到的横向剪切应力超过了材料的屈服极限，被硬生生地切成了两截。这说明该区域震动受力极大。残余的钉杆仍留在孔内，必须将其冲出/钻掉后才能更换新的紧固件（Broken Fasteners）。",
+    "thought": "1. 识别顶层事件：导流板支架紧固件失效。\n2. 逻辑校验：待校验树认为只是普通的“螺丝退扣脱落”。但原文明明写着“铆钉被剪断（RIVETS ARE SHEARED OFF）”。这是一个破坏性的机械失效，意味着连接处受到了极端的横向切应力破坏。\n3. 生成修正：判定为 false。底事件修正为横向剪切应力导致金属断裂，修复动作为清理断点并更换新紧固件。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理失效机制定性错误。待校验故障树将故障判定为常规的'退扣松动脱落'。但记录使用的词汇是'SHEARED OFF(剪断)'，这代表铆钉承受了超过极限的机械横向剪切力发生了金属疲劳断裂，而不是单纯的松脱。必须作为结构破坏来处理。",
+      "corrected_tree": {
+        "top_event": "3号气缸后部导流板支架失效",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "结构承受极端横向震动导致铆钉剪断",
+            "type": "Basic Event",
+            "treatment": "拆卸导流板以清理断留在孔内的铆钉残骸，随后更换并安装全新的紧固件",
+            "evidence": "RIVETS ARE SHEARED OFF; REPLACED BROKEN FASTENERS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100248-100249：3号后部导流板在多个位置出现开裂（#3 AFT BAFFLE CRACKED IN SEVERAL PLACES）。机务人员拆除了右后侧的导流板，并安装了一块全新的导流板总成（REMOVED R/H REAR BAFFLE. INSTALLED NEW BAFFLE）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号后部导流板出现多处开裂\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"导流板受到疲劳应力影响\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"在所有裂纹的尖端钻止裂孔，防止裂纹继续扩展\"\n    }\n  ]\n}",
+    "context": "钣金大面积开裂的工程限制：适航标准规定，金属导流板仅在出现单一、短小裂纹时允许通过钻止裂孔（Stop Drill）进行原位保留修理。一旦裂纹发展为“多处（Several/Multiple Places）”或形成网络状，意味着板材的整体结构刚性已经崩溃，打孔或局部补丁无法恢复其强度，必须强制整体拆换（Installed New Baffle）。",
+    "thought": "1. 识别顶层事件：导流板多处开裂，描述正确。\n2. 逻辑校验：待校验故障树对底事件提出的处理方案是“在所有裂纹处钻止裂孔”。这严重违背了航空钣金维修规则。对于多处开裂的结构件，由于结构强度崩溃，必须像机务日志里做的那样整体换新。\n3. 生成修正：判定为 false。修正处理建议为整体更换结构件。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "维修工程标准判定错误。待校验故障树给出了'钻止裂孔'的修复建议，这仅适用于单点微小裂纹。根据日志记录，该导流板是'在多个位置开裂(CRACKED IN SEVERAL PLACES)'，说明整体结构强度已严重损失，不再具备修复价值，必须按手册规定执行整体换新操作。",
+      "corrected_tree": {
+        "top_event": "3号后部导流板金属疲劳损坏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "导流板受震动产生多处网络状裂纹导致结构崩溃",
+            "type": "Basic Event",
+            "treatment": "放弃原位修复，直接拆除破损件并安装全新的导流板总成",
+            "evidence": "CRACKED IN SEVERAL PLACES; REMOVED R/H REAR BAFFLE. INSTALLED NEW BAFFLE."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "复合密封老化记录 (100204, 100216)：维修检查发现左侧发动机存在大面积的密封渗漏现象。首先是发现2号、3号和4号气缸的进气管路都在泄漏（INTAKES 2, # & 4 LEAKING ON L/H ENGINE）。其次发现整个左侧发动机所有气缸的摇臂室盖垫片均存在渗油现象（L/H ENGINE, ALL 4 ROCKER COVER GASKETS SEEPING）。对于这类大面积的老化，机务人员进行了统一批处理：整体拆除并更换了2、3、4号的进气垫片（REMOVED & REPLACED INTAKE GASKET 2, 3 & 4），同时拆换了所有摇臂室盖的密封垫片（REMOVED & REPLACED ALL GASKETS）。",
+    "context": "集群老化与渗油（Seeping）：航空发动机的橡胶/软木垫片在长期热循环中会逐渐变硬失去弹性。当同侧的多个气缸同时出现进气泄漏（Leaking）和轻微渗漏机油（Seeping，比Leaking轻度，但也提示密封失效），这通常意味着同一批次的橡胶件达到了寿命极限。此时的标准做法不再是“坏一个换一个”，而是成批次更换（Batch Replacement）所有相关垫片，以避免后续频繁停机拆卸。",
+    "thought": "1. 识别顶层事件：左侧发动机出现大面积、多点位的进气与机油密封失效。\n2. 寻找共性原因：记录中全是“多个气缸”、“所有4个垫片”这类词汇，指向了典型的时间/热力循环导致的同批次耗材老化。\n3. 构建简单合并故障树：将大面积的进气漏气和摇臂室渗油归结为两个并列的基础事件，凸显出“批量拆换”这种工程决策特征。",
+    "output": {
+      "top_event": "发动机多气缸综合密封件寿命终结",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "多气缸进气接口垫片同步老化破损",
+          "type": "Basic Event",
+          "treatment": "执行批量处理，同时拆除并更换2, 3, 4号气缸的进气垫片",
+          "evidence": "INTAKES 2, # & 4 LEAKING... REMOVED & REPLACED INTAKE GASKET 2, 3 & 4."
+        },
+        {
+          "node_name": "全部气缸摇臂室盖垫片热老化渗漏(Seeping)",
+          "type": "Basic Event",
+          "treatment": "拆除所有气缸的摇臂室盖，成套更换全部密封垫片",
+          "evidence": "ALL 4 ROCKER COVER GASKETS SEEPING; REMOVED & REPLACED ALL GASKETS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "特定区域干涉磨损记录 (100243)：定检中发现3号气缸后部导流板在气缸内侧包角处被完全磨穿（#3 AFT BAFFLE IS WORN THROUGH AT I/B CYLINDER WRAP）。机务切除了磨损严重的部件区域，并使用同等材质的铝板重新制作了替换件进行修补（REMOVED WORN PIECE. FABRICATED REPLACEMENT FROM LIKE MA）。",
+    "context": "导流板与气缸包裹区（Cylinder Wrap）：导流板需要紧密包裹散热气缸鳍片，以强制空气流过散热片。但气缸在工作时会发生热膨胀和细微震动，如果内部包裹边缘（I/B Cylinder Wrap）间隙预留不足或固定松动，导流板金属会被气缸坚硬的散热鳍片像锉刀一样直接磨穿（Worn Through）。受损区域通常难以直接打胶，必须切掉烂边，用同材质金属重新制作折角部件进行对接拼补。",
+    "thought": "1. 识别顶层事件：3号气缸后部导流板内侧出现贯穿性物理磨损。\n2. 识别磨损机理：故障发生部位明确在“气缸包裹区(CYLINDER WRAP)”，这是经典的硬对硬接触摩擦导致的金属耗损。\n3. 提取维修工艺：将切除磨损件和现场钣金制作（Fabricated Replacement）作为对应这一特定物理损耗的底事件处置方案提取出来。",
+    "output": {
+      "top_event": "后部导流板局部金属耗损殆尽",
+      "logic_gate": "AND",
+      "evidence": "#3 AFT BAFFLE IS WORN THROUGH AT I/B CYLINDER WRAP.",
+      "children": [
+        {
+          "node_name": "与气缸散热鳍片发生长期硬性摩擦被磨穿",
+          "type": "Basic Event",
+          "treatment": "切除破损边缘的金属，使用同材质钣金现场加工制作拼补替换件进行铆接修复",
+          "evidence": "REMOVED WORN PIECE. FABRICATED REPLACEMENT FROM LIKE MA"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "规律性机械松脱记录 (100202, 100218, 100219)：例行检查发现大范围的紧固件松动。首先是左发所有摇臂室盖的固定螺丝均存在松动情况（ALL ROCKER COVER SCREWS ARE LOOSE ON L/H ENGINE）。在后续另一次检查中，不仅发现所有气缸的摇臂室盖螺丝松动（ROCKER BOX COVER SCREWS LOOSE (ALL CYLS)），还同时发现所有气缸进气管的软管卡箍也处于松弛状态（INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYLS)）。维修人员对所有这些螺丝进行了拧紧（TIGHTENED ALL SCREWS）和按标准重新定力矩（RETORQUED SCREWS），并紧固了所有进气卡箍（TIGHTENED HOSE CLAMPS）。",
+    "context": "全发动机范围的紧固件松弛 (Retorque)：活塞发动机本身是一个巨大的振动源。在经历过大修组装或长时间运行后，密封垫片的压溃变形加上持续震动，会导致全机范围的螺栓和卡箍出现明显的压紧力衰减（Loose）。这是正常现象，并不代表零件损坏。因此，例行定检的一项核心任务就是重新施加标准力矩（Retorque），以恢复压紧力，阻止潜在的漏油漏气。",
+    "thought": "1. 识别顶层事件：全发动机范围的大面积附件紧固件震动松弛。\n2. 梳理分类：按部件类型分为“盖板固定螺丝”和“管路连接卡箍”。\n3. 构建简单汇总逻辑：这是一个没有硬件损坏的纯机械物理现象。用 OR 门将两类松弛并列，并提取出核心的维修动作——“重新施加力矩(Retorque)”。",
+    "output": {
+      "top_event": "全机范围机械附件震动松脱",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "全部气缸摇臂室盖固定螺丝压紧力衰减",
+          "type": "Basic Event",
+          "treatment": "使用力矩扳手对所有松动的螺丝重新施加标准扭矩",
+          "evidence": "ALL ROCKER COVER SCREWS ARE LOOSE... RETORQUED SCREWS."
+        },
+        {
+          "node_name": "所有气缸进气管路软管卡箍退扣",
+          "type": "Basic Event",
+          "treatment": "全面巡检并紧固所有进气软管卡箍",
+          "evidence": "INDUCTION TUBE HOSE CLAMPS LOOSE (ALL CYLS); TIGHTENED HOSE CLAMPS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100201：机务在对右侧发动机进行检查时，发现固定 SCAT 通风软管以及点火导线（固定在机架上）的绑扎线绳出现了松动（LACING CORD LOOSE ON SCAT TUBING + IGN LEAD TO FRAME, R/H SI）。维修人员拆除了旧的绑扎线，重新对这两处进行了线绳绑扎固定（REPLACED BOTH LACINGS）。",
+    "context": "航空线束绑扎（Lacing Cord）：在航空器发动机舱内，高温和震动环境不允许线缆或软管随意晃动。除了使用尼龙扎带，传统的且符合适航标准的高强度工艺是使用浸蜡的编织绑扎绳（Lacing Cord）以特定的结扣将线束固定在引擎架（Frame）上。如果线绳受热老化松弛，会导致通风管（SCAT Tubing）和点火高压线（IGN Lead）晃动磨损，必须割断旧绳重新打结绑扎。",
+    "thought": "1. 识别顶层事件：发动机舱管线辅助固定绑扎松脱。\n2. 分析对象：牵涉到两组不同的管线系统（通风SCAT管与电气IGN点火线）。\n3. 构建底层逻辑：这是一个极其细小的辅助材料失效事件。故障树结构非常简单，直接指向特定的绑扎耗材失效与更新动作。这能丰富大模型对于“航空维修细节材料”的识别能力。",
+    "output": {
+      "top_event": "发动机舱管路与线束绑扎固定松脱",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "高温/震动导致绑扎线绳(Lacing Cord)老化松弛",
+          "type": "Basic Event",
+          "treatment": "割除失效的绑扎线，使用标准航空绑扎绳重新固定通风管与点火导线",
+          "evidence": "LACING CORD LOOSE ON SCAT TUBING + IGN LEAD... REPLACED BOTH LACINGS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "复合管线干涉记录 (100275-100276)：机务检查时发现严重的安全隐患：3号气缸的机油回油管一直与线束发生摩擦干涉（#3 CYLINDER OIL RETURN LINE BEEN CHAFING ON WIRE BUNDLE）。机务人员评估了受损情况后，拆除并更换了受损的机油回油管（REMOVED & REPLACED OIL RETURN LINE），并在安装后进行了泄漏检查，确认密封良好（LEAK CHECK GOOD）。",
+    "context": "管线干涉与摩擦 (Chafing)：在拥挤的发动机舱内，流体管路（如滑油、燃油）与电气线束（Wire Bundle）的物理摩擦是极其危险的隐患。震动会导致绝缘层和管壁磨薄，一旦漏油伴随电火花，将引发灾难性火灾。处理此类故障不仅需要分离干涉源，对于已经产生实质磨损（Chafing）的油管，必须直接更换以消除耐压隐患，并在更换后强制进行打压/泄漏测试（Leak Check）。",
+    "thought": "1. 识别顶层事件：发动机舱流体管路与电气线束物理干涉。\n2. 识别故障机理：高频震动下的布局不当导致硬性摩擦（Chafing）。\n3. 提取维修动作：由于干涉已经造成物理损伤，底事件的解决不仅是“重新固定”，而是“更换受损管路+泄漏测试”。这种因果链条非常适合作为复杂逻辑训练语料。",
+    "output": {
+      "top_event": "发动机舱管线物理干涉摩擦",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "3号缸滑油回油管与电线束摩擦(Chafing)",
+          "type": "Basic Event",
+          "treatment": "拆除受损的金属/橡胶回油管，更换新管件并执行泄漏检查以确认密封",
+          "evidence": "OIL RETURN LINE BEEN CHAFING ON WIRE BUNDLE; REMOVED & REPLACED OIL RETURN LINE. LEAK CHECK GOOD."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100264：3号进气管在卡箍处发生泄漏（#3 INTAKE LEAKING AT CLAMP）。维修人员通过重新调整并拧紧卡箍解决了问题（READJUSTED & TIGHTENED CLAMP）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号进气管泄漏\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"进气管密封垫片老化损坏\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除进气管，更换全新的橡胶密封垫片 (Gasket)\"\n    }\n  ]\n}",
+    "context": "泄漏位置精确定位 (Leaking at Clamp vs Gasket)：进气系统泄漏有不同原因。如果是法兰接口处漏气，通常是垫片（Gasket）老化；但记录特别指出了漏气位置在“卡箍处（AT CLAMP）”。这说明软管连接处的机械压紧力不足。通常不需要更换零件，只需将软管归位并重新紧固卡箍（Readjust & Tighten Clamp）即可恢复密封。",
+    "thought": "1. 识别顶层事件：3号进气泄漏。\n2. 逻辑校验：待校验树一看到“泄漏”就判定为“换垫片”。但文本精确指出了泄漏在卡箍处，且机务的动作是“重新调整并紧固”。待校验树犯了教条主义错误，忽略了空间位置限定词。\n3. 修正输出：判定为 false。底事件修正为机械卡箍松脱，维修建议修正为调整与紧固。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障部件定位错误。待校验故障树忽视了文本中'AT CLAMP(在卡箍处)'的空间限定，错误地判定为垫片损坏并给出了更换备件的过度建议。实际仅是机械紧固件松动引起压紧力不足，重新调整并紧固卡箍即可。",
+      "corrected_tree": {
+        "top_event": "3号进气管路软连接处泄漏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "进气软管卡箍退扣或位置偏移",
+            "type": "Basic Event",
+            "treatment": "重新调整软管接口位置，并按标准力矩拧紧卡箍",
+            "evidence": "READJUSTED & TIGHTENED CLAMP."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100257：飞行员报告在执行最大性能起飞（3200转）时，进气歧管压力（MP）最高只能达到 24 英寸汞柱，无法继续上升（DOING MAX PERFORM T/O @ 3200, MP WON'T GO ANY HIGHER THAN 24）。机务人员接到报告后，给出的处理意见是：需要进行维护试飞以确认此故障现象（REQUIRES MX FLIGHT TO VERIFY DISCREPANCY）。\n【待校验故障树】：\n{\n  \"top_event\": \"最大推力下进气歧管压力受限\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"涡轮增压器废气门(Wastegate)卡滞\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆卸涡轮增压系统，更换废气门总成\"\n    }\n  ]\n}",
+    "context": "未证实故障 (Unverified Discrepancy) 与验证试飞 (MX Flight)：飞行员在极端工况下（如最大性能起飞）报告的仪表读数异常，有时可能受大气环境、操作手法或仪表瞬间迟滞影响。在没有地面重现或后台数据佐证的情况下，机务不能凭飞行员的主观报告直接盲目拆换昂贵的核心组件（如增压器）。标准工程程序是先安排“维护试飞（MX FLIGHT）”去定量复现和验证（Verify）该故障，确认属实后再进行物理拆修。",
+    "thought": "1. 识别顶层事件：起飞工况下 MP 压力不达标。\n2. 逻辑校验：待校验树直接给出了物理损坏结论并建议拆换零件。但维修日志的实际状态是“故障真伪存疑”，当前动作仅仅是“需要试飞验证”。待校验树跨越了故障排查的标准步骤。\n3. 修正输出：判定为 false。将底事件修正为“状态未明的性能异常”，维修方案改为执行诊断前置动作（维护试飞）。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "工程排故程序错误（过度推理）。待校验树在故障尚未被证实的情况下，直接捏造了增压器损坏的物理底事件并建议大修。根据工单记录，该故障属于'未证实故障'，机务当前给出的唯一合理建议是执行维护试飞以复现和定量评估问题，此时不应生成针对特定硬件的拆换树。",
+      "corrected_tree": {
+        "top_event": "表象：最大性能起飞时歧管压力(MP)偏低",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "动态性能受限 (故障状态未证实)",
+            "type": "Basic Event",
+            "treatment": "安排进行专门的维护试飞 (MX Flight)，在受控条件下验证并记录压力数据",
+            "evidence": "REQUIRES MX FLIGHT TO VERIFY DISCREPANCY."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100274：例行检查发现发动机启动齿圈上有过多的损坏轮齿（RING GEAR HAS TOO MANY DAMAGED TEETH）。为了修复这个问题，机务必须先拆除螺旋桨，随后安装了状态良好的启动齿圈总成，最后再重新安装部件（REMOVED PROP & INSTALLED SERVICEABLE RING GEAR ASSY. IN...）。",
+    "context": "启动齿圈 (Ring Gear) 与装配干涉：启动齿圈是启动机齿轮啮合的大型带齿圆环。当发生打齿（Damaged Teeth）时会导致无法启动，必须更换。在绝大多数航空活塞发动机的结构设计中，启动齿圈被夹在螺旋桨根部法兰和曲轴前端之间。这意味着，即使只是齿圈坏了，也存在“绝对装配干涉”——不拆除前方的螺旋桨（Propeller），就无法取下后方的齿圈。",
+    "thought": "1. 识别顶层事件：启动系统核心传动件（齿圈）严重损坏。\n2. 识别隐藏逻辑：维修动作包含了“拆卸螺旋桨(REMOVED PROP)”。这是一个极好的“维修接近性(Access)”依赖关系。齿圈损坏直接导致了螺旋桨的连带拆装。\n3. 构建树状结构：将硬件失效与工程拆卸顺序打包进入基本事件的维修建议中，体现出操作的顺序性。",
+    "output": {
+      "top_event": "发动机启动齿圈严重机械损坏",
+      "logic_gate": "AND",
+      "evidence": "RING GEAR HAS TOO MANY DAMAGED TEETH.",
+      "children": [
+        {
+          "node_name": "齿圈轮齿打齿/磨损超标",
+          "type": "Basic Event",
+          "treatment": "由于结构装配干涉，必须先拆卸螺旋桨总成，更换状态良好的启动齿圈后，再复原安装",
+          "evidence": "REMOVED PROP & INSTALLED SERVICEABLE RING GEAR ASSY. IN..."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "钣金复合损坏记录 (100277-100278)：机务检查时发现右侧后部导流板存在双重结构损坏：不仅导流板本体开裂（R/H SIDE BACK BAFFLE IS CRACKED），且其固定支架的铆钉也发生了断裂（& BRACKET RIVETS BROKEN）。鉴于损坏严重，机务将该后部导流板从发动机上整体拆除（REMOVED R/H SIDE BAFFLE OFF ENGINE），并使用状态良好的导流板总成进行了替换（REPLACED BAFFLE W/ SERVICEABLE BAFFLE）。",
+    "context": "钣金复合失效模式：当发动机金属导流板同时出现本体疲劳开裂（Cracked）和受力点固定件断裂（Rivets Broken）时，这表明该部件经历了超过设计极限的剧烈震动或共振。这种复合型结构失效意味着部件的应力分布已经彻底改变，即使打补丁或换铆钉也极易再次撕裂，通常的适航工程要求是整体更换可用件（Serviceable Baffle）。",
+    "thought": "1. 识别顶层事件：导流板发生严重复合型结构破坏。\n2. 分支逻辑分析：导致更换的根本原因有两个，一是板材本体开裂，二是固定支架铆钉断裂。这两者在逻辑上是共存的（AND关系，共同促成了彻底报废）。\n3. 构建树状逻辑：将两个物理损坏模式并列为底事件，并将整体拆换的维修动作作为统一的解决方案提取。",
+    "output": {
+      "top_event": "后部导流板发生复合型结构破坏",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "导流板金属本体产生疲劳裂纹",
+          "type": "Basic Event",
+          "treatment": "整体报废受损结构件",
+          "evidence": "BAFFLE IS CRACKED"
+        },
+        {
+          "node_name": "固定支架受力铆钉剪切断裂",
+          "type": "Basic Event",
+          "treatment": "将受损导流板从发动机上剥离，使用测试合格的可用导流板进行整体替换",
+          "evidence": "& BRACKET RIVETS BROKEN; REMOVED R/H SIDE BAFFLE OFF ENGINE... REPLACED BAFFLE W/ SERVICEABLE BAFFLE."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100281：左侧发动机4号气缸后部导流板的加强筋出现了裂纹（L/H ENGINE CYL #4 AFT BAFFLE STIFFENER IS CRACKED）。机务拆除了受损的加强筋，并重新更换了一根加强筋（REMOVED & REPLACED CRACKED STIFFENER）。\n【待校验故障树】：\n{\n  \"top_event\": \"4号导流板加强件开裂\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"导流板受到高频震荡应力损伤\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除整个4号导流板并进行更换\"\n    }\n  ]\n}",
+    "context": "主结构件与加强件的分离 (Baffle vs Stiffener)：导流板（Baffle）是大面积的钣金件，为了防止其在强风和震动中发生形变，通常会铆接一些角铝或条状金属作为“加强筋（Stiffener）”。如果是加强筋自身开裂，只要主钣金面完好，机务只需要钻掉加强筋的铆钉，单独替换这根金属条即可，完全没必要报废并更换整个昂贵且难拆的导流板主件。",
+    "thought": "1. 识别顶层事件：导流板加强筋裂纹，无误。\n2. 逻辑校验：待校验故障树将对附属件（加强筋）的维修，错误扩大为了对主体件（整个导流板）的更换。工单上明确写的是“更换加强筋（REPLACED STIFFENER）”。这是典型的扩大化/过度维修错误。\n3. 修正输出：判定为 false。底事件锁定为仅加强筋疲劳，治疗方案缩小范围至单独更换该零件。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "混淆了主体件与附属件，导致过度维修。待校验树建议更换'整个4号导流板'，但原文故障点仅仅是导流板上的附属角料'加强筋(STIFFENER)'开裂。机务的实际操作也是单独拆换加强筋，主板材予以保留。维修建议必须与物理替换件严格对齐。",
+      "corrected_tree": {
+        "top_event": "后部导流板局部加强支撑件疲劳开裂",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "金属加强筋(Stiffener)单点应力断裂",
+            "type": "Basic Event",
+            "treatment": "钻除固定铆钉，单独拆卸并更换受损的加强筋，保留主导流板",
+            "evidence": "REMOVED & REPLACED CRACKED STIFFENER."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "大面积综合物理松动记录 (100258, 100260)：例行检查发现发动机气缸区域存在普遍的老化与松动现象。首先，1、3、4号气缸的摇臂室盖垫片均存在漏油情况（ROCKER COVER GASKETS 1, 3 & 4 LEAKING）。同时，1、2、3号气缸的摇臂室盖固定螺丝也都出现了震动松弛（#1, 2 & 3 ROCKER BOX COVER SCREWS LOOSE）。机务人员针对漏油部位拆除了1、3、4号摇臂室盖并更换了全部相关垫片（REMOVED & REPLACED ROCKER COVER GASKETS 1, 3 & 4），随后对1、2、3号气缸的盖板螺丝按标准进行了重新紧固（TIGHTENED SCREWS）。",
+    "context": "耗材老化与机械松脱的交叉分布：在一台多缸发动机上，密封垫片（Gasket）的热老化龟裂和机械紧固件（Screw）的震动退扣经常是随机组合发生的。它们在物理现象上表现不同（漏油 vs 扭矩变小），处理方式也截然不同（换件 vs 紧固）。在构建此类综合故障树时，必须将两者作为并列的子系统退化特征，分门别类地映射修复动作。",
+    "thought": "1. 识别顶层事件：气缸摇臂室区域普遍的机械退化与密封失效。\n2. 剥离独立因素：虽然都在气缸头部，但“1,3,4换垫片”和“1,2,3紧螺丝”是两个独立的平行维修动作。\n3. 构建复杂并列逻辑：用 OR 门构建中间层，将垫片老化和螺丝松脱作为两个底层事件分支，各自挂载明确的气缸编号和特定的维修指令。",
+    "output": {
+      "top_event": "发动机摇臂室区域大范围综合退化",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "多气缸密封垫片到达物理寿命极限",
+          "type": "Basic Event",
+          "treatment": "拆除发生漏油的1, 3, 4号摇臂室盖，更换内部橡胶垫片",
+          "evidence": "ROCKER COVER GASKETS 1, 3 & 4 LEAKING; REMOVED & REPLACED ROCKER COVER GASKETS 1, 3 & 4."
+        },
+        {
+          "node_name": "多处机械紧固件受震动退扣松脱",
+          "type": "Basic Event",
+          "treatment": "使用工具重新拧紧1, 2, 3号气缸松动的摇臂室盖螺栓",
+          "evidence": "#1, 2 & 3 ROCKER BOX COVER SCREWS LOOSE; TIGHTENED SCREWS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100288：飞行员报告，在直升机进入180度自转下降（180 DEGREE AUTO）时，当总距杆下放到特定位置，发动机似乎出现了异常状态（DURING ENTRY TO 180 DEGREE AUTO, WHEN COLLECTIVE LOWERED TO...）。机务全面检查了节气门联动装置和总距杆联动装置，但没有发现任何机械缺陷（INSPECTED THROTTLE LINKAGE, COLLECTIVE LINKAGE, NO DISCREPANCY）。\n【待校验故障树】：\n{\n  \"top_event\": \"直升机自转时控制异常\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"总距杆与节气门机械联动装置断裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除并更换断裂的联动推拉钢索\"\n    }\n  ]\n}",
+    "context": "未发现缺陷 (No Discrepancy) 与飞控排查：在航空器维护中，机组根据飞行体感报告故障，机务进行地面排查。如果机务对疑似的机械控制系统（如 Throttle Linkage 节气门连杆）进行了深度检查，最终结论是“无缺陷（No Discrepancy）”，这意味着物理硬件完全正常。此时决不能虚构一个“连杆断裂”的底事件。这种报告往往归因于正常的气动现象、飞行员的错觉或是偶发的操作反馈。",
+    "thought": "1. 识别顶层事件：飞行员报告进入特定机动动作时的疑似控制异常。\n2. 逻辑校验：待校验树看到了飞行员的报告，就“热心”地编造了“机械联动装置断裂”的底层故障和换件建议。但这完全无视了工单中机务“未发现任何缺陷（NO DISCREPANCY）”的明确结论。\n3. 修正输出：判定为 false。在机务明确排除物理故障的情况下，底事件应当定性为“系统机械状态完好/未见异常”，处理手段是完成排查检查即可。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "捏造物理故障事实。待校验树基于飞行员的主观报告直接臆想了'联动装置断裂'的硬件失效。但工单上机务的排查结果明确为'未发现缺陷(NO DISCREPANCY)'。这意味着控制系统硬件完好，故障树不应包含无中生有的硬件更换指令。",
+      "corrected_tree": {
+        "top_event": "表象：自转机动中飞行员感知联动异常",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "系统机械状态完好 (排查未见硬件缺陷)",
+            "type": "Basic Event",
+            "treatment": "已执行对节气门与总距控制联动装置的全面检查，确认无断裂卡滞，继续监控",
+            "evidence": "INSPECTED THROTTLE LINKAGE, COLLECTIVE LINKAGE, NO DISCREPANCY."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100252：机务例行检查发现，将机油管路固定在2号气缸上的支架发生了断裂（BRACKET SECURING OIL LINE TO #2 CYLINDER BROKEN）。维修人员处理了该问题，拆除了损坏件并更换了一个全新的固定支架（REMOVED & REPLACED BRACKET）。",
+    "context": "管路支撑结构断裂：管路本身没坏，但是将其固定在发动机缸体上的金属支撑支架（Bracket）因为长期承受管路的震动和热应力发生了金属疲劳断裂。这属于辅助支撑件失效，必须及时更换支架，否则失去固定的管路会在空中发生剧烈晃动，最终导致接头撕裂漏油。",
+    "thought": "1. 识别顶层事件：机油管路辅助固定支撑件失效。\n2. 查找故障表现：直接给出物理零件损坏（支架断裂）。\n3. 构建简单逻辑树：非常直接的“坏件->换件”单线映射，体现基础的机械附件更换逻辑。",
+    "output": {
+      "top_event": "滑油管路支撑系统失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "金属固定支架受震动疲劳断裂",
+          "type": "Basic Event",
+          "treatment": "拆除断裂的残余部件，更换安装全新的管路固定支架",
+          "evidence": "BRACKET SECURING OIL LINE TO #2 CYLINDER BROKEN; REMOVED & REPLACED BRACKET."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100268：维修检查时发现，连接左侧发动机内侧导流板的联动固定拉杆发生了机械折断（L/H ENGINE I/B BAFFLE INTERCONNECT ROD BROKEN）。机务人员针对此结构损坏进行了维修，拆除了断裂的部件并更换了一根全新的导流板联动拉杆（REMOVED & REPLACED BAFFLE INTERCONNECT ROD）。",
+    "context": "导流板联动拉杆 (Interconnect Rod)：大型飞机的发动机导流系统不是单块钢板，而是多块钣金件通过连杆（Rod）和铰链连接成的一个整体网络。如果连接不同导流板部位的刚性拉杆折断，会导致部分导流板在气流中失去张力而严重变形。这也是典型的机械结构件疲劳失效，维修手段即为直接更换受损连杆。",
+    "thought": "1. 识别顶层事件：发动机内侧导流系统结构支撑件损坏。\n2. 定位根本原因：传导拉力的金属件（联动拉杆）断裂。\n3. 提取简单故障树：这是一个独立的机械物理断裂事件，单分支映射换件维修动作即可。",
+    "output": {
+      "top_event": "导流板子系统间连接结构失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "导流板刚性联动拉杆疲劳折断",
+          "type": "Basic Event",
+          "treatment": "拆卸并丢弃断裂的旧拉杆，更换安装全新的导流板联动拉杆",
+          "evidence": "L/H ENGINE I/B BAFFLE INTERCONNECT ROD BROKEN; REMOVED & REPLACED BAFFLE INTERCONNECT ROD."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100345：检查发现右侧后部导流板支架螺丝存在松动情况（R/H BACK BAFFLE BRACKET SCREWS ARE LOOSE）。为了彻底修复此问题，机务人员必须先拆除导流板，安装全新的支架固定螺丝后，再重新将导流板安装复原（REMOVED BAFFLE, INSTALLED NEW BRACKET SCREWS & REINSTAL）。",
+    "context": "维修接近性 (Maintenance Accessibility)：在航空结构中，有时损坏或松动的仅仅是内部的一个小螺丝，但由于其处于装配死角或被大型覆盖件（如导流板 Baffle）挡住，机务无法直接使用工具紧固。此时，必须执行“前置拆卸动作”，将阻挡的部件移开才能进行核心维修，这体现了故障树中的操作顺序与工程干涉逻辑。",
+    "thought": "1. 识别顶层事件：后部导流板支架紧固件失效。\n2. 识别中间逻辑：这不仅是简单的“拧紧”动作。日志表明螺丝可能无法直接紧固或需要换新，且受到了空间位置干涉。\n3. 提取维修动作：将拆除导流板作为前置条件，更换并紧固螺丝作为核心动作，重新安装导流板作为后置恢复动作，构建具有时间轴次序的底层节点。",
+    "output": {
+      "top_event": "右侧后部导流板支撑支架松动",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "支架固定螺丝退扣/失效",
+          "type": "Basic Event",
+          "treatment": "执行干涉件拆除(移除导流板)，安装全新的支架螺丝并紧固，随后重新安装导流板复原",
+          "evidence": "R/H BACK BAFFLE BRACKET SCREWS ARE LOOSE; REMOVED BAFFLE, INSTALLED NEW BRACKET SCREWS & REINSTAL."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100322：左前侧发动机导流系统的强制冷却通风管被堵塞（L/H FWD ENGINE BAFFLE BLAST TUBE BLOCKED）。机务人员进行了排查并清除了管路内的堵塞物（REMOVED BLOCKAGE）。\n【待校验故障树】：\n{\n  \"top_event\": \"强制冷却通风管气流受限\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"通风管本体受热变形压瘪\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"整体更换压瘪损坏的通风管路\"\n    }\n  ]\n}",
+    "context": "通风管堵塞 (Blast Tube Blocked)：Blast Tube 用于引导高速冷空气冷却发电机或磁电机等特定热点。堵塞通常是由于吸入了外部异物（如昆虫、杂草、筑巢材料）或内部防尘塞未拔出导致的。管路本体并不一定会发生物理损坏，常规操作是使用压缩空气或内窥镜清理异物（Remove Blockage）即可恢复流通。",
+    "thought": "1. 识别顶层事件：冷却通风管堵塞气流受限，无误。\n2. 校验逻辑归属：待校验树习惯性地将其判定为严重的硬件损坏（变形压瘪），并建议整体更换。但工单记录非常简单：“清除了堵塞物（REMOVED BLOCKAGE）”。这说明管路硬件完好，仅仅是内部存在异物。\n3. 生成修正：判定为 false。底事件修正为异物堵塞，处理建议修正为物理清理。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障定性错误。待校验故障树过度推断为管路硬件变形损坏，但根据维修记录，机务仅仅执行了'清除堵塞物'的动作。这表明管路本体结构正常，故障是由外来异物或杂质堆积导致的物理阻塞。",
+      "corrected_tree": {
+        "top_event": "强制冷却通风管气流受限",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "管路内部异物/杂质堵塞",
+            "type": "Basic Event",
+            "treatment": "物理清理或吹除通风管内部的堵塞物",
+            "evidence": "REMOVED BLOCKAGE."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100319：左前侧发动机的金属导流板出现了一条疲劳裂纹（L/H FWD ENGINE BAFFLE CRACKED）。机务人员按照标准流程对裂纹进行了处理：首先在裂纹末端钻了止裂孔（STOP DRILLED CRACK），然后制作了一块金属补丁（FABRICATED PATCH），并按照航空结构修理手册进行了铆接（RIVETED IAW）。",
+    "context": "钣金裂纹标准修复法：航空薄金属件（如导流板）出现裂纹时，不能简单地焊接。标准的三步走工艺是：1. 钻止裂孔（Stop Drill），通过将裂纹尖端由锐角变为圆孔来消除应力集中；2. 制作补丁（Fabricate Patch），剪裁一块面积大于受损区且材质/厚度一致的铝板；3. 铆接（Rivet），使用实心铆钉将补丁覆盖铆接在受损区域。这是一套严谨的工艺逻辑序列。",
+    "thought": "1. 识别顶层事件：发动机前侧金属导流板疲劳开裂。\n2. 分析维修动作：不仅是“修补”，更是一套包含“止裂、补强、固定”的标准工艺流程。\n3. 结构化表达：将这三步高度规范化的修理动作，整合入故障树底事件的处理建议中，体现出大模型对航空维修领域工艺流程(IAW)的深刻理解。",
+    "output": {
+      "top_event": "左前侧发动机金属导流板疲劳裂纹",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "局部高频震动导致金属应力开裂",
+          "type": "Basic Event",
+          "treatment": "执行标准钣金修复工艺：钻止裂孔截断裂纹，制作同材质金属补丁并按手册规范进行铆接覆盖",
+          "evidence": "STOP DRILLED CRACK, FABRICATED PATCH. RIVETED IAW"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100309：检查发现发动机启动齿圈上丢失了轮齿（STARTER RING GEAR MISSING TEETH）。机务人员拆除了受损的齿圈并更换了新齿圈，最后按照规定对相关固定螺栓进行了打保险丝防松处理（REMOVED & REPLACED STARTER RING GEAR. RESAFETY WIRED PR）。\n【待校验故障树】：\n{\n  \"top_event\": \"启动齿圈部分轮齿缺失\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"启动电机齿轮与齿圈啮合不良\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"调整启动电机位置，重新校准啮合间隙即可\"\n    }\n  ]\n}",
+    "context": "打齿与防松保险丝 (Missing Teeth & Safety Wire)：启动齿圈“缺失轮齿（Missing Teeth）”是不可逆的毁灭性机械损坏，不是靠“调整间隙”就能修好的，必须将重型齿圈整体更换。另外，在航空维修中，发动机核心旋转部件的紧固螺栓在打满扭矩后，必须使用航空不锈钢保险丝（Safety Wire）相互穿绕打结，以物理方式防止螺栓在剧烈震动中退扣脱落。这是更换核心旋转件后必不可少的工序。",
+    "thought": "1. 识别顶层事件：启动齿圈轮齿打断/缺失。\n2. 校验逻辑归属：待校验树判定为“啮合不良”，且处理方案仅为“调整间隙”。对于已经“缺失(Missing)”的金属轮齿来说，调整间隙毫无意义。同时，待校验树漏掉了重要的安全工艺动作（打保险丝）。\n3. 生成修正：判定为 false。底事件修正为核心金属件硬性损坏，修复手段修正为整体换件加安全防松工艺。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "机械损伤评估错误。待校验故障树仅建议调整啮合间隙，这无法修复已经发生金属断裂和缺失的轮齿。启动齿圈一旦打齿必须彻底报废。此外，必须包含维修日志中明确提及的核心装配工艺：防松保险丝穿线(Safety Wire)。",
+      "corrected_tree": {
+        "top_event": "启动齿圈出现机械打齿损伤",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "启动瞬间高负荷导致金属轮齿剪切断裂",
+            "type": "Basic Event",
+            "treatment": "拆除并更换报废的启动齿圈总成，紧固后必须对螺栓执行打保险丝(Safety Wire)防松处理",
+            "evidence": "REMOVED & REPLACED STARTER RING GEAR. RESAFETY WIRED PR"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100314：检查发现机油压力开关连接线束处的保护穿线胶圈丢失（OIL PSI SWITCH WIRING GROMMET IS MISSING）。机务人员在原位置安装了一个新的穿线护套胶圈（INSTALLED NEW GROMMET）。",
+    "context": "护套胶圈 (Wiring Grommet)：当电线需要穿过金属挡板或外壳时，为了防止锋利的金属边缘在震动中割破电线的绝缘层造成短路，必须在金属孔边缘卡入一个橡胶材质的护套胶圈（Grommet）。如果胶圈老化脱落丢失（Missing），属于电气布线安全隐患，应当立即补装。",
+    "thought": "1. 识别顶层事件：机油压力开关布线保护组件缺失。\n2. 故障原因分析：单纯的辅助性橡胶部件自然老化脱落。\n3. 构建简单逻辑树：非常直接的物理耗材缺失与补齐动作，这是航空日常定检中最典型的预防性维护动作。",
+    "output": {
+      "top_event": "机油压力开关布线保护组件缺失",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "穿线胶圈(Grommet)老化/震动脱落",
+          "type": "Basic Event",
+          "treatment": "在金属穿孔处安装全新的橡胶穿线护套，防止线束绝缘层磨损",
+          "evidence": "OIL PSI SWITCH WIRING GROMMET IS MISSING; INSTALLED NEW GROMMET."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100338：右侧发动机3号气缸后部导流板的密封条发生移位错位（R/H ENGINE #3 CYL AFT BAFFLE SEAL IS OUT OF PLACE）。机务人员将其重新复位并进行了固定（RESECURED BAFFLE SEAL）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸后部密封条位置异常\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"柔性密封条橡胶老化撕裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"整体撕除旧密封条并用铆钉更换新的密封挡板\"\n    }\n  ]\n}",
+    "context": "移位错位 (Out of Place)：橡胶密封条通常由铆钉或胶水固定。如果在强烈的螺旋桨洗流或机舱风压作用下发生翻转或移位（Out of Place），但不一定发生了物理撕裂。此时只需要将其推回正确的位置，并可能补充胶水或紧固件使其重新固定（Resecured）即可，盲目换新属于不必要的浪费。",
+    "thought": "1. 识别顶层事件：后部导流板密封条位置异常，无误。\n2. 逻辑校验：待校验树判断部件发生不可逆的物理损坏（老化撕裂），并建议整体更换。但工单日志描述非常克制：现象是“OUT OF PLACE(移位)”，动作是“RESECURED(重新固定)”。没有使用 Torn（撕裂）和 Replaced（更换）这两个词。\n3. 生成修正：判定为 false。底事件修正为物理位置偏移，处理手段修正为调整复位。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障定性过度严重。待校验故障树将故障判定为材料撕裂老化。但维修记录中明确表述为'移位(OUT OF PLACE)'，且机务仅执行了'重新固定(RESECURED)'的操作。这证明原密封条本体并未发生不可修复的破损，只需物理复位即可。",
+      "corrected_tree": {
+        "top_event": "后部导流板橡胶密封件移位",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "风压或震动导致密封件翻卷错位",
+            "type": "Basic Event",
+            "treatment": "将密封条调整回正确形态，并重新施胶或固定",
+            "evidence": "SEAL IS OUT OF PLACE; RESECURED BAFFLE SEAL."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100302：左侧导流板上原有的橡胶堵头/防尘塞丢失（L/H BAFFLE PLUG MISSING）。机务人员并没有寻找常规的橡胶堵头塞入，而是就地取材，使用同等材质的铝板制作了一块实体补丁，永久封堵了该孔洞（INSTALLED PATCH FABRICATED OUT OF LIKE MATERIAL. INSTAL）。",
+    "context": "孔洞封堵的替代工艺：导流板上常常预留有方便线束穿过或供后期加装设备的圆孔，不使用时会用橡胶塞（Baffle Plug）堵住防止漏风。如果橡胶塞丢失且航材库没有备件，或者评估该孔洞永久不再使用，机务可以采用“升级修复”方案：即裁剪同等厚度的金属铝板（Like Material），通过钣金铆接工艺（Patch）永久覆盖该孔。这属于工程容差范围内的合理变通。",
+    "thought": "1. 识别顶层事件：左侧导流板预留孔洞防尘塞丢失。\n2. 识别中间逻辑：这是一个非标准的修复动作。缺失的是橡胶耗材，补上去的是永久金属钣金件。\n3. 构建映射：将这种“现场制造拼补(Fabricated Patch)”作为对应耗材缺失的高级容错底事件输出。训练模型理解维修的灵活性。",
+    "output": {
+      "top_event": "导流系统预留孔洞密封塞丢失",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "柔性橡胶塞(Baffle Plug)震动脱落",
+          "type": "Basic Event",
+          "treatment": "使用替代工艺：采用同材质钣金制作永久性金属覆盖补丁并安装",
+          "evidence": "L/H BAFFLE PLUG MISSING; INSTALLED PATCH FABRICATED OUT OF LIKE MATERIAL."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100329：左下方固定导流板的线缆支架断裂（L/H BOTTOM BAFFLE WIRE HOLDER IS BROKEN）。机务人员拆除了该部件，并更换了一根下方导流板的拉杆支撑组件（REMOVED & REPLACED LOWER L/H BAFFLE TIE ROD）。\n【待校验故障树】：\n{\n  \"top_event\": \"左下方导流板支撑失效\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"电气接地线束金属端子断裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"重新焊接线束端子并包裹绝缘胶布\"\n    }\n  ]\n}",
+    "context": "金属支撑拉杆 (Wire Holder / Tie Rod)：在早期航空术语或口语中，“Wire”不一定指电线，有时也指粗壮的硬质金属钢丝拉杆（Tie Rod / Tie Wire），用于在受力结构间提供拉伸支撑力。如果该“Wire Holder”断裂，这属于纯粹的机械承力结构失效，而不是电气系统的线束短路/断裂。维修动作也印证了这一点：机务更换的是刚性的拉杆(Tie Rod)，而非焊接电线。",
+    "thought": "1. 识别顶层事件：导流板下部支撑结构断裂。\n2. 逻辑校验：待校验树被“WIRE”这个词误导，生硬地将其翻译理解为了“电气线束”，给出了“焊接”的错误修复方式。结合后文的“TIE ROD(拉杆)”，确认这是一起机械硬件断裂事件。\n3. 修正输出：判定为 false。底事件必须修正为刚性金属支撑件疲劳折断，维修方式为更换机械拉杆。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "专业术语理解歧义。待校验故障树将描述中的'WIRE HOLDER'错误理解为电气系统的电线端子。根据实际更换的备件'TIE ROD(拉杆)'可知，这实际上是用于提供机械支撑张力的刚性金属连杆结构。应归属于机械承力件疲劳破坏，而非电气故障。",
+      "corrected_tree": {
+        "top_event": "左侧下部导流板机械支撑失效",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "固定导流板的刚性金属拉杆(Tie Rod)疲劳断裂",
+            "type": "Basic Event",
+            "treatment": "拆除旧件残骸，安装并调节全新的导流板支撑拉杆",
+            "evidence": "L/H BOTTOM BAFFLE WIRE HOLDER IS BROKEN; REMOVED & REPLACED LOWER L/H BAFFLE TIE ROD."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "综合批量密封换件记录 (100325, 100310, 100306)：定检发现多侧发动机气缸进气系统存在严重且普遍的泄漏。比如发现左侧发动机的1号、2号和4号进气口均在泄漏（L/H ENGINE INTAKES 1, 2 & 4 LEAKING）；右侧也曾出现2号和4号同时泄漏（#2 & 4 INTAKE GASKETS LEAKING）；以及单独的2号、3号进气口泄漏（CYL #2 & 3 INTAKES ARE LEAKING）。机务的处理方式极其统一：执行批量维修作业，将所有受波及气缸的进气垫片全部拆除，并换上了全新的密封垫片（REMOVED & REPLACED 1, 2 & 4 INTAKE GASKETS W/ NEW... REPLACED CYL #2 & 3 INTAKE GASKETS）。",
+    "context": "进气系统批处理更换 (Batch Gasket Replacement)：航空活塞发动机的进气垫片（Intake Gasket）通常采用橡胶或纸质复合材料。当处于同一运行环境（如相同工作小时数、经历相同高温炙烤）时，如果超过半数气缸的垫片开始漏气，说明该批次耗材已整体达到物理老化周期。工程上的最优解是进行同区域“一锅端”的批量拆换，防止漏网之鱼在未来几个飞行小时内失效。",
+    "thought": "1. 识别顶层事件：全机进气系统大范围/集群性密封失效。\n2. 寻找共性特征：多条日志相互印证了这是一个多气缸（1,2,3,4缸都涉及过）并发的普遍耗材老化问题。\n3. 构建底层逻辑：利用并列归纳法，将不同架次、不同气缸的同类垫片损坏合并为一个底事件，并映射对应的大规模批处理换件指令。",
+    "output": {
+      "top_event": "多气缸进气系统集群性密封破损",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "同批次进气歧管接口密封垫片热老化终结",
+          "type": "Basic Event",
+          "treatment": "执行批处理维护程序，同时拆除并更换所有存在老化迹象的进气密封垫片组",
+          "evidence": "L/H ENGINE INTAKES 1, 2 & 4 LEAKING... REMOVED & REPLACED 1, 2 & 4 INTAKE GASKETS W/ NEW."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100350：检查发现用于包裹在1号和3号气缸摇臂室机油回油管外侧的螺旋缠绕保护带需要更换（SPIRAL WRAP ON ROCKER OIL RETURN LINES #1 & 3 REQUIRES REPLA）。维修人员拆除了旧的保护带，并在回油管上重新缠绕并固定了新的螺旋保护套（REMOVED & REPLACED SPIRAL WRAP ON ROCKER RETURN LINES #）。",
+    "context": "管路防摩擦保护带 (Spiral Wrap)：在发动机极其紧凑的空间内，机油回油管（Oil Return Line）不可避免地会与其他结构件或线束交叉。为了防止金属管路在震动中被磨穿（Chafing）导致漏油，机务会在管路外侧紧紧缠绕一圈塑料或特氟龙材质的螺旋保护带（Spiral Wrap）。保护带是“牺牲件”，发现其磨损变薄就需要及时更换，以保全内部真正的流体管路。",
+    "thought": "1. 识别顶层事件：流体管路外部防磨擦保护层磨损。\n2. 系统性定性：管路本身未损坏漏油，仅仅是外部的辅助防护耗材到达寿命极限。\n3. 构建简单映射：这是一种预防性的附件维护逻辑，底层事件直接映射为防磨保护件的拆换复原。",
+    "output": {
+      "top_event": "滑油回油系统外围防磨层退化",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "管路外部螺旋保护带(Spiral Wrap)物理耗损殆尽",
+          "type": "Basic Event",
+          "treatment": "剥离失效的旧保护套，为管路缠绕包裹全新的防磨螺旋保护带",
+          "evidence": "SPIRAL WRAP ON ROCKER OIL RETURN LINES #1 & 3 REQUIRES REPLA; REMOVED & REPLACED SPIRAL WRAP"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100320：左右两侧穿过发动机导流板处的火花塞过孔橡胶塞需要更换（L/H & R/H SPARK PLUG THROUGH HOLE PLUGS NEED TO BE REPLACED）。机务人员安装了全新的发动机导流板防磨胶塞（INSTALLED NEW ENGINE BAFFLE BUTTON PLUGS）。\n【待校验故障树】：\n{\n  \"top_event\": \"火花塞相关组件失效\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"火花塞陶瓷绝缘体破裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拔出点火线圈，拆除并更换破裂的火花塞\"\n    }\n  ]\n}",
+    "context": "过孔胶塞 (Through Hole Plugs)：当高压点火导线需要穿过金属导流板去连接底部的火花塞时，金属孔的边缘必须安装带有孔缝的橡胶塞（Hole Plugs/Button Plugs），用于包裹点火线并密封导流板气流。因此，这实际上是导流系统的橡胶耗损件，与火花塞本体的电气打火功能毫无关系。",
+    "thought": "1. 识别顶层事件：火花塞穿线防护胶塞老化。\n2. 逻辑校验：待校验树看到了“SPARK PLUG（火花塞）”字眼，就错误地判定为火花塞本体的电气/陶瓷物理损坏。但描述的完整名词是“SPARK PLUG THROUGH HOLE PLUGS（火花塞过孔胶塞）”。这是一个典型的专业复合词汇断句误读。\n3. 修正输出：判定为 false。底事件修正为钣金穿孔处的橡胶护套损坏，处理动作修正为更换防磨/密封胶塞。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "复合词汇误读导致硬件定性错误。待校验故障树将'火花塞穿线过孔的橡胶塞'错误断句并理解成了'火花塞本体'。实际发生损坏的只是卡在导流板上的减震/密封橡胶耗材(Button Plugs)，火花塞电气部件本身并未损坏。",
+      "corrected_tree": {
+        "top_event": "导流板穿线防护辅助件老化",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "点火导线过孔的橡胶保护胶塞失去弹性/破损",
+            "type": "Basic Event",
+            "treatment": "移除老化的旧胶圈，卡入全新的减震密封防磨胶塞",
+            "evidence": "SPARK PLUG THROUGH HOLE PLUGS NEED TO BE REPLACED; INSTALLED NEW ENGINE BAFFLE BUTTON PLUGS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100344：检查发现固定右下方导流板的拉伸弹簧发生断裂（LOWER RIGHT BAFFLE SPRING IS BROKEN）。机务人员将其拆除，并更换挂上了一根全新的导流板拉簧（REPLACED W/ NEW BAFFLE SPRING）。",
+    "context": "导流板弹簧 (Baffle Spring)：航空活塞发动机的气缸下方常常会安装一些底部的导流薄板，为了适应气缸由于热胀冷缩和剧烈震动带来的位移变化，这些下部导流板通常不用螺丝刚性固定，而是依靠强力拉伸弹簧（Spring）勾住气缸鳍片，利用弹性保持包裹力。弹簧断裂会导致导流板松垮，散热效率急剧下降，必须换新拉簧。",
+    "thought": "1. 识别顶层事件：右下方导流系统弹性张紧元件失效。\n2. 故障原因定位：弹簧在长期的高温交变拉力下发生金属疲劳断裂。\n3. 提取简单故障树：这是一个独立的机械疲劳破坏事件，底层逻辑直接对应弹簧换新的工程动作。",
+    "output": {
+      "top_event": "下部导流板弹性张紧机构失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "固定张力弹簧(Spring)疲劳断裂",
+          "type": "Basic Event",
+          "treatment": "移除断裂的旧弹簧，使用拉钩工具挂装一根全新的金属拉簧恢复张紧力",
+          "evidence": "LOWER RIGHT BAFFLE SPRING IS BROKEN; REPLACED W/ NEW BAFFLE SPRING."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "基础紧固件松弛记录 (100301, 100308)：定检复查中发现了多处松动的紧固件。首先是右侧后部导流板的安装固定螺丝存在松动（R/H REAR BAFFLE MOUNTING SCREW LOOSE）。其次发现2、3、4号气缸摇臂室盖的固定螺丝也存在松动情况（#2, 3 & 4 ROCKER BOX COVER SCREWS LOOSE）。针对这些没有引发硬件损坏的问题，机务人员仅仅是对导流板螺丝进行了拧紧（TIGHTENED R/H REAR BAFFLE MOUNTING SCREW），并统一重新紧固了所有摇臂室的螺丝（TIGHTENED SCREWS）。",
+    "context": "例行重新定力矩 (Routine Retorquing)：对于刚性连接的机械固定螺栓（Mounting Screws / Cover Screws），高频震动带来的细微退扣是航空器的常态。当例行检查发现松动，但被固定的结构件（导流板或垫片）还未发生位移或破坏性漏油时，该故障不涉及任何备件成本，仅仅需要维护人员使用工具“恢复扭矩(Tighten)”。这构成了基础检查清单的核心。",
+    "thought": "1. 识别顶层事件：发动机外部结构件大范围机械松脱。\n2. 分析故障程度：涉及钣金固定和气缸密封件固定两个不同部位，但共同特征是都没有产生实质物理破坏。\n3. 合并简略树图：通过 OR 逻辑门将这两个并行的基础机械退扣事件合并，并提炼出统一的无需更换备件的“复拧紧固”动作。",
+    "output": {
+      "top_event": "发动机外层机械紧固件普遍松脱",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "导流板安装螺栓震动退扣",
+          "type": "Basic Event",
+          "treatment": "原位重新拧紧松动的导流板固定螺丝",
+          "evidence": "R/H REAR BAFFLE MOUNTING SCREW LOOSE; TIGHTENED R/H REAR BAFFLE MOUNTING SCREW."
+        },
+        {
+          "node_name": "多气缸摇臂室盖压紧螺丝扭矩衰减",
+          "type": "Basic Event",
+          "treatment": "对所有波及的气缸摇臂盖螺丝重新施加紧固力矩",
+          "evidence": "#2, 3 & 4 ROCKER BOX COVER SCREWS LOOSE; TIGHTENED SCREWS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "深度机械维修记录 (100376-100377)：飞行员或机务发现3号气缸发生气门卡滞（#3 CYLINDER HAS VALVE STICKING）。为了解决这一严重的内部机械故障，机务人员执行了深度的拆解大修：拆除了受损的气缸，并安装了一个经过修复的气缸总成，同时还强制更换了两根 -28 规格的推杆（REMOVED CYL, INSTALLED REPAIRED CYL, TWO -28 PUSH RODS）。最后安装了所有剩余的周边附件（INSTALLED REMAINING ITEMS）。",
+    "context": "气门卡滞 (Valve Sticking) 与连带机械损伤：气门卡滞是活塞发动机极其严重的故障。当气门在导管中卡死无法回弹时，发动机内部负责驱动气门开合的推杆（Push Rods）会直接撞击在卡死的气门机构上，巨大的机械冲击力会瞬间将空心的金属推杆顶弯或折断。因此，处理气门卡滞时，不仅需要拆换气缸总成（Cyl Assy），还必须连带更换受到撞击变形的推杆（Push Rods）。",
+    "thought": "1. 识别顶层事件：3号气缸发生气门卡滞。\n2. 识别故障传导链：气门卡滞不仅损坏了气缸本身，还产生了伴生/连带的物理破坏（推杆受损）。\n3. 构建底层逻辑：底事件不能只写换气缸，必须包含气缸和连带推杆的双重更换，使用 AND 门逻辑将其绑定在一次大修动作中。这极大地考验模型对“机械连带破坏”的理解。",
+    "output": {
+      "top_event": "3号气缸气门卡滞及伴生破坏",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "气缸气门机构内部卡死",
+          "type": "Basic Event",
+          "treatment": "拆除故障气缸，整体安装经过测试/修复的可用气缸总成",
+          "evidence": "#3 CYLINDER HAS VALVE STICKING; REMOVED CYL, INSTALLED REPAIRED CYL"
+        },
+        {
+          "node_name": "机械撞击导致推杆弯曲受损",
+          "type": "Basic Event",
+          "treatment": "报废受冲击的旧推杆，强制更换两根全新的 -28 规格气门推杆",
+          "evidence": "INSTALLED ... TWO -28 PUSH RODS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100358：排查发现进气系统正在泄漏（INTAKE IS LEAKING）。机务人员进行排查后，拆除并更换了进气管路本体（REMOVED & REPLACED INTAKE TUBE）。\n【待校验故障树】：\n{\n  \"top_event\": \"进气系统泄漏\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"进气接口密封垫片(Gasket)老化破损\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"松开接口，更换损坏的进气密封垫片\"\n    }\n  ]\n}",
+    "context": "进气泄漏的底层归因 (Gasket vs Tube)：进气系统漏气时，80% 的情况是接口处的垫片（Gasket）老化损坏。但是，长期的高频震动也会导致金属进气管（Intake Tube）本体发生疲劳裂纹甚至断裂。如果机务最终的维修动作是更换“Tube（管路）”，则证明密封垫片完好，真正的故障点是金属管路本体出现了结构性破损。",
+    "thought": "1. 识别顶层事件：进气系统漏气，描述无误。\n2. 逻辑校验：待校验树陷入了常见的“经验主义陷阱”，看到漏气就默认是换垫片（Gasket）。但维修日志明明白白写的是更换了“INTAKE TUBE（进气管）”。\n3. 修正输出：判定为 false。底事件必须修正为进气管本体破损，治疗方案修改为更换管路本体。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "故障部件定位错误（陷入经验陷阱）。待校验树根据常见经验将漏气归因为'垫片(Gasket)'破损。但原维修记录中明确指出拆换的部件是'INTAKE TUBE(进气管本体)'。这说明实际发生的是金属管路的结构性疲劳破损，而非密封耗材老化。",
+      "corrected_tree": {
+        "top_event": "进气系统泄漏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "进气金属管路(Tube)本体疲劳破裂",
+            "type": "Basic Event",
+            "treatment": "拆卸并整体更换破损的金属进气管组件",
+            "evidence": "REMOVED & REPLACED INTAKE TUBE."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100387：3号气缸的进气管路在油底壳连接软管处发生泄漏（CYL #3 INTAKE TUBE LEAKING AT SUMP CONNECTOR HOSE）。机务人员重新紧固了该处的连接卡箍（TIGHTENED CLAMPS）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号进气管路油底壳连接处漏气\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"连接软管橡胶老化撕裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除并更换连接软管 (Connector Hose)\"\n    }\n  ]\n}",
+    "context": "连接软管泄漏 (Leaking at Connector Hose)：软管连接处发生泄漏有两种可能：软管本体破裂，或者仅仅是用来压紧软管的金属卡箍（Clamp）松动退扣。根据“最小成本修理原则”，如果拧紧卡箍（Tightened Clamps）就能排除故障，说明软管本体状态良好，故障纯粹是机械紧固力不足。",
+    "thought": "1. 识别顶层事件：进气管连接软管处泄漏。\n2. 逻辑校验：待校验树推断软管撕裂并要求换件。但工单记录里只做了“TIGHTENED CLAMPS(拧紧卡箍)”，没有换任何零件。这又是典型的“过度维修/过度推理”错误。\n3. 修正输出：判定为 false。修改底事件为卡箍松脱，维修建议恢复为原位拧紧。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理破坏程度评估错误。待校验故障树臆想了'软管老化撕裂'并给出了换件建议。实际机务处理仅仅是'拧紧卡箍(TIGHTENED CLAMPS)'，说明软管本身并未破损，故障仅是机械震动导致的夹紧力流失。不应提出更换部件的过度维修方案。",
+      "corrected_tree": {
+        "top_event": "3号进气管油底壳软连接处漏气",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "软管连接金属卡箍震动松脱",
+            "type": "Basic Event",
+            "treatment": "重新调整软管位置，按标准力矩拧紧密封卡箍即可",
+            "evidence": "CYL #3 INTAKE TUBE LEAKING AT SUMP CONNECTOR HOSE; TIGHTENED CLAMPS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "物理空间干涉排查记录 (100374, 100393)：定检发现两处严重的管路/板材物理干涉隐患：第一处是前部导流板一直摩擦着消音器（FRONT BAFFLE RUBBING ON MUFFLER）。第二处是左发3号排油管的金属卡箍紧紧抵住了导流板（LEFT ENGINE #3 DRAIN HOSE CLAMP AGAINST BAFFLE）。机务人员对这两处隐患采取了不同的隔离手段：对摩擦消音器的导流板，涂抹了耐高温密封胶来进行物理隔离和固定（APPLIED HIGH TEMP SEALANT TO SEPERATE & SECURE BAFFLE）；对抵住导流板的排油管卡箍，则是重新调整了排油管卡箍的安装角度以避开干涉区域（REPOSITIONED DRAIN TUBE CLAMPS TO CLEAR BAFFLE）。",
+    "context": "摩擦 (Rubbing) 与抵触 (Against) 的干涉排故：在空间紧凑的航空发动机舱内，不同组件间的物理接触是绝对禁忌，会因震动迅速磨穿管路或板材。消除干涉有两个基本工程手段：1. 几何避让（Reposition/Clear），即通过旋转或移位，让部件之间重新获得物理间隙。2. 柔性隔离（Sealant to Separate），当几何避让不可行时，在接触面间注入耐高温硅胶等柔性材料作为缓冲阻尼垫，防止金属直接发生刚性干涉。",
+    "thought": "1. 识别顶层事件：发动机舱内部件空间物理干涉。\n2. 分支归类：两个独立的干涉事件，分别对应导流板-消音器，以及卡箍-导流板。\n3. 深层提取：这是一个绝佳的展示工程解决手段多样性的案例。将“涂胶隔离”和“旋转避让”这两种截然不同但物理目的相同的底层维修方案提取出来，并列挂载。",
+    "output": {
+      "top_event": "发动机舱部件空间物理干涉隐患",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "前导流板与消音器刚性摩擦 (Rubbing)",
+          "type": "Basic Event",
+          "treatment": "由于无法移位，在接触面间注入耐高温密封胶提供柔性隔离阻尼",
+          "evidence": "FRONT BAFFLE RUBBING ON MUFFLER; APPLIED HIGH TEMP SEALANT TO SEPERATE & SECURE BAFFLE."
+        },
+        {
+          "node_name": "排油管卡箍金属抵触导流板 (Against)",
+          "type": "Basic Event",
+          "treatment": "重新调整固定排油管卡箍的安装角度，进行几何避让以留出安全间隙",
+          "evidence": "DRAIN HOSE CLAMP AGAINST BAFFLE; REPOSITIONED DRAIN TUBE CLAMPS TO CLEAR BAFFLE."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100397：排查发现3号气缸后部导流板的固定支架松动（CYL #3 AFT BAFFLE MOUNT LOOSE）。机务人员拆下导流板后，发现该导流板在后部区域已经因为摩擦几乎被完全磨穿了（REMOVED BAFFLE & FOUND BAFFLE ALMOST WORN THROUGH AT AFT）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸导流板固定支架松动\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"支架固定螺丝/铆钉震动退扣\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"重新紧固或更换导流板支架上的固定螺丝即可\"\n    }\n  ]\n}",
+    "context": "松动现象背后的深度破坏 (Loose vs Worn Through)：表面上是某个支架“松动(Loose)”，常规理解确实是紧螺丝就行。但是机务在拆解后发现，长期的松动震动已经导致导流板本体与支架之间发生了严重的相互切割，导流板金属“几乎被磨穿(Almost Worn Through)”。这就发生了故障升级，从单纯的“紧固件退扣”演变成了“主结构件材料缺失”，必须按钣金破坏修理（打补丁或整体换件），不能仅仅拧紧螺丝了事。",
+    "thought": "1. 识别顶层事件：支架松动引发的深度排查。\n2. 逻辑校验：待校验树只看到了第一层表象“MOUNT LOOSE”，就给出了“拧紧螺丝即可”的肤浅结论。完全忽略了工单后半句“FOUND BAFFLE ALMOST WORN THROUGH”这个触目惊心的底层物理事实。如果只紧螺丝，磨薄的部位随时会断裂。\n3. 修正输出：判定为 false。底事件修正为长期的干涉摩擦导致主体结构磨穿，修正维修建议为必须引入钣金修补工艺。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "忽略了故障传导演变导致的深度破坏。待校验故障树仅针对表面现象'松动'给出了最浅层的'紧螺丝'建议。但维修记录明确说明拆解后发现板材'几乎被磨穿(ALMOST WORN THROUGH)'，此时结构强度已不可逆受损，单纯拧紧螺丝无法消除隐患，必须按照钣金耗损进行修补或换件操作。",
+      "corrected_tree": {
+        "top_event": "支架松动导致深层结构干涉磨损",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "长期松动震颤导致导流板本体金属近乎磨穿",
+            "type": "Basic Event",
+            "treatment": "不能单纯紧固，必须裁除磨薄的区域进行钣金修补或整体更换受损导流板，随后安装牢固的支架",
+            "evidence": "REMOVED BAFFLE & FOUND BAFFLE ALMOST WORN THROUGH AT AFT."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "内部密封件深度拆换记录 (100367)：检查发现2号气缸进气系统内部推杆套管的密封件发生漏油（#2 CYLINDER INNER INTAKE PUSH ROD SEAL LEAKING）。机务进行了拆解维护，同时更换了该推杆套管内部和外部的两个密封圈，并连带更换了摇臂室盖（REPLACED INNER & OUTER PUSH ROD TUBE SEALS & ROCKER COV）。",
+    "context": "推杆套管密封 (Push Rod Tube Seals)：在莱康明/大陆等航空发动机中，推杆套管（包裹气门推杆的金属管）两端分别连接发动机机匣（内部 Inner）和气缸头部（外部 Outer）。要更换其中任何一端的漏油密封圈，都必须拆卸气门摇臂并拔出整根套管。工程惯例是：只要拔出了套管，不管另一端是否漏油，都必须强制同时更换内外两端（Inner & Outer）的新密封圈，且因拆装摇臂，摇臂盖垫片或盖子（Rocker Cov）也需一并复原更新。",
+    "thought": "1. 识别顶层事件：气缸进气侧内部推杆套管密封泄漏。\n2. 理解维修联动逻辑：这是一个极好的“工程规定/标准化作业”案例。坏的只是内部（Inner）密封，但修的时候必须内外（Inner & Outer）一起换。\n3. 提取底层映射：将这种“逢拆必全换”的连带更换逻辑写入底层事件的处理方案中，增强模型的工程行业常识。",
+    "output": {
+      "top_event": "进气气门推杆套管内部密封失效漏油",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "推杆套管机匣端(Inner)橡胶密封圈老化",
+          "type": "Basic Event",
+          "treatment": "按照维修规范拔出推杆套管，同步强制更换内端与外端(Inner & Outer)两组密封圈，并更新摇臂室覆盖件",
+          "evidence": "#2 CYLINDER INNER INTAKE PUSH ROD SEAL LEAKING; REPLACED INNER & OUTER PUSH ROD TUBE SEALS & ROCKER COV."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "复杂钣金损伤与修补记录 (100371)：机务人员发现1号气缸导流板存在两处裂纹：一处位于固定螺丝的支撑点处，另一处位于1号缸底部的前部导流板上（CYL #1 BAFFLE CRACKED AT SCREW SUPPORT & FWD BAFFLE BELOW #1）。针对这两处应力开裂，机务使用同等材质的金属制作了多个补丁，并按航空维修要求进行了全方位的铆接修复（FABRICATED PATCHES OF LIKE MATERIAL & RIVETED IAW）。",
+    "context": "多发性应力损伤点 (Cracked at Support & Below)：一块大型钣金件在特定震动频率下，会在多个应力集中点（如硬性固定的螺丝孔附近 Screw Support，或受风压最大的下腹部 Below）同时产生疲劳裂纹。既然机务选择了打补丁（Fabricated Patches，复数形式）而不是整体换件，说明这两处裂纹都是局部且独立的，可以分别进行钣金加强。",
+    "thought": "1. 识别顶层事件：1号气缸外围导流板系统出现多处独立疲劳裂纹。\n2. 剥离独立故障点：明确一处在螺丝支撑点，另一处在下部前挡板。两者物理位置不同。\n3. 构建并发结构树：使用 AND 门同时挂载这两个受损部位的底事件，然后统一指向共同的钣金补丁修复工艺。",
+    "output": {
+      "top_event": "1号导流板系统多点疲劳开裂",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "导流板固定螺丝支撑点(受力中心)应力开裂",
+          "type": "Basic Event",
+          "treatment": "局部制作同材质金属补丁覆盖铆接",
+          "evidence": "CYL #1 BAFFLE CRACKED AT SCREW SUPPORT; FABRICATED PATCHES OF LIKE MATERIAL & RIVETED IAW"
+        },
+        {
+          "node_name": "气缸下部前向导流板风压疲劳开裂",
+          "type": "Basic Event",
+          "treatment": "局部制作同材质金属补丁覆盖铆接",
+          "evidence": "& FWD BAFFLE BELOW #1; FABRICATED PATCHES OF LIKE MATERIAL & RIVETED IAW"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100388：3号气缸后部导流板安装支架的固定铆钉全部发生剪断破坏（CYL #3 AFT BAFFLE MOUNT RIVETS ARE SHEARED）。维修人员拆下了导流板，修复了破损的安装支架并重新安装（REMOVED BAFFLE, REPAIRED MOUNT & REINSTALLED）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号气缸后部安装支架脱落\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"支架固定铆钉松动退扣\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"使用工具对松动的旧铆钉重新敲击压紧(Re-buck)即可\"\n    }\n  ]\n}",
+    "context": "剪切破坏 (Sheared) vs 松动 (Loose/Working)：如果是铆钉松动（Smoking/Working Rivet），可以通过重新顶把敲击（Re-bucking）来恢复涨紧力。但日志明确使用的是“SHEARED（剪断）”。这意味着铝制铆钉的钉杆已经被过载的横向剪切应力硬生生切成了两半，金属已经不可逆损毁。此时旧铆钉必须被钻除（Drill out）并重新安装全新大一号规格的紧固件（Repaired mount），绝不可能重新敲击复用。",
+    "thought": "1. 识别顶层事件：导流板安装支架铆钉严重破坏脱落。\n2. 逻辑校验：待校验树把“剪断破坏”轻描淡写地判断为了“松动退扣”，并给出了重新顶紧旧铆钉的可笑建议。破坏了的金属件是不能自我愈合复用的。\n3. 修正输出：判定为 false。底事件修正为超出极限剪切应力导致金属断裂，修复动作为必须钻除残骸并执行结构修复（Repaired Mount）。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理失效模式及工艺定性严重错误。待校验故障树将'剪断(SHEARED)'误判为了普通的'松动'。剪断代表铆钉金属已经被彻底切断断裂，此时不能使用'重新压紧'的工艺。必须钻除断裂在孔内的残余钉杆，并进行深度的安装座结构修复(Repaired Mount)重新铆接。",
+      "corrected_tree": {
+        "top_event": "后部导流板支架紧固系统破坏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "极端横向震荡应力导致支架铆钉被完全剪断",
+            "type": "Basic Event",
+            "treatment": "移除干涉的导流板，钻除断裂的铆钉残骸，对安装座孔位进行修整后重新打入新铆钉进行结构修复",
+            "evidence": "MOUNT RIVETS ARE SHEARED; REMOVED BAFFLE, REPAIRED MOUNT & REINSTALLED."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100384-100385：飞行员报告发动机启动时运转粗暴，怀疑是气门卡滞（ENGINE ROUGH ON START, SUSPECT STUCK VALVE）。机务人员进行检查后，确认了是3号气缸排气气门卡死在开启位置（INSP'D, FOUND #3 CYL EXHAUST VALVE STUCK OPEN）。随后机务执行了相应的气门松动维修程序并给气缸底座打上扭矩复原（TORQUED CYL BASE, INSTALLED REMAINING LINES...）。\n【待校验故障树】：\n{\n  \"top_event\": \"启动时运转粗暴\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"点火磁电机正时错误导致缺火\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"调整并校准磁电机点火正时角度\"\n    }\n  ]\n}",
+    "context": "气门卡死常开 (Exhaust Valve Stuck Open) 的影响：气门如果卡死在常开位置，会导致该气缸在压缩冲程时，混合气全部从排气管漏掉，气缸内压力完全为零（Zero Compression）。这会造成该气缸完全不产生动力，从而引发极其严重的运转抖动（Engine Rough）。这完全是机械核心机件卡滞，与提供电火花的点火系统（磁电机）毫无关系。",
+    "thought": "1. 识别顶层事件：发动机启动时运转极度粗暴。\n2. 逻辑校验：文本中已经清清楚楚给出了排查结论是“3号缸排气门卡死常开”。待校验树却完全无视了日志里的确诊信息，自行脑补了一个“点火磁电机故障”。这属于严重的脱离证据乱编。\n3. 修正输出：判定为 false。底事件必须修正为排气门卡死常开，并映射对应的机械复原操作。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "脱离工单证据的错误归因。待校验树无视了维修记录中明确的检查结论，凭空捏造了'点火系统'故障。根据工单，机务已经通过内窥镜或盘车确诊真正的物理原因是'3号气缸排气门卡死在开启位置'，导致气缸完全丧失压缩比从而引发粗暴抖动。",
+      "corrected_tree": {
+        "top_event": "发动机启动时由于单缸失效导致严重抖动",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "3号缸排气门积碳卡死在常开位置导致失压",
+            "type": "Basic Event",
+            "treatment": "拆除周边管线释放气缸，对卡滞的气门机构进行除碳松动处理，按规定力矩重新安装紧固气缸底座",
+            "evidence": "FOUND #3 CYL EXHAUST VALVE STUCK OPEN; TORQUED CYL BASE, INSTALLED REMAINING LINES..."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "基础例行紧固记录 (100351, 100352)：机务在绕机定检时，发现左侧和右侧发动机所有的摇臂室盖固定螺丝都处于松动状态（L/H ENGINE ROCKER BOX COVER SCREWS LOOSE; R/H ENGINE ROCKER BOX COVER SCREWS LOOSE）。针对这种全机范围内的大面积松动，且无漏油报告，机务人员只是简单地将两侧的所有螺丝进行了原位重新拧紧（TIGHTENED DOWN SCREWS）。",
+    "context": "正常机械退扣与扭矩恢复 (Routine Tightening)：在未发生密封垫片冲毁漏油的前提下，全发动机范围内的固定螺丝松动（Loose），是由于发动机正常的交变热膨胀和高频震动导致的机械物理退扣。这类故障不涉及任何备件更换，是航空器维护中最底层的预防性动作，直接旋紧（Tightened down）恢复扭矩即可。",
+    "thought": "1. 识别顶层事件：全机气缸头部附件大范围机械紧固件松弛。\n2. 故障原因定位：纯粹的震荡物理退扣，不涉及耗材损坏。\n3. 提取简单故障树：这是一个极简的单分支逻辑，用于平衡数据集中复杂逻辑的比例。教导模型“有时候松了就是松了，拧紧就行，别乱换东西”。",
+    "output": {
+      "top_event": "双发摇臂室盖附件紧固力大范围流失",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "发动机高频震动导致螺丝群体机械退扣",
+          "type": "Basic Event",
+          "treatment": "无需更换任何零部件，使用工具对所有摇臂室盖螺丝原位重新施加标准压紧扭矩即可",
+          "evidence": "L/H & R/H ENGINE ROCKER BOX COVER SCREWS LOOSE; TIGHTENED DOWN SCREWS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "发动机换发大修记录 (100423-100426)：机务记录显示发动机到达了规定的使用寿命极限（ENGINE IS TIMED OUT）。为此执行了跨度极大的系统工程：首先按照维护手册拆除了旧发动机（REMOVED ENGINE IAW MAINT MANUAL）；接着从旧发动机上拆除导流板及周边附件以备转移（REMOVED BAFFLING & COMPONENTS FROM OLD ENGINE & STARTED...）；随后吊装了新发动机，执行了预先润滑并安装了火花塞（INSTALLED ENGINE. PERFORMED PRE-OIL & INSTALLED SPARK P）；最后进行发动机地面试车，泄漏检查一切正常（ENGINE RUN UP, LEAK CHECK GOOD）。",
+    "context": "发动机寿命到期 (Engine Timed Out/TBO)：航空发动机有严格的大修时间间隔（Time Between Overhauls）。当发动机“Timed Out”时，它可能并未发生物理故障，但由于法定寿命终结，必须强制拆下整台发动机。在这个过程中，机务需要保留飞机原有的外部附件（如导流板 Baffling）并转移到新发动机上。新发动机安装后，必须进行预润滑（Pre-oil，防止初次启动干磨）和全功率试车测试（Run Up）。",
+    "thought": "1. 识别顶层事件：发动机到达法定使用寿命极限（Timed Out）。\n2. 识别系统性逻辑：这不是修复某个损坏的零件，而是执行法定的生命周期更换。其底事件是由时间轴串联起来的标准大修流程（拆旧机 -> 转移附件 -> 装新机/预油 -> 试车验证）。\n3. 构建复杂任务树：通过 AND 门将这四个不可或缺的工程阶段组合起来，展现大模型处理宏观系统工程任务的能力。",
+    "output": {
+      "top_event": "发动机到达法定使用寿命终点 (TBO)",
+      "logic_gate": "AND",
+      "evidence": "ENGINE IS TIMED OUT.",
+      "children": [
+        {
+          "node_name": "拆除旧发本体",
+          "type": "Basic Event",
+          "treatment": "按照维修手册规范整体移除到期的发动机",
+          "evidence": "REMOVED ENGINE IAW MAINT MANUAL."
+        },
+        {
+          "node_name": "剥离并转移外围组件",
+          "type": "Basic Event",
+          "treatment": "拆下旧发动机上的导流板及其他可用组件以备安装至新发动机",
+          "evidence": "REMOVED BAFFLING & COMPONENTS FROM OLD ENGINE"
+        },
+        {
+          "node_name": "新发吊装与预处理",
+          "type": "Basic Event",
+          "treatment": "吊装新发动机，执行强制的内部预润滑(Pre-oil)并安装火花塞",
+          "evidence": "INSTALLED ENGINE. PERFORMED PRE-OIL & INSTALLED SPARK P"
+        },
+        {
+          "node_name": "复原后试车验证",
+          "type": "Basic Event",
+          "treatment": "启动发动机进行地面试车运转，确认各系统无泄漏",
+          "evidence": "ENGINE RUN UP, LEAK CHECK GOOD."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100429：右侧内部气缸导流板的拉杆被错误地安装了（R/H INNER CYL BAFFLE TIE ROD IS INSTALLED INCORRECTLY）。在机务人员试图重新调整其位置时，该拉杆发生了折断。最终机务拆除并更换了这根拉杆（TIE ROD BROKE WHILE REPOSITIONING. REMOVED & REPLACED R）。\n【待校验故障树】：\n{\n  \"top_event\": \"内部导流板拉杆断裂\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"拉杆长期承受高频震动导致金属疲劳断裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除断裂的拉杆，更换全新的刚性拉杆\"\n    }\n  ]\n}",
+    "context": "维修诱发损坏 (Maintenance Induced Damage)：机械零件断裂并非总是因为长时间的疲劳或老化。如果在之前的维护中安装错误（Installed Incorrectly），零件会产生异常预应力。当机务试图强行将其掰回正确位置（Repositioning）时，极易超过其屈服极限导致当场折断。这是典型的人为失误引发的二次损伤。",
+    "thought": "1. 识别顶层事件：导流板拉杆断裂。\n2. 逻辑校验：待校验树习惯性地将断裂归因于“长期震动导致金属疲劳”。但维修日志非常诚实地记录了这是一起“安装错误(INSTALLED INCORRECTLY)”，并在“重新调整时折断(BROKE WHILE REPOSITIONING)”。待校验树掩盖了人为操作失误这一最核心的因果关系。\n3. 生成修正：判定为 false。底事件必须修正为“错误安装与强行调整导致的人为物理破坏”。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "掩盖了人为失误的错误归因。待校验树将拉杆的断裂归结为长期的'金属疲劳'。但工单日志明确记录了拉杆最初是'被错误安装(INSTALLED INCORRECTLY)'，并且是在机务'试图重新调整位置时折断(BROKE WHILE REPOSITIONING)'。这说明真实的物理原因是人为安装应力过大及调整时的强行弯折，属于典型的维修诱发损伤。",
+      "corrected_tree": {
+        "top_event": "内部导流板拉杆断裂",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "人为失误：错误安装导致的异常应力及强行调整折断",
+            "type": "Basic Event",
+            "treatment": "移除由于操作不当折断的拉杆，以正确的角度和扭矩安装全新的拉杆",
+            "evidence": "INSTALLED INCORRECTLY; TIE ROD BROKE WHILE REPOSITIONING. REMOVED & REPLACED R."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "孔洞扩孔修复记录 (100428)：检查发现左侧发动机4号气缸上部导流板的火花塞穿线孔被磨损扩大了（L/H UPPER BAFFLE FOR CYL #4 PLUG HOLE IS ENLARGED）。机务人员使用同等材质的材料制作了一个补丁，并按规范进行了铆接修复（INSTALLED PATCH MADE OF LIKE MATERIAL & RIVETED IAW CES）。",
+    "context": "孔径扩大 (Hole is Enlarged) 与修补：在航空金属薄板上，如果有线束或部件穿过预留孔洞，长期的震动摩擦不仅会磨损线束，还会将原本的金属圆孔像锉刀一样“扩孔（Enlarged）”。这会导致密封失效或部件晃动。此时不能只塞一个更大的橡胶塞了事，标准的结构修复是：使用同材质铝板（Patch）铆接覆盖掉被磨损的大孔，然后在补丁中心重新钻出一个符合标准尺寸的新孔。",
+    "thought": "1. 识别顶层事件：导流板穿线预留孔洞严重磨损扩大。\n2. 定性物理损害：这不是裂纹（Crack），而是材料缺失造成的孔径变大（Enlarged）。\n3. 提取修复逻辑：将钣金铆接工艺与恢复标准孔径的目的结合，输出作为应对结构磨损的专项修复底事件。",
+    "output": {
+      "top_event": "导流板组件孔洞结构性磨损扩大",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "高频震动摩擦导致局部金属过度耗损(扩孔)",
+          "type": "Basic Event",
+          "treatment": "制作同等材质的金属补丁覆盖并铆接在磨损区域，以恢复原始设计孔径",
+          "evidence": "PLUG HOLE IS ENLARGED; INSTALLED PATCH MADE OF LIKE MATERIAL & RIVETED IAW CES"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100410：右侧发动机的2号和4号气缸摇臂室机油回油管发生泄漏（R/H ENGINE #2 & 4 ROCKER OIL RETURN LINES ARE LEAKING）。机务人员对泄漏处进行了处理，拧紧了回油管卡箍（TIGHTENED CLAMPS）。\n【待校验故障树】：\n{\n  \"top_event\": \"2号和4号摇臂室回油管泄漏\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"回油管橡胶老化破裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"排干机油，拆除并更换老化的机油回油管\"\n    }\n  ]\n}",
+    "context": "回油管 (Oil Return Line) 的低压特性：摇臂室的回油管依靠重力将机油引回油底壳，属于低压管路。这种管路如果在接口处发生泄漏，不一定是因为软管破裂。往往是因为高频震动导致压紧橡胶软管的金属卡箍（Clamps）松动退扣。如果机务仅通过“拧紧卡箍(TIGHTENED CLAMPS)”就排除了漏油，反向证明了软管本身完好无损。",
+    "thought": "1. 识别顶层事件：摇臂室回油管路发生泄漏。\n2. 逻辑校验：待校验树习惯性地给出“橡胶老化破裂”并建议换管子。但维修日志上清清楚楚写着只做了“TIGHTENED CLAMPS(拧紧卡箍)”。没换零件就治好了漏油，说明硬件根本没破。\n3. 生成修正：判定为 false。底事件修正为卡箍松脱引起的密封压紧力不足，消除换管子的过度维修指令。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "物理损伤严重程度误判（过度维修）。待校验故障树将漏油直接归结为'橡胶管破裂'。但机务人员的实际排故动作仅仅是'拧紧卡箍(TIGHTENED CLAMPS)'，未更换任何零件。这表明软管本体并未发生结构性损坏，真实的故障原因是机械震动导致卡箍松脱，丧失了接口压紧力。",
+      "corrected_tree": {
+        "top_event": "2号和4号摇臂室低压回油管接口泄漏",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "管路连接卡箍震动退扣导致密封力不足",
+            "type": "Basic Event",
+            "treatment": "无需更换管路，直接使用工具重新紧固回油管连接卡箍即可恢复密封",
+            "evidence": "R/H ENGINE #2 & 4 ROCKER OIL RETURN LINES ARE LEAKING; TIGHTENED CLAMPS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "子系统预防性换件记录 (100411-100416)：计划性维护任务要求全面更换左右两侧发动机的扭矩计软管（REPLACE L/H & R/H ENGINE TORQUEMETER HOSES）。在执行更换作业时，机务人员按照流体属性的分类，分别更换了扭矩计系统的高压压力软管（REPLACED PRESSURE HOSE）和低压透气软管（REPLACED VENT HOSES FOR TORQUEMETER）。更换完毕后，执行了打压试车，泄漏检查结果良好（LEAK CHECKED GOOD）。",
+    "context": "扭矩计系统 (Torquemeter System)：大型涡轮或部分活塞发动机使用精密液压来测量发动机输出扭矩。由于该系统直接承载高温高压机油，其柔性软管（Hoses）有强制报废寿命期限。更换扭矩计软管通常是一项系统工程，必须同时更换进油端的高压管（Pressure Hose）和回油端的透气管（Vent Hose），缺一不可。完成后必须进行严格的打压防漏测试。",
+    "thought": "1. 识别顶层事件：执行双发扭矩计系统软管寿命到期的整体更换。\n2. 识别系统性分支：该换件任务被拆解为了两个具体的物理子分支（压力管和透气管）。\n3. 构建并发逻辑树：使用 AND 门同时列出压力软管和透气软管的更换作为基础事件，并将泄漏检查作为后置验证动作补充到修复建议中。",
+    "output": {
+      "top_event": "扭矩计系统液压软管到达强制报废期限",
+      "logic_gate": "AND",
+      "evidence": "REPLACE L/H & R/H ENGINE TORQUEMETER HOSES.",
+      "children": [
+        {
+          "node_name": "系统高压输油管路更换",
+          "type": "Basic Event",
+          "treatment": "拆除旧管，安装全新的扭矩计压力软管(Pressure Hose)",
+          "evidence": "REPLACED PRESSURE HOSE / INSTALLED PRESSURE HOSE."
+        },
+        {
+          "node_name": "系统低压回流管路更换",
+          "type": "Basic Event",
+          "treatment": "拆除旧管，安装全新的扭矩计透气软管(Vent Hose)，全部安装完毕后执行试车检漏",
+          "evidence": "REPLACED VENT HOSES FOR TORQUEMETER; LEAK CHECKED GOOD."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100450：发动机在关机测试期间，怠速设定在了 1700 RPM。当拉动混合气进行慢车关车检查时，转速没有任何上升的反应（ENGINE IDLE @ 1700 RPM DURING SHUT DOWN. NO RISE IN RPM ON M）。机务人员对怠速转速和混合气浓度上升幅度进行了校准调整，随后运行检查一切正常（ADJUSTED IDLE SPEEDS & MIXTURE RISE, OPS CHECK GOOD）。\n【待校验故障树】：\n{\n  \"top_event\": \"关机怠速检查时转速无上升反馈\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"燃油伺服器/化油器内部膜片破损\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆卸并更换损坏的燃油伺服器总成\"\n    }\n  ]\n}",
+    "context": "慢车关车检查 (Idle Cut-off Check)：活塞发动机正确的关机方式是拉出混合气杆切断燃油。在切断瞬间，混合气会从“富油”短暂变为“最佳比例”，此时发动机转速应有轻微上升（Rise in RPM，通常几十转）然后迅速熄火。如果“没有转速上升（No Rise）”且怠速高达 1700 RPM，这仅仅说明机械调节螺钉（怠速螺钉和混合气螺钉）偏离了基准位置。这属于常规的参数标定/调节故障（Adjustment），硬件并未损坏。",
+    "thought": "1. 识别顶层事件：发动机慢车关车时参数响应异常（怠速过高且无转速波峰）。\n2. 逻辑校验：待校验故障树把这种标定漂移直接判成了“伺服器膜片破损”的硬核机械损坏，并要求换件。但工单写的非常清楚：仅仅是“调节了怠速和混合气(ADJUSTED IDLE SPEEDS & MIXTURE RISE)”，没有进行任何拆换。\n3. 修正输出：判定为 false。底事件修正为调节旋钮刻度漂移，手段修正为机械标定与校准。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "混淆了参数漂移与硬件损坏。待校验树将怠速不稳及混合气响应异常直接判决为昂贵的燃油伺服器内部损坏。然而，机务的实际处理方式是'调节(ADJUSTED)'怠速螺钉和混合气，且随后的系统检查通过。这证明硬件完全健康，故障仅仅是机械调节位点的长期震动漂移导致标定失准。",
+      "corrected_tree": {
+        "top_event": "慢车关机检查时发动机参数响应异常",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "怠速转速及混合气基准设定偏离",
+            "type": "Basic Event",
+            "treatment": "无需更换硬件，使用工具重新校准化油器/伺服器上的怠速限位螺钉及混合气基础浓度设定",
+            "evidence": "NO RISE IN RPM ON M; ADJUSTED IDLE SPEEDS & MIXTURE RISE, OPS CHECK GOOD."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "特定应力加强修复记录 (100431)：机务检查时发现右前侧的下部导流板产生了疲劳裂纹（FWD LOWER BAFFLE, R/H SIDE, IS CRACKED）。对于此处的裂纹，机务不仅钻了标准的止裂孔（STOP DRILLED CRACK），还额外采用了一项加强措施：安装了一个大面积的平垫圈，以便将应力分散（INSTALLED WIDE AREA WASHER TO DIST）。",
+    "context": "应力分散 (Distribute Stress) 与大垫圈 (Wide Area Washer)：在有螺栓固定的薄钣金件裂纹周围，如果仅仅打止裂孔，由于该点原本就是受力集中区，裂纹很容易越过止裂孔继续发展。此时，适航工艺允许在螺栓处垫入一个尺寸特别大的平垫圈（Wide Area Washer）。它能像雪地靴一样，将螺栓施加的集中压紧应力均匀地分散（Dist）到周边未受损的钣金上，从而彻底锁定裂纹。",
+    "thought": "1. 识别顶层事件：右侧下部导流板产生疲劳裂纹。\n2. 识别非常规维修手段：在“钻孔”这一标准动作外，特别增加了“安装大面积垫圈分散应力”的加强动作。\n3. 提取特征底事件：将引入大面积平垫圈作为分散局部过载应力的核心工程手段，独立呈现于维修建议中。",
+    "output": {
+      "top_event": "下部前侧导流板局部疲劳裂纹",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "固定点局部震荡应力过度集中导致开裂",
+          "type": "Basic Event",
+          "treatment": "在裂纹尖端钻止裂孔截断应力，并在固定点垫入大面积平垫圈以重新分散压紧负荷",
+          "evidence": "STOP DRILLED CRACK & INSTALLED WIDE AREA WASHER TO DIST"
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100445：右侧发动机3号气缸部位的导流板，在1号导流板的上部连接附件处发生了破裂（R/H ENGINE #3 BAFFLE CRACKED BY UPPER #1 BAFFLE ATTACHMENT）。机务人员的处理方式是：使用同等材质的金属制作了一个新的连接附件来修复导流板（REPAIRED BAFFLING BY FABRICATING ATTACHMENT OF LIKE MAT）。\n【待校验故障树】：\n{\n  \"top_event\": \"3号导流板上部破裂\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"导流板主板材震动疲劳破损\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"将整个3号气缸的导流板拆除并整体更换为新件\"\n    }\n  ]\n}",
+    "context": "主件与连接件的区分修理 (Attachment vs Main Baffle)：导流板的主体钣金很大，但在连接其他部件或固定在发动机上时，往往通过一些小型的角铝或金属挂耳——即连接附件（Attachment）。如果裂纹仅发生在这些细小的挂耳处（Cracked by attachment），标准处理是剔除损坏的小挂耳，单独现场制作一个小号金属连接件（Fabricating Attachment）铆上去。整体更换昂贵且耗时的主导流板是极度缺乏工程经济性的。",
+    "thought": "1. 识别顶层事件：导流板连接部件疲劳破裂。\n2. 逻辑校验：待校验树把“连接件(Attachment)”的破损，放大为“整个导流板主体”的破损，并给出了“整体换件”的过度维修指令。但机务记录中仅仅是“制作了一个连接件(FABRICATING ATTACHMENT)”。\n3. 修正输出：判定为 false。底事件修正为局部连接辅助件断裂，维修建议恢复为局部制作替换挂耳。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "混淆了主体板材与局部附属支撑件，导致过度维修评估。待校验故障树建议更换'整个3号导流板'。但工单表明，裂纹主要集中在细小的'上部连接附件(UPPER ATTACHMENT)'周围。机务的实际操作也是保留了主板材，仅用同材质金属重新现场制作并替换了那个受损的连接挂耳。不应扩大维修范围。",
+      "corrected_tree": {
+        "top_event": "导流板局部连接部件受损开裂",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "悬挂/连接附件点产生金属疲劳裂纹",
+            "type": "Basic Event",
+            "treatment": "无需整体更换导流板，裁除损坏的连接挂耳部位，使用同材质钣金重新制作安装附件即可修复",
+            "evidence": "CRACKED BY UPPER #1 BAFFLE ATTACHMENT; REPAIRED BAFFLING BY FABRICATING ATTACHMENT OF LIKE MAT."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "批量密封换件记录 (100408, 100409)：定检时发现左右两台发动机的摇臂室出现了集体漏油现象。左侧发动机的所有4个摇臂室盖均在漏油（L/H ENGINE ALL 4 ROCKER COVERS ARE LEAKING）；右侧发动机的所有4个摇臂室盖也同样在漏油（R/H ENGINE ALL 4 ROCKER COVERS ARE LEAKING）。由于是集体同时失效，机务人员直接把两台发动机共计8个摇臂室盖的垫片全部拆除并进行了整体换新（REMOVED & REPLACED GASKETS）。",
+    "context": "耗材日历寿命/集体退化 (Batch Failure)：这属于非常极端的集群耗损案例。当双发（两台发动机）的左右共 8 个气缸的密封垫片（Gaskets）在同一次定检中全部被查出漏油，排除了安装扭矩全部错误的极小概率后，唯一的工程解释就是：这批橡胶/软木垫片已经同时抵达了其材质耐热/抗氧化的物理日历寿命极限。这种大修级别的耗材“一锅端”反映了航空可靠性设计中“同批次同寿命”的工程哲学。",
+    "thought": "1. 识别顶层事件：双侧发动机全气缸组摇臂室集体漏油。\n2. 寻找共性：左发4个，右发4个，全部漏油。这不是单发偶发故障。\n3. 构建底层映射：使用单一节点涵盖这个宏观的集体退化事件，突出这是一种“日历寿命/热老化期限”到达后的批处理更换动作。",
+    "output": {
+      "top_event": "双发摇臂室集体密封失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "全机软木/橡胶密封垫片同步抵达材质耐热老化极限",
+          "type": "Basic Event",
+          "treatment": "执行大面积批处理作业，拆除左右两台发动机全部8个摇臂室盖，成套更换新垫片",
+          "evidence": "L/H ENGINE ALL 4 ROCKER COVERS... R/H ENGINE ALL 4 ROCKER COVERS... REMOVED & REPLACED GASKETS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "基础防振部件松弛记录 (100404, 100405)：检查发现发动机外围的管线辅助固定件松动。首先是2号气缸导流板上的安全钢索固定螺栓变松（LOOSE CABLE SAFETY BAFFLE BOLTS, CYL #2）。另外，位于机油注油管附近的1号和3号气缸燃油喷射管路的支撑架/隔离柱也发生了松动（#1 & 3 CYL FUEL INJ LINES STANDOFF LOOSE BY OIL FILLER TUBE）。机务对导流板钢索螺栓进行了紧固和重新固定（TIGHTENED & RESECURED），对燃油管路的支撑柱也进行了拧紧（TIGHTENED SCREW）。",
+    "context": "隔离支柱 (Standoff) 与安全固定：在震动极大的发动机舱内，像燃油喷射管（Fuel Inj Lines）这样细长的硬质高压金属管极易产生共振断裂。因此需要使用隔离支柱（Standoff）将其刚性固定在发动机本体上。如果这些螺栓松脱（Loose），虽然管子还没断，但失去了防震支撑，存在严重隐患。此类维护仅需恢复扭矩（Tightened），不需要更换备件。",
+    "thought": "1. 识别顶层事件：发动机管线及附件辅助防震支撑件松脱。\n2. 归类事件：一个是安全拉索螺栓松动，另一个是燃油管防震隔离柱松动。\n3. 合并简单逻辑树：利用 OR 门，将这两个位置不同但物理机理完全一致（防震紧固件退扣）的基础事件并列，强调这属于紧固件复位的常规防震维护。",
+    "output": {
+      "top_event": "管线防震辅助支撑件震动松脱",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "导流板安全拉索固定螺栓退扣",
+          "type": "Basic Event",
+          "treatment": "原位重新拧紧螺栓以恢复拉索固定张力",
+          "evidence": "LOOSE CABLE SAFETY BAFFLE BOLTS, CYL #2; TIGHTENED & RESECURED."
+        },
+        {
+          "node_name": "燃油喷射管防共振支撑隔离柱(Standoff)松动",
+          "type": "Basic Event",
+          "treatment": "拧紧隔离柱螺丝，确保高压金属燃油管具备充分的抗震固定点",
+          "evidence": "#1 & 3 CYL FUEL INJ LINES STANDOFF LOOSE; TIGHTENED SCREW."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100452：3号气缸外部推杆套管在机匣连接处漏油（CYL #3 EXT PUSH ROD TUBE SEAL LEAKING AT CASE）。机务人员首先尝试重新定位并调整密封圈，但漏油现象依然存在（REPOSITIONED SEAL, LEAK PERSISTS）。最终，机务不得不执行了深度拆解，彻底更换了该密封件（DISASSEMBLED & REPLAC）。",
+    "context": "阶梯式维修逻辑与密封件失效：对于推杆套管密封漏油，有时仅仅是因为震动导致的密封圈未正确就位。本着经济性原则，标准的第一步动作是“重新定位(Reposition)”。但如果在调整后“漏油依然存在(Leak Persists)”，则物理定性发生了改变：从“装配移位”变成了“材质老化/不可逆变形”。此时必须放弃简单调试，升级为深度的拆解换件作业（Disassembly & Replace）。",
+    "thought": "1. 识别顶层事件：3号气缸推杆套管机匣端漏油。\n2. 识别阶梯式逻辑：排故包含了一次失败的尝试。初次判定为移位（尝试复位），最终判定为硬件老化（拆解换新）。\n3. 构建底层逻辑：在故障树中体现这种“尝试->失败->升级”的因果关系，将不可逆的材质老化作为最终导致拆解换新的底事件输出。",
+    "output": {
+      "top_event": "3号气缸推杆套管机匣端泄漏",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "密封件产生不可逆的物理老化/变形",
+          "logic_gate": "AND",
+          "evidence": "REPOSITIONED SEAL, LEAK PERSISTS. (重新定位后依然泄漏)",
+          "children": [
+            {
+              "node_name": "初级复位失效，确认材料本体损坏",
+              "type": "Basic Event",
+              "treatment": "放弃调整，执行推杆系统深度拆解，彻底更换受损的橡胶密封圈",
+              "evidence": "DISASSEMBLED & REPLAC"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100457：飞行员报告在走走停停期间感受到强烈的发动机震动（PILOT REPORTED STRONG ENGINE VIBRATION DURING STOP & GO WHIL）。然而，机务人员在地面进行发动机试车排查时，无法复现该故障现象，发动机运转正常（RAN ENGINE, COULD NOT DUPLICATE DISCREPANCY. ENGINE OPE）。\n【待校验故障树】：\n{\n  \"top_event\": \"低速时发动机强烈震动\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"发动机主轴承严重磨损导致偏心震动\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"拆除并大修发动机，更换主轴承\"\n    }\n  ]\n}",
+    "context": "未复现故障 (Could Not Duplicate/CND)：在航空维护中，飞行员的主观报告有时会受到气流、滑行道不平整或心理预期等外部因素的干扰。如果机务通过标准的试车程序（Run Engine）未能复现故障（Could Not Duplicate Discrepancy），则在工程上不能推定硬件存在损坏。此时绝对禁止盲目拆换零件（特别是发动机大修），只能记录在案并继续监控。",
+    "thought": "1. 识别顶层事件：飞行员报告强烈的发动机震动。\n2. 逻辑校验：待校验树基于报告，极其武断地生成了“主轴承严重磨损”的底层故障和“大修”建议。这完全违背了维修记录中“无法复现故障(COULD NOT DUPLICATE)”的核心结论。没有证据支持硬件损坏。\n3. 修正输出：判定为 false。底事件修正为现象未证实，处理动作修正为继续监控。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "排故定性严重错误（主观臆测）。待校验故障树无视了机务'无法复现故障'的测试结果，凭空捏造了主轴承损坏的结论并建议大修。在地面测试正常且无进一步物理证据的情况下，必须将该事件定性为'未证实故障'，禁止产生破坏性的拆解指令。",
+      "corrected_tree": {
+        "top_event": "表象：飞行员报告地面运行伴随强烈震动",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "硬件状态正常 (故障未复现/未证实)",
+            "type": "Basic Event",
+            "treatment": "经地面试车确认发动机运转正常，暂不执行拆换动作，记录并保持监控状态",
+            "evidence": "RAN ENGINE, COULD NOT DUPLICATE DISCREPANCY. ENGINE OPE."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100473：检查发现4号气缸的压缩压力过低，仅有大约 34 PSI（#4 CYL HAS LOW COMPRESSION, AROUND 34 PSI）。机务人员首先尝试了敲击气门进行物理松动复位，但气缸依然没有压缩压力（TRIED STAKING VALVES, STILL NO COMPRESION）。由于简单的外部干预无效，机务随后开始了深度的气缸内部检查（INSPECTED CY）。",
+    "context": "压缩测试失败的递进排查：正常的气缸压缩值应在 70 PSI 以上。34 PSI 意味着严重漏气。如果是轻微的积碳卡滞，机务标准的“快速疗法”是用锤子震击气门杆（Staking Valves），利用弹簧回弹震落积碳。但如果敲击后“依然无压缩(Still no compression)”，说明漏气原因不是表面的积碳卡滞，而是发生了深层的硬件结构破损（如气门烧蚀、活塞环断裂或缸体裂纹）。必须执行内部探视检查（Inspected Cylinder）。",
+    "thought": "1. 识别顶层事件：4号气缸存在严重的压缩泄漏（34 PSI）。\n2. 识别递进逻辑：经历了“尝试松动气门 -> 失败”的过程，排除了轻微机械卡滞的可能。\n3. 构建底层逻辑：将“内部硬件结构性损坏”作为需要深度探视的底事件，这教会了模型理解在遇到复杂故障时，排故动作是由浅入深展开的。",
+    "output": {
+      "top_event": "4号气缸严重丧失压缩能力 (34 PSI)",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "非表面积碳导致的深层内部密封失效",
+          "logic_gate": "AND",
+          "evidence": "TRIED STAKING VALVES, STILL NO COMPRESION. (敲击气门复位无效)",
+          "children": [
+            {
+              "node_name": "气门/活塞环结构性烧蚀或断裂",
+              "type": "Basic Event",
+              "treatment": "放弃外部干预，使用内窥镜或拆解手段对气缸内部进行深度探视检查",
+              "evidence": "INSPECTED CY"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100472, 100474：定检发现2号气缸排气侧推杆套管上存在一个小凹坑（#2 CYL EXHAUST PUSH ROD TUBE HAS SMALL DENT）。机务人员检查并领用了一根状态良好的可用推杆套管，使用全新的密封圈进行了安装替换（INSTALLED PUSH ROD SHROUD USING NEW SEALS / CANNED & INSPECTED SERVICEABLE PUSH RODD SHROUD TUBE FR）。\n【待校验故障树】：\n{\n  \"top_event\": \"推杆套管出现凹坑\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"气缸内部发生爆炸导致套管变形\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"整体更换2号气缸总成及所有推杆系统\"\n    }\n  ]\n}",
+    "context": "推杆套管小凹坑 (Small Dent)：推杆套管（Push Rod Tube/Shroud）是保护内部高速运动的推杆的薄壁铝管。如果在维护时不小心被工具碰伤，或者被外部飞溅的石子击中，会产生小凹坑（Small Dent）。如果凹坑过深，可能会摩擦到内部运动的推杆，导致隐患。修理方法仅仅是拔出这根薄壁管，换一根完好的管子（Shroud Tube）并配上新密封圈即可。这绝不是什么“气缸爆炸”。",
+    "thought": "1. 识别顶层事件：推杆套管存在轻微物理损伤（小凹坑）。\n2. 逻辑校验：待校验故障树进行了极其荒谬的过度发散，将一个小凹坑(Small Dent)臆想为“气缸内部爆炸”，并给出了“整体更换气缸”这种代价极其高昂的错误指令。文本记录很清晰，机务只是找了根完好的管子(Serviceable Shroud Tube)换上。\n3. 修正输出：判定为 false。底事件修正为外部物理轻微碰撞受损，修复指令修正为单独更换套管。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "严重的故障发散与过度维修。待校验故障树将薄壁铝管上的'小凹坑(Small Dent)'错误地定性为了毁灭性的内部爆炸，并提出了更换气缸总成的荒谬建议。这纯粹是外部物理碰撞导致的局部零件受损。只需按照维修记录，单独抽出并更换受损的推杆套管即可。",
+      "corrected_tree": {
+        "top_event": "排气侧推杆保护套管出现局部凹坑",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "外部硬物碰撞导致薄壁保护管变形",
+            "type": "Basic Event",
+            "treatment": "移除受损套管，使用全新密封圈安装状态良好的可用推杆套管",
+            "evidence": "#2 CYL EXHAUST PUSH ROD TUBE HAS SMALL DENT; INSTALLED PUSH ROD SHROUD USING NEW SEALS."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100487：排查发现4号气缸后部导流板的连接连接挂板发生了断裂（#4 AFT BAFFLE ATTACH PLATE BROKEN）。为了修复这一损伤，机务人员使用同等材质的金属重新制作了该连接板，完成喷漆后将其安装复原（FABRICATED, PAINTED & INSTALLED FROM LIKE MATERIAL & TH）。\n【待校验故障树】：\n{\n  \"top_event\": \"导流板连接板断裂\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"导流板连接组件疲劳断裂\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"直接订购并整体更换一个全新的4号后部导流板总成\"\n    }\n  ]\n}",
+    "context": "附属挂板 (Attach Plate) 与现场制造 (Fabrication)：导流板的主体通常造价昂贵且不易损坏。断裂往往发生在负责受力连接的小挂板（Attach Plate）上。由于这种小金属板结构简单，机务标准的工程实践是“现场制造(Fabricated)”，即裁剪同材质铝板（Like Material），钻孔、打磨、防腐喷漆（Painted）后作为替换件安装。整体更换导流板是不经济且不符合记录事实的。",
+    "thought": "1. 识别顶层事件：导流板连接附件金属断裂。\n2. 逻辑校验：待校验故障树建议“整体更换导流板总成”。但原维修记录中，机务非常明确地执行了手工钣金制造操作（FABRICATED, PAINTED & INSTALLED...）。待校验树的“直接换件”掩盖了记录中展示的高级维修工艺。\n3. 修正输出：判定为 false。底事件定性不变，但维修处理建议必须修正为现场手工制作与防腐处理。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "维修工艺覆盖错误。待校验故障树建议直接更换导流板总成，但这违背了原工单的记录。机务针对微小的附属挂板，采用的是更具经济性的'现场制造(Fabricated)'工艺。故障树的底层维修建议必须真实反映利用同等材料进行裁剪、喷漆和修补的真实工程动作。",
+      "corrected_tree": {
+        "top_event": "后部导流板连接挂板疲劳断裂",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "局部受力附件结构强度崩溃",
+            "type": "Basic Event",
+            "treatment": "使用同材质金属板材现场制作替换件，完成表面防腐喷漆后进行铆接安装",
+            "evidence": "FABRICATED, PAINTED & INSTALLED FROM LIKE MATERIAL & TH"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "请分析输入的描述文本与提供的待校验故障树，判断其逻辑是否正确。若不正确，请指出错误原因并输出修正后的结构化 JSON。",
+    "input": "【描述文本】：故障记录 100465：后部导流板支架上的固定铆钉发生了剪断（AFT BAFFLE BRACKET RIVETS SHEARED）。机务人员在支架上更换了新的铆钉，并将导流系统重新安装归位（REPLACED RIVETS ON BAFFLE BRACKET & REINSTALLED BAFFLIN）。\n【待校验故障树】：\n{\n  \"top_event\": \"后部导流板支架铆钉失效\",\n  \"logic_gate\": \"OR\",\n  \"children\": [\n    {\n      \"node_name\": \"铆钉孔位震动变大导致铆钉松动\",\n      \"type\": \"Basic Event\",\n      \"treatment\": \"重新锤击松动的铆钉以恢复紧固张力\"\n    }\n  ]\n}",
+    "context": "剪断 (Sheared) 的破坏性质：铆钉“Sheared（剪断）”是指铆钉杆承受了超限的横向剪切力，被像剪刀一样直接从中间切断为两截。这不仅意味着连接彻底分离，而且残余的钉杆死死卡在孔内。它绝不等于“松动(Loose)”。必须钻出/敲除断头，然后安装全新的铆钉(Replaced Rivets)。",
+    "thought": "1. 识别顶层事件：后部支架紧固件破坏。\n2. 逻辑校验：待校验树把“SHEARED(剪断)”这个极其暴力的物理断裂，误判为了轻微的“松动”，并给出了“重新锤击旧铆钉”这种对于已断裂零件毫无用处的错误建议。\n3. 修正输出：判定为 false。底事件修正为剪切应力破坏，修复动作修正为强制换新。",
+    "output": {
+      "is_correct": false,
+      "error_analysis": "金属破坏机理定性错误。故障树将文本中的'SHEARED(剪切断裂)'误解为了'松动'。剪断意味着金属钉杆已经发生了不可逆的物理分离截断，无法通过重新锤击进行二次利用。必须将其作为横向应力破坏事件，并执行更换全新铆钉的操作。",
+      "corrected_tree": {
+        "top_event": "后部导流板安装支架铆钉失效",
+        "logic_gate": "OR",
+        "children": [
+          {
+            "node_name": "结构受极端横向切应力导致铆钉金属剪断",
+            "type": "Basic Event",
+            "treatment": "剔除残留在孔洞内的旧铆钉残骸，更换并压接全新的固定铆钉",
+            "evidence": "RIVETS SHEARED; REPLACED RIVETS ON BAFFLE BRACKET & REINSTALLED BAFFLIN."
+          }
+        ]
+      }
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "系统性耗材整体更换记录 (100495)：在定检期间，机务人员发现大量的进气管路密封失效，表现为1、2、3、4号所有四个进气口均在泄漏（INTAKES 1, 2, 3 & 4 LEAKING）。机务的处理方式极其干脆：直接批量拆除并更换了1号到4号的所有进气密封垫片（REMOVED & REPLACED 1 - 4 INTAKE GASKETS）。",
+    "context": "耗材全寿命周期集中失效：当一台活塞发动机的所有气缸（1, 2, 3, 4）的进气接口在同一时间节点同时发生泄漏时，这在工程概率上几乎排除了个别安装失误或局部过热。它证明了这批橡胶垫片（Gaskets）在经历了相同飞行小时数的热力学折磨后，同时抵达了材质老化的终点。机务采用批处理更换（Batch Replacement），能最大程度降低未来单点频繁故障带来的停工损失。",
+    "thought": "1. 识别顶层事件：发动机全系统进气密封集体泄漏。\n2. 提取共性逻辑：记录显示从1缸到4缸无一幸免，这是典型的“同批次同寿命”材料老化特征。\n3. 构建单线合并逻辑：不需要为每个气缸建一个分支。既然机务是“一锅端”处理的，故障树也可以将这个集群失效浓缩为一个代表热老化周期的单一底层节点，教导模型学习大工程中的“化繁为简”。",
+    "output": {
+      "top_event": "发动机全气缸进气密封系统集体失效",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "同批次全部进气垫片同步抵达热力学老化终点",
+          "type": "Basic Event",
+          "treatment": "执行批处理工程维护，同时拆卸并统一更换所有1-4号气缸的进气接口密封垫片",
+          "evidence": "INTAKES 1, 2, 3 & 4 LEAKING; REMOVED & REPLACED 1 - 4 INTAKE GASKETS."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "混合破坏模式换件记录 (100464)：检查发现右侧底部导流板用于固定的金属丝拉伸弹簧发生断裂（R/H BOTTOM BAFFLE WIRE SPRING IS BROKEN）。机务人员在维修时，不仅更换了这根断裂的弹簧，还连带更换了整个底部的导流板组件（REMOVED & REPLACED BAFFLE & WIRE SPRING W/ NEW）。",
+    "context": "弹簧断裂造成的连带破坏：用来拉紧底部导流板的强力弹簧（Wire Spring）如果发生断裂，断裂的瞬间巨大的反弹力不仅会让导流板失去支撑，弹簧挂钩往往还会将导流板上的安装孔狠狠撕裂。这就是为什么机务日志不仅记录了更换弹簧，还必须将受损的导流板本体（Baffle）一并换新的底层工程原因。",
+    "thought": "1. 识别顶层事件：导流板弹性固定部件断裂。\n2. 解析维修动作的连带性：记录的故障点只有“弹簧断裂”，但维修动作却更换了“导流板”和“弹簧”两样东西。\n3. 结构化隐藏逻辑：在底层事件中，必须体现出弹簧断裂对挂载点造成的物理撕裂这一隐含传导逻辑，从而解释为什么需要“全套更换”。",
+    "output": {
+      "top_event": "下部导流系统弹性张紧机构完全破坏",
+      "logic_gate": "AND",
+      "evidence": "WIRE SPRING IS BROKEN (引起了连带更换).",
+      "children": [
+        {
+          "node_name": "金属拉伸弹簧疲劳断裂且撕裂导流板挂载孔",
+          "type": "Basic Event",
+          "treatment": "拆除受损的下部导流板，将导流板本体连同全新的固定张紧弹簧成套进行更换",
+          "evidence": "REMOVED & REPLACED BAFFLE & WIRE SPRING W/ NEW."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "故障记录 100458：在进行混合气慢车检查程序时，发动机转速没有任何上升的反应（NO RISE DURING MIXTURE CHECK）。机务人员针对此现象对发动机怠速混合气螺钉进行了机械调节，随后的复测结果一切正常（ADJUSTED IDLE MIXTURE, CHECKS GOOD）。",
+    "context": "慢车混合气检查 (Mixture Check) 的标定：活塞发动机怠速时，切断混合气的瞬间，正确的标定应该产生一个微小的转速波峰（Rise）。如果没有上升波峰（No Rise），这意味着化油器或燃油伺服器当前的怠速混合气设定过稀（Too Lean）。这属于机械调校随着震动产生的长期漂移，而不是零件发生损坏漏油。唯一的处置手段就是拿螺丝刀微调混合气设定（Adjust Mixture）使其重新达标。",
+    "thought": "1. 识别顶层事件：混合气检查程序中转速响应异常。\n2. 识别故障性质：这是一个纯粹的标定/参数调节异常，不涉及任何硬件拆换。\n3. 构建简单映射：生成单分支事件树，将底事件指向“标定漂移”，将解决手段对应到“参数调节”。为模型补充软性故障（非破坏性故障）的认知。",
+    "output": {
+      "top_event": "慢车混合气检查(熄火测试)无转速上升反馈",
+      "logic_gate": "OR",
+      "children": [
+        {
+          "node_name": "燃油伺服器/化油器怠速混合气机械标定漂移",
+          "type": "Basic Event",
+          "treatment": "无需更换零件，使用工具微调控制器的怠速混合气调节螺钉至正确刻度比例，随后重新试车验证",
+          "evidence": "NO RISE DURING MIXTURE CHECK; ADJUSTED IDLE MIXTURE, CHECKS GOOD."
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名资深可靠性分析专家， 请深入解析下方的故障，结合背景知识（Context）中的组件定义与参数规则，提取出标准 JSON 格式的故障树，确保底事件（Basic Event）包含明确的维修建议，并从原文中摘录 evidence。如果输入中未提及具体参数值，请仅输出核心映射逻辑。",
+    "input": "行政与准备性维修记录 (100453)：飞机工单要求：需要启动飞机进行地面试车运转，以为即将到来的调机飞行(Ferry Flight)做准备（A/C NEEDS TO BE RUN UP & CHECKED FOR FERRY FLIGHT）。机务人员按照指令执行了发动机地面试车，充填了飞机轮胎的气压，并全面审核了飞机的维修放行记录（PERFORMED ENGINE RUN UP, SERVICED TIRE PRESSURES. REVIE）。",
+    "context": "调机准备 (Ferry Flight Prep) 与例行服务：在航空维修日志中，除了记录“坏了修理”，还存在大量的预防性和行政性工单。调机飞行（将未完全取得标准适航证的飞机从一个基地飞往另一个基地）要求执行特殊的飞行前状态验证。充气（Service Tires）、试车（Run up）、查阅放行日志（Review logs）都是保证安全运行的标准准备动作，不反映任何突发故障。",
+    "thought": "1. 识别顶层事件：执行调机飞行(Ferry Flight)前的系统级准备任务。\n2. 定性分析：这不是一次纠正性维修（修坏件），而是一次保障性作业。\n3. 提取任务树：将这种“行政与系统保障动作”作为故障树（任务树）的底层事件展示出来，让大模型明白航空维修工单不仅包含“修理”，也包含“检测和服务”。",
+    "output": {
+      "top_event": "执行特定飞行任务(调机飞行)前的系统级状态确认",
+      "logic_gate": "AND",
+      "children": [
+        {
+          "node_name": "发动机与起落架基础状态勤务保障",
+          "type": "Basic Event",
+          "treatment": "启动发动机执行参数试车检查，并对起落架轮胎补充标准压力",
+          "evidence": "PERFORMED ENGINE RUN UP, SERVICED TIRE PRESSURES."
+        },
+        {
+          "node_name": "适航与行政文书审核",
+          "type": "Basic Event",
+          "treatment": "审核飞机技术记录与放行文件，确保符合调机飞行标准",
+          "evidence": "REVIE (Reviewed logs/records)."
+        }
+      ]
+    }
+  }
+]

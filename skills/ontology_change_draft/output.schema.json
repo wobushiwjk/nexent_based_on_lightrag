@@ -1,0 +1,518 @@
+{
+  "$defs": {
+    "Conflict": {
+      "additionalProperties": false,
+      "description": "One blocking or non-blocking conflict found during evaluation.",
+      "properties": {
+        "blocking": {
+          "title": "Blocking",
+          "type": "boolean"
+        },
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "blocking"
+      ],
+      "title": "Conflict",
+      "type": "object"
+    },
+    "DiffEntry": {
+      "additionalProperties": false,
+      "description": "One readable diff line.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "definition": {
+          "additionalProperties": true,
+          "title": "Definition",
+          "type": "object"
+        },
+        "kind": {
+          "enum": [
+            "class",
+            "relation",
+            "constraint"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "code"
+      ],
+      "title": "DiffEntry",
+      "type": "object"
+    },
+    "EvidenceRef": {
+      "additionalProperties": false,
+      "description": "A verbatim evidence fragment returned by ``trace_evidence``.",
+      "properties": {
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "char_end": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char Start"
+        },
+        "evidence_id": {
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "file_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "File Name"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "quote": {
+          "title": "Quote",
+          "type": "string"
+        },
+        "quote_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quote Hash"
+        },
+        "review_status": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Status"
+        },
+        "section_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section Path"
+        },
+        "targets": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "via": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Via",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "quote"
+      ],
+      "title": "EvidenceRef",
+      "type": "object"
+    },
+    "Impact": {
+      "additionalProperties": false,
+      "description": "What the change touches downstream.",
+      "properties": {
+        "affected_classes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Classes",
+          "type": "array"
+        },
+        "affected_relations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Relations",
+          "type": "array"
+        },
+        "affected_schemas": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Schemas",
+          "type": "array"
+        },
+        "instance_migration_required": {
+          "default": false,
+          "title": "Instance Migration Required",
+          "type": "boolean"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        }
+      },
+      "title": "Impact",
+      "type": "object"
+    },
+    "OntologyDiff": {
+      "additionalProperties": false,
+      "description": "Added, removed and modified definitions.",
+      "properties": {
+        "added": {
+          "items": {
+            "$ref": "#/$defs/DiffEntry"
+          },
+          "title": "Added",
+          "type": "array"
+        },
+        "modified": {
+          "items": {
+            "$ref": "#/$defs/DiffEntry"
+          },
+          "title": "Modified",
+          "type": "array"
+        },
+        "removed": {
+          "items": {
+            "$ref": "#/$defs/DiffEntry"
+          },
+          "title": "Removed",
+          "type": "array"
+        }
+      },
+      "title": "OntologyDiff",
+      "type": "object"
+    },
+    "OntologyDraftData": {
+      "additionalProperties": false,
+      "description": "Draft payload returned to the agent and the review UI.",
+      "properties": {
+        "change": {
+          "additionalProperties": true,
+          "title": "Change",
+          "type": "object"
+        },
+        "conflicts": {
+          "items": {
+            "$ref": "#/$defs/Conflict"
+          },
+          "title": "Conflicts",
+          "type": "array"
+        },
+        "current_version": {
+          "title": "Current Version",
+          "type": "string"
+        },
+        "diff": {
+          "$ref": "#/$defs/OntologyDiff"
+        },
+        "impact": {
+          "$ref": "#/$defs/Impact"
+        },
+        "proposed_version": {
+          "title": "Proposed Version",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/ReviewInfo"
+        },
+        "source_evidence": {
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          },
+          "title": "Source Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "current_version",
+        "proposed_version",
+        "change",
+        "diff",
+        "impact",
+        "review"
+      ],
+      "title": "OntologyDraftData",
+      "type": "object"
+    },
+    "ReviewInfo": {
+      "additionalProperties": false,
+      "description": "The human review gate that must run after this draft.",
+      "properties": {
+        "applied": {
+          "default": false,
+          "title": "Applied",
+          "type": "boolean"
+        },
+        "checklist": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Checklist",
+          "type": "array"
+        },
+        "next_workflow": {
+          "default": "W8",
+          "title": "Next Workflow",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        }
+      },
+      "title": "ReviewInfo",
+      "type": "object"
+    },
+    "SkillErrorPayload": {
+      "additionalProperties": false,
+      "description": "A machine-readable skill error, mirroring the MCP error payload.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "details": {
+          "additionalProperties": true,
+          "title": "Details",
+          "type": "object"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "SkillErrorPayload",
+      "type": "object"
+    },
+    "SkillMeta": {
+      "additionalProperties": false,
+      "description": "Versions and scope shared by every skill response.",
+      "properties": {
+        "ontology_version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ontology Version"
+        },
+        "read_only": {
+          "default": true,
+          "title": "Read Only",
+          "type": "boolean"
+        },
+        "skill": {
+          "title": "Skill",
+          "type": "string"
+        },
+        "skill_version": {
+          "title": "Skill Version",
+          "type": "string"
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tenant Id"
+        }
+      },
+      "required": [
+        "skill",
+        "skill_version"
+      ],
+      "title": "SkillMeta",
+      "type": "object"
+    },
+    "ToolCallTrace": {
+      "additionalProperties": false,
+      "description": "One audit record for a tool call made by a skill.",
+      "properties": {
+        "arguments": {
+          "additionalProperties": true,
+          "title": "Arguments",
+          "type": "object"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "arguments",
+        "ok"
+      ],
+      "title": "ToolCallTrace",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/skills/ontology_change_draft/output.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Skill envelope with a typed ontology-diff payload.",
+  "properties": {
+    "data": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OntologyDraftData"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SkillErrorPayload"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "meta": {
+      "$ref": "#/$defs/SkillMeta"
+    },
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "tool_calls": {
+      "items": {
+        "$ref": "#/$defs/ToolCallTrace"
+      },
+      "title": "Tool Calls",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ok",
+    "status",
+    "meta"
+  ],
+  "title": "OntologyDraftResponse",
+  "type": "object",
+  "x-skill-name": "ontology_change_draft",
+  "x-skill-version": "0.1.0"
+}

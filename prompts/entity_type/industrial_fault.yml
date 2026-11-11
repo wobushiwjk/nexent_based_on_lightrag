@@ -17,7 +17,7 @@ classes:
   File:
     label: 数据资产文件
     prompt_visible: false
-    required: [uid, file_name, file_type, parse_status]
+    required: [uid, file_name, file_extension, mime_type, parse_status]
 
   Equipment:
     label: 具体工业设备
@@ -57,7 +57,7 @@ classes:
   LogicGate:
     label: 逻辑门
     prompt_visible: false
-    required: [gate_type, output_fault_uid]
+    required: [gate_type]
 
 relations:
   CAUSES:

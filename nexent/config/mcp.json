@@ -1,0 +1,13 @@
+{
+  "name": "industrial-fault-domain",
+  "description": "LightRAG 工业故障领域包提供的只读 MCP 服务：本体查询、设备查询、故障检索、故障树读取、逐字证据追溯与故障树校验。",
+  "tags": ["industrial", "fault-diagnosis", "lightrag", "ontology"],
+  "server_url": "http://host.docker.internal:8765/mcp",
+  "alternate_server_urls": {
+    "docker_desktop": "http://host.docker.internal:8765/mcp",
+    "native": "http://localhost:8765/mcp"
+  },
+  "transport": "streamable-http",
+  "host_port": 8765,
+  "healthcheck_path": "/mcp"
+}

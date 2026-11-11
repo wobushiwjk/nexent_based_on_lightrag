@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "name": "entity.schema.json",
+      "sha256": "f1822d2e0231794483944880cd1e4b586a7cd2a3baa1de10c77b92d51725e0d4",
+      "title": "Entity"
+    },
+    {
+      "name": "evidence.schema.json",
+      "sha256": "886029f8f9e87b202da59ac4f1df56a847b565e93e34bead5d042c1a39a59cf3",
+      "title": "Evidence"
+    },
+    {
+      "name": "fact.schema.json",
+      "sha256": "fbd96a17d473f89d2ffc09c8e222535a1d823deebb1c27800d78fa3b1fdc04a3",
+      "title": "Fact"
+    },
+    {
+      "name": "fault_rule.schema.json",
+      "sha256": "cbb687deb25686666688dfe4b3d95bf08543789a02436460a5b9586c9c5e6815",
+      "title": "FaultCauseRule"
+    },
+    {
+      "name": "fault_tree_draft.schema.json",
+      "sha256": "448a16f2af6341a9b08e2b7b083da6c1820b99c74b3ee619f58bb1d635e4b2c4",
+      "title": "FaultTreeDraft"
+    },
+    {
+      "name": "decision_trace.schema.json",
+      "sha256": "d40b3007886097d88ac19a222522bc88e39cba2e5edac83b9d903f2b767cfcd1",
+      "title": "DecisionTrace"
+    },
+    {
+      "name": "domain_bundle.schema.json",
+      "sha256": "ec803e695a47a306fb4890bb5820fb2860cb9b874b8a8581d9aa7bcbd377a089",
+      "title": "DomainBundle"
+    }
+  ],
+  "generated_by": "scripts/export_domain_schemas.py",
+  "ontology_version": "industrial-fault-v0.1",
+  "schema_version": "industrial-fault-schema-v0.1"
+}

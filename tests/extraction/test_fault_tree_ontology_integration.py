@@ -444,7 +444,19 @@ async def test_validated_candidates_project_to_fault_graph():
     for edge in graph.edges:
         edges_by_type.setdefault(edge["type"], []).append(edge)
     assert len(edges_by_type["INPUT_OF"]) == 6
-    assert len(edges_by_type["OUTPUT_TO"]) == 1
+    assert len(edges_by_type["OUTPUT_TO"]) == 3
+    gate_uids = {
+        node["uid"] for node in graph.nodes if node["label"] == "LogicGate"
+    }
+    assert (
+        sum(
+            1
+            for edge in edges_by_type["OUTPUT_TO"]
+            if edge["source_uid"] in gate_uids
+            and edge["target_uid"] in gate_uids
+        )
+        == 2
+    )
     assert any(
         node["properties"].get("gate_type") == "AND"
         for node in graph.nodes

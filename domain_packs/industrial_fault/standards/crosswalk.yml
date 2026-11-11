@@ -1,0 +1,126 @@
+# Standards crosswalk for the industrial fault-tree domain pack.
+#
+# This is an engineering mapping, not a certification claim. The external
+# concepts below are used to name fields, enums, and review rules; they do not
+# assert that the implementation is fully conformant with the published
+# standard. Standard editions should be confirmed before a production rollout.
+crosswalk_version: "1.0"
+ontology_version: industrial-fault-v0.1
+provenance: >-
+  Titles, editions and scopes are taken from public catalogue metadata. The
+  mappings below are our structural design, not quotations from the standards.
+  The full texts are paywalled and were not used.
+note: >-
+  Mappings are structural. A mapping of `equivalent` means the local concept
+  plays the same role in the model; `related` means the local concept covers
+  only part of the external concept or needs an adapter.
+
+standards:
+  IEC 61025:
+    title: Fault tree analysis (FTA)
+    edition: "2006"
+    source: https://webstore.iec.ch/en/publication/4311
+    scope: Fault-tree structure, gates, events, and qualitative analysis.
+    mappings:
+      - local: FaultEvent
+        external: Top event / intermediate event / basic event
+        relation: equivalent  #relation主要是给后续开发者看的
+        note: >-
+          Event position is computed from the tree, not stored as a permanent
+          lifecycle attribute.
+      - local: LogicGate
+        external: AND gate / OR gate
+        relation: equivalent
+      - local: FaultCauseRule
+        external: Gate definition / Boolean expression
+        relation: related
+        note: >-
+          A rule owns the recursive expression; a logic gate is its graph
+          projection, not a second source of truth.
+      - local: FaultTreeDraft
+        external: Fault tree
+        relation: equivalent
+      - local: single-top-event
+        external: One top event per tree
+        relation: equivalent
+
+  ISO 14224:
+    title: Collection and exchange of reliability and maintenance data for equipment
+    edition: "2016"
+    source: https://www.iso.org/standard/64076.html
+    scope: Equipment taxonomy, failure modes, maintenance activities.
+    mappings:
+      - local: Department
+        external: Installation / plant / unit boundary
+        relation: related
+      - local: Equipment
+        external: Equipment unit
+        relation: equivalent
+      - local: Equipment.equipment_type
+        external: Equipment class / equipment unit
+        relation: related
+        note: Use an ISO 14224-derived code list when available.
+      - local: FaultEvent
+        external: Failure mode
+        relation: related
+        note: >-
+          A fault event may describe a failure mode, a symptom, or an
+          intermediate state. The event type is tree-dependent.
+      - local: FaultEvent.maintenance_measures
+        external: Maintenance activity
+        relation: related
+
+  IEC 60812:
+    title: Failure modes and effects analysis (FMEA and FMECA)
+    edition: "2018"
+    source: https://webstore.iec.ch/en/publication/26359
+    scope: Failure modes, effects, causes, and severity.
+    mappings:
+      - local: FaultEvent
+        external: Failure mode / failure effect
+        relation: related
+      - local: Fact
+        external: Failure mode -> failure effect / cause relation
+        relation: related
+      - local: FaultEvent.severity
+        external: Severity
+        relation: related
+
+  ISO 13374:
+    title: >-
+      Condition monitoring and diagnostics of machines — Data processing,
+      communication and presentation
+    edition: "Part 1: 2003; multi-part series"
+    source: https://www.iso.org/standard/21832.html
+    scope: Data acquisition, state detection, health assessment, prognosis.
+    mappings:
+      - local: File
+        external: Data source / data acquisition record
+        relation: related
+      - local: Evidence
+        external: Condition monitoring data / evidence record
+        relation: equivalent
+      - local: DecisionStep.retrieve
+        external: Data acquisition and manipulation
+        relation: related
+      - local: DecisionStep.reason
+        external: State detection / health assessment
+        relation: related
+      - local: DecisionStep.verify
+        external: Health assessment
+        relation: related
+      - local: DecisionStep.conclude
+        external: Advisory generation
+        relation: related
+
+gaps:
+  - id: iso-14224-code-list
+    description: >-
+      The seed data uses illustrative equipment and failure-mode names, not a
+      full ISO 14224 code list.
+    impact: Production deployments must supply a controlled code list.
+  - id: iec-61025-quantification
+    description: >-
+      The current tree supports structure and qualitative gates, but not
+      probability calculation or minimal cut sets.
+    impact: Quantitative FTA is a later extension.

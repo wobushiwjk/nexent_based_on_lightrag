@@ -786,8 +786,9 @@ def _resolve_prompt_file(
         raise ValueError(f"{env_key} must be a file name such as '{example_name}'.")
     if "\\" in file_name:
         raise ValueError(
-            f"{env_key} must not contain directory separators. "
-            f"Only file names inside PROMPT_DIR/{subdir} are allowed."
+            f"{env_key} must be a file name only; directory separators "
+            f"are not allowed. Only file names inside PROMPT_DIR/{subdir} "
+            "are allowed."
         )
 
     candidate = Path(file_name)

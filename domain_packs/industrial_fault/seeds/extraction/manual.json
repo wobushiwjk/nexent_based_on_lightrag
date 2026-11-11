@@ -1,0 +1,241 @@
+{
+  "chunk_id": "manual-4.2",
+  "entities": [
+    {
+      "local_id": "pump",
+      "class": "Equipment",
+      "uid": "EQ-P101A",
+      "name": "冷却水泵",
+      "description": "P-101A 离心式冷却水泵",
+      "aliases": ["循环泵", "冷却泵"],
+      "equipment_tag": "P-101A",
+      "equipment_name": "冷却水泵",
+      "equipment_type": "PUMP.CENTRIFUGAL",
+      "manufacturer": "Example Co.",
+      "model": "CP-200",
+      "serial_number": "SN-2024-00931",
+      "functional_location": "CN-SH.U1.COOLING",
+      "commissioning_date": "2024-01-15",
+      "confidence": 1.0
+    },
+    {
+      "local_id": "filter",
+      "class": "FaultEvent",
+      "uid": "FAULT-FILTER-BLOCKED",
+      "name": "入口过滤器堵塞",
+      "description": "过滤器流通面积减小，泵入口流量下降",
+      "aliases": ["过滤器堵塞"],
+      "severity": "medium",
+      "symptoms": ["入口流量下降"],
+      "maintenance_measures": ["清理或更换入口过滤器"],
+      "confidence": 0.94,
+      "evidence": [
+        {
+          "quote": "入口过滤器堵塞会降低泵的入口流量，并进一步造成出口压力不足。",
+          "evidence_id": "EV-MANUAL-1",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-1",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 77,
+          "char_end": 107,
+          "modality": "text",
+          "confidence": 0.95,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        },
+        {
+          "quote": "当入口过滤器堵塞且吸入管法兰漏气时，泵会发生汽蚀。",
+          "evidence_id": "EV-MANUAL-3",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-2",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 109,
+          "char_end": 134,
+          "modality": "text",
+          "confidence": 0.96,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    },
+    {
+      "local_id": "cavitation",
+      "class": "FaultEvent",
+      "uid": "FAULT-CAVITATION",
+      "name": "叶轮汽蚀",
+      "description": "泵入口压力过低导致叶轮表面发生汽蚀",
+      "aliases": ["汽蚀"],
+      "severity": "high",
+      "symptoms": ["异常振动", "噪声增大"],
+      "maintenance_measures": ["更换叶轮", "检查吸入管密封"],
+      "confidence": 0.91,
+      "rule_uid": "RULE-CAVITATION-AND",
+      "rule_scenario": "吸入管密封失效且过滤器阻力增大",
+      "cause_rule": {
+        "op": "AND",
+        "children": [
+          {"event_local_id": "filter"},
+          {"event_local_id": "leak"}
+        ]
+      },
+      "evidence": [
+        {
+          "quote": "当入口过滤器堵塞且吸入管法兰漏气时，泵会发生汽蚀。",
+          "evidence_id": "EV-MANUAL-3",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-2",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 109,
+          "char_end": 134,
+          "modality": "text",
+          "confidence": 0.96,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    },
+    {
+      "local_id": "leak",
+      "class": "FaultEvent",
+      "uid": "FAULT-INLET-LEAK",
+      "name": "吸入管法兰漏气",
+      "description": "吸入管法兰密封失效，空气进入泵入口",
+      "aliases": ["法兰漏气"],
+      "severity": "medium",
+      "symptoms": ["吸入管密封失效"],
+      "maintenance_measures": ["紧固或更换法兰密封"],
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "quote": "当入口过滤器堵塞且吸入管法兰漏气时，泵会发生汽蚀。",
+          "evidence_id": "EV-MANUAL-3",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-2",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 109,
+          "char_end": 134,
+          "modality": "text",
+          "confidence": 0.96,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    },
+    {
+      "local_id": "lp",
+      "class": "FaultEvent",
+      "uid": "FAULT-LOW-PRESSURE",
+      "name": "出口压力不足",
+      "description": "泵出口压力低于正常工作范围",
+      "aliases": ["出口压力低", "压力不够"],
+      "severity": "high",
+      "symptoms": ["压力表读数下降", "系统流量不足"],
+      "maintenance_measures": ["清理过滤器", "检查吸入管", "更换叶轮"],
+      "confidence": 0.96,
+      "rule_uid": "RULE-LOW-PRESSURE-OR",
+      "rule_scenario": "冷却水系统正常运行工况",
+      "active_cause_rule_uid": "RULE-LOW-PRESSURE-OR",
+      "cause_rule": {
+        "op": "OR",
+        "children": [
+          {"event_local_id": "filter"},
+          {"event_local_id": "cavitation"}
+        ]
+      },
+      "evidence": [
+        {
+          "quote": "入口过滤器堵塞会降低泵的入口流量，并进一步造成出口压力不足。",
+          "evidence_id": "EV-MANUAL-1",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-1",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 77,
+          "char_end": 107,
+          "modality": "text",
+          "confidence": 0.95,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        },
+        {
+          "quote": "叶轮汽蚀会导致出口压力不足，并伴随异常振动。",
+          "evidence_id": "EV-MANUAL-2",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-3",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 136,
+          "char_end": 158,
+          "modality": "text",
+          "confidence": 0.95,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "local_id": "rel-filter-lp",
+      "fact_id": "FACT-1",
+      "relation_code": "CAUSES",
+      "source_local_id": "filter",
+      "target_local_id": "lp",
+      "model_confidence": 0.94,
+      "review_status": "approved",
+      "evidence": [
+        {
+          "quote": "入口过滤器堵塞会降低泵的入口流量，并进一步造成出口压力不足。",
+          "evidence_id": "EV-MANUAL-1",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-1",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 77,
+          "char_end": 107,
+          "modality": "text",
+          "confidence": 0.95,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    },
+    {
+      "local_id": "rel-cavitation-lp",
+      "fact_id": "FACT-2",
+      "relation_code": "CAUSES",
+      "source_local_id": "cavitation",
+      "target_local_id": "lp",
+      "model_confidence": 0.91,
+      "review_status": "approved",
+      "evidence": [
+        {
+          "quote": "叶轮汽蚀会导致出口压力不足，并伴随异常振动。",
+          "evidence_id": "EV-MANUAL-2",
+          "asset_id": "FILE-P101A-MANUAL",
+          "chunk_id": "manual-4.2-3",
+          "page": 12,
+          "section_path": "4.2 出口压力不足",
+          "char_start": 136,
+          "char_end": 158,
+          "modality": "text",
+          "confidence": 0.95,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    }
+  ]
+}

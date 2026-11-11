@@ -1,0 +1,42 @@
+{
+  "agent": {
+    "name": "industrial_fault_agent",
+    "display_name": "工业设备故障诊断助手",
+    "description": "面向先进制造企业设备维护的故障诊断助手。它基于受治理的工业故障本体、故障树草稿和逐字证据库，回答设备故障原因、追溯证据出处、校验故障树，并起草本体变更建议；所有结论必须落在可追溯的原文证据上。",
+    "author": "lightrag-domain-pack",
+    "max_steps": 15,
+    "prompt_file": "nexent/agent/system_prompt.md",
+    "provide_run_summary": true,
+    "enabled": true,
+    "mcp_server_name": "industrial-fault-domain",
+    "mcp_tools": [
+      "get_ontology",
+      "get_equipment",
+      "search_faults",
+      "get_fault_tree",
+      "trace_evidence",
+      "validate_fault_tree"
+    ],
+    "skills": [
+      "fault-diagnosis",
+      "evidence-verification",
+      "ontology-change-draft"
+    ],
+    "greeting_message": "你好，我是工业设备故障诊断助手。请告诉我设备位号（或名称）和现场症状，我会检索候选故障、逐条追溯逐字证据，并给出有出处的诊断结论。",
+    "example_questions": [
+      "P-101A 冷却水泵出口压力不足，可能的原因有哪些？请给出证据出处。",
+      "把出口压力不足的故障树调出来，并说明每个分支的证据出处。",
+      "P-101A 的巡检记录和维修记录分别支撑了哪些结论？",
+      "现场手册里没有记录的新故障模式，帮我起草一条本体变更建议。"
+    ]
+  },
+  "knowledge_base_tool": {
+    "class_name": "KnowledgeBaseSearchTool",
+    "name": "knowledge_base_search",
+    "output_type": "string",
+    "params": {
+      "top_k": 5,
+      "search_mode": "hybrid"
+    }
+  }
+}

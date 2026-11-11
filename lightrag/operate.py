@@ -1140,16 +1140,24 @@ def _build_fault_entity_payload(entity_data: dict[str, Any]) -> dict[str, Any]:
         "properties",
         "cause_rule",
         "evidence",
+        "active_cause_rule_uid",
+        "review_status",
+        "confidence",
         "equipment_tag",
+        "equipment_name",
         "equipment_type",
         "functional_location",
         "manufacturer",
         "model",
         "serial_number",
+        "lifecycle_status",
         "symptoms",
         "maintenance_measures",
+        "operating_conditions",
         "severity",
         "fault_category",
+        "fault_name",
+        "ontology_version",
     ):
         if key in entity_data:
             payload[key] = entity_data[key]
@@ -1162,13 +1170,19 @@ def _build_fault_relation_payload(rel_data: dict[str, Any]) -> dict[str, Any]:
     payload: dict[str, Any] = {}
     for key in (
         "local_id",
+        "fact_id",
         "relation_code",
         "source",
         "target",
+        "source_local_id",
+        "target_local_id",
         "gate_type_hint",
         "gate_key",
+        "properties",
         "evidence",
         "model_confidence",
+        "review_status",
+        "ontology_version",
     ):
         if key in rel_data:
             payload[key] = rel_data[key]

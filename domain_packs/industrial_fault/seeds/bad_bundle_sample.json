@@ -1,0 +1,132 @@
+{
+  "bundle_version": "bad-demo-v0.1",
+  "ontology_version": "industrial-fault-v0.1",
+  "schema_version": "industrial-fault-schema-v0.1",
+  "tenant_id": "tenant-demo",
+  "entities": [
+    {
+      "uid": "FILE-P101A-MANUAL",
+      "class_code": "File",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "P-101A 冷却水泵维护手册（节选）",
+      "description": "用于演示校验失败的文件资产",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "proposed",
+      "confidence": 1.0,
+      "source_uids": [],
+      "evidence_ids": [],
+      "created_at": "2026-10-20T09:05:00+08:00",
+      "updated_at": "2026-10-20T09:05:00+08:00",
+      "created_by": "seed-v1",
+      "file_name": "pump_manual_excerpt.md",
+      "file_extension": "md",
+      "mime_type": "text/markdown",
+      "modality": "text",
+      "object_uri": "seeds/documents/pump_manual_excerpt.md",
+      "checksum": "sha256:76e63a58cd77b3fd95817d20f5da4b94d0fb27c034d48548a54a1087081d687b",
+      "file_size": 551,
+      "version": "v1",
+      "language": "zh-CN",
+      "source_system": "demo",
+      "uploader_id": "seed-v1",
+      "upload_time": "2026-10-20T09:05:00+08:00",
+      "parse_status": "parsed",
+      "parse_engine": "native",
+      "page_count": 1,
+      "chunk_count": 1,
+      "last_parsed_at": "2026-10-20T09:06:00+08:00"
+    },
+    {
+      "uid": "FAULT-FILTER-BLOCKED",
+      "class_code": "FaultEvent",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "入口过滤器堵塞",
+      "description": "过滤器流通面积减小",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "proposed",
+      "confidence": 0.6,
+      "source_uids": [],
+      "evidence_ids": [
+        "EV-BAD-1"
+      ],
+      "created_at": "2026-10-20T09:12:00+08:00",
+      "updated_at": "2026-10-20T09:12:00+08:00",
+      "created_by": "seed-v1",
+      "fault_name": "入口过滤器堵塞",
+      "severity": "medium",
+      "symptoms": [],
+      "maintenance_measures": [],
+      "operating_conditions": {}
+    },
+    {
+      "uid": "FAULT-LOW-PRESSURE",
+      "class_code": "FaultEvent",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "出口压力不足",
+      "description": "泵出口压力低于正常工作范围",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "proposed",
+      "confidence": 0.6,
+      "source_uids": [],
+      "evidence_ids": [],
+      "created_at": "2026-10-20T09:15:00+08:00",
+      "updated_at": "2026-10-20T09:15:00+08:00",
+      "created_by": "seed-v1",
+      "fault_name": "出口压力不足",
+      "severity": "high",
+      "symptoms": [],
+      "maintenance_measures": [],
+      "operating_conditions": {}
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-BAD-1",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-MANUAL",
+      "chunk_id": "manual-bad-1",
+      "quote": "原文中不存在的句子。",
+      "quote_hash": "sha256:150c60ec0e432c9be324ff8d12d89b14529d052cd227976e03c0d8573277cbad",
+      "modality": "text",
+      "targets": [
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-FILTER-BLOCKED",
+          "role": "mentions"
+        },
+        {
+          "target_type": "fact",
+          "target_id": "FACT-BAD-1",
+          "role": "supports"
+        }
+      ],
+      "confidence": 0.6,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-bad-2026-10-20",
+      "review_status": "proposed"
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "FACT-BAD-1",
+      "tenant_id": "tenant-demo",
+      "subject_uid": "FAULT-FILTER-BLOCKED",
+      "predicate": "CAUSES",
+      "object_uid": "FAULT-LOW-PRESSURE",
+      "properties": {},
+      "evidence_ids": [
+        "EV-MISSING"
+      ],
+      "confidence": 0.6,
+      "review_status": "proposed",
+      "ontology_version": "industrial-fault-v0.1"
+    }
+  ],
+  "rules": []
+}

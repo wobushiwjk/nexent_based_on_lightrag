@@ -58,7 +58,11 @@ class FaultCandidateValidator:
         maybe_nodes: dict[str, list[dict]],
         maybe_edges: dict[tuple[str, str], list[dict]],
     ) -> tuple[dict, dict]:
-        batch = FaultCandidateBatch(chunk_id=chunk_key)
+        batch = FaultCandidateBatch(
+            chunk_id=chunk_key,
+            chunk_text=chunk_text,
+            file_path=_first_file_path(maybe_nodes, maybe_edges),
+        )
         entity_classes: dict[str, str] = {}
         entity_local_ids: dict[str, str] = {}
         record_by_local_id: dict[str, dict] = {}
@@ -233,6 +237,18 @@ class FaultCandidateValidator:
                 await result
 
         return maybe_nodes, maybe_edges
+
+
+def _first_file_path(
+    maybe_nodes: dict[str, list[dict]],
+    maybe_edges: dict[tuple[str, str], list[dict]],
+) -> str | None:
+    for records in (*maybe_nodes.values(), *maybe_edges.values()):
+        for record in records:
+            value = record.get("file_path")
+            if isinstance(value, str) and value.strip():
+                return value
+    return None
 
 
 def _evidence_is_grounded(evidence: list[Any], chunk_text: str) -> bool:

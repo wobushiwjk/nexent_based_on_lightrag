@@ -1,0 +1,1087 @@
+[
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "离心泵 P-101A 出现出口压力不足。检修人员拆检入口过滤器，发现滤芯被杂质堵塞。过滤器堵塞会造成泵出口压力不足。",
+    "context": "离心泵 P-101A 由入口过滤器、叶轮和出口管路组成；入口过滤器用于拦截颗粒杂质。",
+    "thought": "1. 顶事件是“出口压力不足”。2. 原文明确“过滤器堵塞会造成泵出口压力不足”，因此故障原因是“过滤器堵塞”。3. 单原因，cause_rule 直接引用 e1，不需要 gate_type_hint/gate_key。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "离心泵",
+          "type": "Equipment",
+          "description": "出现出口压力不足的离心泵",
+          "equipment_tag": "P-101A",
+          "equipment_type": "离心泵",
+          "evidence": [
+            {
+              "quote": "离心泵 P-101A 出现出口压力不足"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "过滤器堵塞",
+          "type": "FaultEvent",
+          "description": "入口过滤器滤芯被杂质堵塞，流通能力下降",
+          "evidence": [
+            {
+              "quote": "滤芯被杂质堵塞"
+            },
+            {
+              "quote": "过滤器堵塞会造成泵出口压力不足"
+            }
+          ],
+          "maintenance_measures": [
+            "拆检入口过滤器"
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "出口压力不足",
+          "type": "FaultEvent",
+          "description": "离心泵出口压力低于正常范围",
+          "evidence": [
+            {
+              "quote": "离心泵 P-101A 出现出口压力不足"
+            },
+            {
+              "quote": "过滤器堵塞会造成泵出口压力不足"
+            }
+          ],
+          "cause_rule": {
+            "event_local_id": "e1"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "过滤器堵塞",
+          "target": "出口压力不足",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "入口过滤器堵塞导致泵出口压力不足",
+          "evidence": [
+            {
+              "quote": "过滤器堵塞会造成泵出口压力不足"
+            }
+          ]
+        },
+        {
+          "source": "离心泵",
+          "target": "出口压力不足",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "离心泵 P-101A 发生出口压力不足",
+          "evidence": [
+            {
+              "quote": "离心泵 P-101A 出现出口压力不足"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "循环水装置 CWS-01 的冷却水压力偏低。检查发现冷却水泵故障或冷却水回路堵塞，二者任一发生都会导致冷却水压力偏低。",
+    "context": "循环水装置 CWS-01 由冷却水泵、冷却水回路和散热风扇组成，用于维持冷却水循环。",
+    "thought": "1. 顶事件是“冷却水压力偏低”。2. 原文用“任一发生”连接两个原因，属于 OR。3. 两条 CAUSES 边指向同一结果，使用相同的 gate_key；结果事件的 cause_rule 使用 OR。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "循环水装置",
+          "type": "Equipment",
+          "description": "出现冷却水压力偏低的循环水装置",
+          "equipment_tag": "CWS-01",
+          "equipment_type": "循环水系统",
+          "evidence": [
+            {
+              "quote": "循环水装置 CWS-01 的冷却水压力偏低"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "冷却水泵故障",
+          "type": "FaultEvent",
+          "description": "冷却水泵不能正常输出冷却水",
+          "evidence": [
+            {
+              "quote": "冷却水泵故障"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "冷却水回路堵塞",
+          "type": "FaultEvent",
+          "description": "冷却水回路流通受阻",
+          "evidence": [
+            {
+              "quote": "冷却水回路堵塞"
+            }
+          ]
+        },
+        {
+          "local_id": "e3",
+          "name": "冷却水压力偏低",
+          "type": "FaultEvent",
+          "description": "冷却水系统压力低于正常范围",
+          "evidence": [
+            {
+              "quote": "冷却水压力偏低"
+            }
+          ],
+          "cause_rule": {
+            "op": "OR",
+            "children": [
+              {
+                "event_local_id": "e1"
+              },
+              {
+                "event_local_id": "e2"
+              }
+            ]
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "冷却水泵故障",
+          "target": "冷却水压力偏低",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "冷却水泵故障可单独导致冷却水压力偏低",
+          "evidence": [
+            {
+              "quote": "冷却水泵故障或冷却水回路堵塞，二者任一发生都会导致冷却水压力偏低"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "冷却水压力偏低_循环水侧原因"
+        },
+        {
+          "source": "冷却水回路堵塞",
+          "target": "冷却水压力偏低",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "冷却水回路堵塞可单独导致冷却水压力偏低",
+          "evidence": [
+            {
+              "quote": "冷却水泵故障或冷却水回路堵塞，二者任一发生都会导致冷却水压力偏低"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "冷却水压力偏低_循环水侧原因"
+        },
+        {
+          "source": "循环水装置",
+          "target": "冷却水压力偏低",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "循环水装置 CWS-01 发生冷却水压力偏低",
+          "evidence": [
+            {
+              "quote": "循环水装置 CWS-01 的冷却水压力偏低"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "循环水装置 CWS-01 出现冷却功能丧失。现场记录表明，只有冷却水回路堵塞与散热风扇停转同时发生时，才会导致冷却功能丧失。",
+    "context": "循环水装置 CWS-01 的冷却功能由冷却水回路和散热风扇共同维持。",
+    "thought": "1. 顶事件是“冷却功能丧失”。2. 原文用“同时发生”限定两个原因，属于 AND。3. 两条 CAUSES 边使用相同 gate_key；结果事件的 cause_rule 使用 AND。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "循环水装置",
+          "type": "Equipment",
+          "description": "出现冷却功能丧失的循环水装置",
+          "equipment_tag": "CWS-01",
+          "equipment_type": "循环水系统",
+          "evidence": [
+            {
+              "quote": "循环水装置 CWS-01 出现冷却功能丧失"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "冷却水回路堵塞",
+          "type": "FaultEvent",
+          "description": "冷却水回路流通受阻",
+          "evidence": [
+            {
+              "quote": "冷却水回路堵塞"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "散热风扇停转",
+          "type": "FaultEvent",
+          "description": "散热风扇停止提供冷却风量",
+          "evidence": [
+            {
+              "quote": "散热风扇停转"
+            }
+          ]
+        },
+        {
+          "local_id": "e3",
+          "name": "冷却功能丧失",
+          "type": "FaultEvent",
+          "description": "冷却水回路和散热风扇均不能满足冷却要求，冷却功能无法维持",
+          "evidence": [
+            {
+              "quote": "冷却功能丧失"
+            }
+          ],
+          "cause_rule": {
+            "op": "AND",
+            "children": [
+              {
+                "event_local_id": "e1"
+              },
+              {
+                "event_local_id": "e2"
+              }
+            ]
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "冷却水回路堵塞",
+          "target": "冷却功能丧失",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "冷却水回路堵塞必须与散热风扇停转同时发生才会导致冷却功能丧失",
+          "evidence": [
+            {
+              "quote": "冷却水回路堵塞与散热风扇停转同时发生时，才会导致冷却功能丧失"
+            }
+          ],
+          "gate_type_hint": "AND",
+          "gate_key": "冷却功能丧失_共同原因"
+        },
+        {
+          "source": "散热风扇停转",
+          "target": "冷却功能丧失",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "散热风扇停转必须与冷却水回路堵塞同时发生才会导致冷却功能丧失",
+          "evidence": [
+            {
+              "quote": "冷却水回路堵塞与散热风扇停转同时发生时，才会导致冷却功能丧失"
+            }
+          ],
+          "gate_type_hint": "AND",
+          "gate_key": "冷却功能丧失_共同原因"
+        },
+        {
+          "source": "循环水装置",
+          "target": "冷却功能丧失",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "循环水装置 CWS-01 发生冷却功能丧失",
+          "evidence": [
+            {
+              "quote": "循环水装置 CWS-01 出现冷却功能丧失"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "空压机 AC-01 无法正常供气。拆检发现进气过滤器堵塞，进气过滤器堵塞会降低进气量，造成供气压力不足，供气压力不足最终导致空压机无法正常供气。",
+    "context": "空压机 AC-01 为螺杆空压机，进气过滤器用于过滤进入压缩腔的空气。",
+    "thought": "1. 原文形成“进气过滤器堵塞 -> 供气压力不足 -> 空压机无法正常供气”的链。2. 必须同时保留 A->B 和 B->C，不能压缩成 A->C。3. 两个中间事件分别用单原因 cause_rule 指向直接上游。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "空压机",
+          "type": "Equipment",
+          "description": "无法正常供气的螺杆空压机",
+          "equipment_tag": "AC-01",
+          "equipment_type": "螺杆空压机",
+          "evidence": [
+            {
+              "quote": "空压机 AC-01 无法正常供气"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "进气过滤器堵塞",
+          "type": "FaultEvent",
+          "description": "进气过滤器流通能力下降，进气量减少",
+          "evidence": [
+            {
+              "quote": "进气过滤器堵塞"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "供气压力不足",
+          "type": "FaultEvent",
+          "description": "空压机供气压力低于正常范围",
+          "evidence": [
+            {
+              "quote": "造成供气压力不足"
+            }
+          ],
+          "cause_rule": {
+            "event_local_id": "e1"
+          }
+        },
+        {
+          "local_id": "e3",
+          "name": "空压机无法正常供气",
+          "type": "FaultEvent",
+          "description": "供气压力不足导致空压机不能正常向外供气",
+          "evidence": [
+            {
+              "quote": "供气压力不足最终导致空压机无法正常供气"
+            }
+          ],
+          "cause_rule": {
+            "event_local_id": "e2"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "进气过滤器堵塞",
+          "target": "供气压力不足",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "进气过滤器堵塞降低进气量并造成供气压力不足",
+          "evidence": [
+            {
+              "quote": "进气过滤器堵塞会降低进气量，造成供气压力不足"
+            }
+          ]
+        },
+        {
+          "source": "供气压力不足",
+          "target": "空压机无法正常供气",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "供气压力不足最终导致空压机无法正常供气",
+          "evidence": [
+            {
+              "quote": "供气压力不足最终导致空压机无法正常供气"
+            }
+          ]
+        },
+        {
+          "source": "空压机",
+          "target": "空压机无法正常供气",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "空压机 AC-01 发生无法正常供气故障",
+          "evidence": [
+            {
+              "quote": "空压机 AC-01 无法正常供气"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "液压系统 HPU-01 出现系统失效。检查记录显示，滤芯堵塞或溢流阀卡滞任一发生，都会导致液压泵出口压力低；冷却器堵塞或冷却风扇故障任一发生，都会导致液压油温度过高；当液压泵出口压力低与液压油温度过高同时存在时，会导致液压系统失效。",
+    "context": "液压系统 HPU-01 由液压泵、滤芯、溢流阀、冷却器和冷却风扇组成。",
+    "thought": "1. 滤芯堵塞/溢流阀卡滞以 OR 方式导致“液压泵出口压力低”。2. 冷却器堵塞/冷却风扇故障以 OR 方式导致“液压油温度过高”。3. 两个中间事件以 AND 方式导致“液压系统失效”；每个门组使用独立且稳定的 gate_key。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "液压系统",
+          "type": "Equipment",
+          "description": "出现系统失效的液压系统",
+          "equipment_tag": "HPU-01",
+          "equipment_type": "液压系统",
+          "evidence": [
+            {
+              "quote": "液压系统 HPU-01 出现系统失效"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "滤芯堵塞",
+          "type": "FaultEvent",
+          "description": "液压油滤芯流通能力下降",
+          "evidence": [
+            {
+              "quote": "滤芯堵塞"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "溢流阀卡滞",
+          "type": "FaultEvent",
+          "description": "溢流阀不能按要求动作",
+          "evidence": [
+            {
+              "quote": "溢流阀卡滞"
+            }
+          ]
+        },
+        {
+          "local_id": "e3",
+          "name": "液压泵出口压力低",
+          "type": "FaultEvent",
+          "description": "液压泵出口压力低于正常范围",
+          "evidence": [
+            {
+              "quote": "液压泵出口压力低"
+            }
+          ],
+          "cause_rule": {
+            "op": "OR",
+            "children": [
+              {
+                "event_local_id": "e1"
+              },
+              {
+                "event_local_id": "e2"
+              }
+            ]
+          }
+        },
+        {
+          "local_id": "e4",
+          "name": "冷却器堵塞",
+          "type": "FaultEvent",
+          "description": "液压油冷却器流通受阻",
+          "evidence": [
+            {
+              "quote": "冷却器堵塞"
+            }
+          ]
+        },
+        {
+          "local_id": "e5",
+          "name": "冷却风扇故障",
+          "type": "FaultEvent",
+          "description": "冷却风扇不能正常提供冷却风量",
+          "evidence": [
+            {
+              "quote": "冷却风扇故障"
+            }
+          ]
+        },
+        {
+          "local_id": "e6",
+          "name": "液压油温度过高",
+          "type": "FaultEvent",
+          "description": "液压油温度超过正常工作范围",
+          "evidence": [
+            {
+              "quote": "液压油温度过高"
+            }
+          ],
+          "cause_rule": {
+            "op": "OR",
+            "children": [
+              {
+                "event_local_id": "e4"
+              },
+              {
+                "event_local_id": "e5"
+              }
+            ]
+          }
+        },
+        {
+          "local_id": "e7",
+          "name": "液压系统失效",
+          "type": "FaultEvent",
+          "description": "液压系统压力和温度同时异常，导致系统失效",
+          "evidence": [
+            {
+              "quote": "液压系统失效"
+            }
+          ],
+          "cause_rule": {
+            "op": "AND",
+            "children": [
+              {
+                "event_local_id": "e3"
+              },
+              {
+                "event_local_id": "e6"
+              }
+            ]
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "滤芯堵塞",
+          "target": "液压泵出口压力低",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "滤芯堵塞可单独导致液压泵出口压力低",
+          "evidence": [
+            {
+              "quote": "滤芯堵塞或溢流阀卡滞任一发生，都会导致液压泵出口压力低"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "液压泵出口压力低_供油侧原因"
+        },
+        {
+          "source": "溢流阀卡滞",
+          "target": "液压泵出口压力低",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "溢流阀卡滞可单独导致液压泵出口压力低",
+          "evidence": [
+            {
+              "quote": "滤芯堵塞或溢流阀卡滞任一发生，都会导致液压泵出口压力低"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "液压泵出口压力低_供油侧原因"
+        },
+        {
+          "source": "冷却器堵塞",
+          "target": "液压油温度过高",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "冷却器堵塞可单独导致液压油温度过高",
+          "evidence": [
+            {
+              "quote": "冷却器堵塞或冷却风扇故障任一发生，都会导致液压油温度过高"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "液压油温度过高_冷却侧原因"
+        },
+        {
+          "source": "冷却风扇故障",
+          "target": "液压油温度过高",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "冷却风扇故障可单独导致液压油温度过高",
+          "evidence": [
+            {
+              "quote": "冷却器堵塞或冷却风扇故障任一发生，都会导致液压油温度过高"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "液压油温度过高_冷却侧原因"
+        },
+        {
+          "source": "液压泵出口压力低",
+          "target": "液压系统失效",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "液压泵出口压力低必须与液压油温度过高同时存在才会导致液压系统失效",
+          "evidence": [
+            {
+              "quote": "当液压泵出口压力低与液压油温度过高同时存在时，会导致液压系统失效"
+            }
+          ],
+          "gate_type_hint": "AND",
+          "gate_key": "液压系统失效_压力与温度"
+        },
+        {
+          "source": "液压油温度过高",
+          "target": "液压系统失效",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "液压油温度过高必须与液压泵出口压力低同时存在才会导致液压系统失效",
+          "evidence": [
+            {
+              "quote": "当液压泵出口压力低与液压油温度过高同时存在时，会导致液压系统失效"
+            }
+          ],
+          "gate_type_hint": "AND",
+          "gate_key": "液压系统失效_压力与温度"
+        },
+        {
+          "source": "液压系统",
+          "target": "液压系统失效",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "液压系统 HPU-01 发生系统失效",
+          "evidence": [
+            {
+              "quote": "液压系统 HPU-01 出现系统失效"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "空压机 AC-02 出现供气压力不足（现场也称供气不足）。拆检发现进气过滤器堵塞，进气过滤器堵塞会导致供气压力不足。",
+    "context": "空压机 AC-02 为螺杆空压机；供气压力不足在现场记录中可能简写为供气不足。",
+    "thought": "1. 原文把“供气不足”作为“供气压力不足”的同义说法。2. 规范名使用“供气压力不足”，别名写入 aliases，不拆成两个故障实体。3. 进气过滤器堵塞是原因，供气压力不足是结果。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "空压机",
+          "type": "Equipment",
+          "description": "出现供气压力不足的螺杆空压机",
+          "equipment_tag": "AC-02",
+          "equipment_type": "螺杆空压机",
+          "evidence": [
+            {
+              "quote": "空压机 AC-02 出现供气压力不足"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "进气过滤器堵塞",
+          "type": "FaultEvent",
+          "description": "进气过滤器流通能力下降",
+          "evidence": [
+            {
+              "quote": "进气过滤器堵塞"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "供气压力不足",
+          "type": "FaultEvent",
+          "description": "空压机供气压力低于正常范围",
+          "evidence": [
+            {
+              "quote": "供气压力不足（现场也称供气不足）"
+            },
+            {
+              "quote": "进气过滤器堵塞会导致供气压力不足"
+            }
+          ],
+          "cause_rule": {
+            "event_local_id": "e1"
+          },
+          "aliases": [
+            "供气不足"
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "source": "进气过滤器堵塞",
+          "target": "供气压力不足",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "进气过滤器堵塞导致供气压力不足",
+          "evidence": [
+            {
+              "quote": "进气过滤器堵塞会导致供气压力不足"
+            }
+          ]
+        },
+        {
+          "source": "空压机",
+          "target": "供气压力不足",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "空压机 AC-02 发生供气压力不足",
+          "evidence": [
+            {
+              "quote": "空压机 AC-02 出现供气压力不足"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "离心泵 P-102 出口流量下降，伴随电流升高和振动增大。检查发现叶轮磨损，同时出口管路存在部分堵塞；叶轮磨损或出口管路堵塞均可单独造成出口流量下降。",
+    "context": "离心泵 P-102 由叶轮、出口管路和驱动电机构成。",
+    "thought": "1. 顶事件是“出口流量下降”，电流升高和振动增大是症状，不是独立故障。2. 原文用“均可单独”说明两个原因之间是 OR。3. 两条 CAUSES 边使用相同 gate_key，结果事件 cause_rule 使用 OR。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "离心泵",
+          "type": "Equipment",
+          "description": "出现出口流量下降的离心泵",
+          "equipment_tag": "P-102",
+          "equipment_type": "离心泵",
+          "evidence": [
+            {
+              "quote": "离心泵 P-102 出口流量下降"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "叶轮磨损",
+          "type": "FaultEvent",
+          "description": "叶轮磨损导致泵送能力下降",
+          "evidence": [
+            {
+              "quote": "叶轮磨损"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "出口管路堵塞",
+          "type": "FaultEvent",
+          "description": "出口管路部分堵塞，流通面积减小",
+          "evidence": [
+            {
+              "quote": "出口管路存在部分堵塞"
+            },
+            {
+              "quote": "出口管路堵塞均可单独造成出口流量下降"
+            }
+          ]
+        },
+        {
+          "local_id": "e3",
+          "name": "出口流量下降",
+          "type": "FaultEvent",
+          "description": "离心泵出口流量低于正常范围",
+          "evidence": [
+            {
+              "quote": "出口流量下降"
+            }
+          ],
+          "cause_rule": {
+            "op": "OR",
+            "children": [
+              {
+                "event_local_id": "e1"
+              },
+              {
+                "event_local_id": "e2"
+              }
+            ]
+          },
+          "symptoms": [
+            "电流升高",
+            "振动增大"
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "source": "叶轮磨损",
+          "target": "出口流量下降",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "叶轮磨损可单独导致出口流量下降",
+          "evidence": [
+            {
+              "quote": "叶轮磨损或出口管路堵塞均可单独造成出口流量下降"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "出口流量下降_泵侧原因"
+        },
+        {
+          "source": "出口管路堵塞",
+          "target": "出口流量下降",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "出口管路堵塞可单独导致出口流量下降",
+          "evidence": [
+            {
+              "quote": "叶轮磨损或出口管路堵塞均可单独造成出口流量下降"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "出口流量下降_泵侧原因"
+        },
+        {
+          "source": "离心泵",
+          "target": "出口流量下降",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "离心泵 P-102 发生出口流量下降",
+          "evidence": [
+            {
+              "quote": "离心泵 P-102 出口流量下降"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "维修人员对离心泵 P-103 进行了例行检查，更换了机械密封并紧固了地脚螺栓，未发现其他异常。",
+    "context": "离心泵 P-103 的例行检查包括机械密封和地脚螺栓检查。",
+    "thought": "1. 文本只描述例行检查、更换机械密封、紧固地脚螺栓等维修动作。2. 没有出现设备已发生、正在发生或可能发生的故障事件。3. 维修动作不能抽成 FaultEvent，也不能构成 CAUSES，因此输出空结果。",
+    "output": {
+      "entities": [],
+      "relationships": []
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "离心泵 P-104 出现出口压力不足。操作人员更换了入口滤芯后，出口压力恢复正常。此前的出口压力不足是由入口滤芯堵塞造成的。",
+    "context": "离心泵 P-104 的入口滤芯用于拦截颗粒杂质。",
+    "thought": "1. “更换入口滤芯”是维修动作，不是故障原因。2. 故障原因是“入口滤芯堵塞”，结果是“出口压力不足”。3. 只输出过滤器堵塞 -> 出口压力不足的 CAUSES，不把维修动作抽成实体。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "离心泵",
+          "type": "Equipment",
+          "description": "出现出口压力不足的离心泵",
+          "equipment_tag": "P-104",
+          "equipment_type": "离心泵",
+          "evidence": [
+            {
+              "quote": "离心泵 P-104 出现出口压力不足"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "入口滤芯堵塞",
+          "type": "FaultEvent",
+          "description": "入口滤芯被杂质堵塞，流通能力下降",
+          "evidence": [
+            {
+              "quote": "入口滤芯堵塞"
+            }
+          ],
+          "maintenance_measures": [
+            "更换入口滤芯"
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "出口压力不足",
+          "type": "FaultEvent",
+          "description": "离心泵出口压力低于正常范围",
+          "evidence": [
+            {
+              "quote": "出口压力不足"
+            }
+          ],
+          "cause_rule": {
+            "event_local_id": "e1"
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "入口滤芯堵塞",
+          "target": "出口压力不足",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "入口滤芯堵塞导致出口压力不足",
+          "evidence": [
+            {
+              "quote": "此前的出口压力不足是由入口滤芯堵塞造成的"
+            }
+          ]
+        },
+        {
+          "source": "离心泵",
+          "target": "出口压力不足",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "离心泵 P-104 发生出口压力不足",
+          "evidence": [
+            {
+              "quote": "离心泵 P-104 出现出口压力不足"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "instruction": "你是一名工业故障知识抽取助手。请严格按照给定本体，从 input 中抽取 Equipment、FaultEvent 实体以及 CAUSES、HAS_FAULT 关系，输出 JSON。只输出 JSON，不要解释。要求：\n1. 原因在前、结果在后；原文形成 A -> B -> C 时必须同时保留 A -> B 和 B -> C。\n2. 多个原因任一成立即可导致结果时用 OR；只有多个原因同时成立才导致结果时用 AND；AND/OR 结构必须同步写入结果 FaultEvent 的 cause_rule。\n3. 同一结果、同一组原因使用相同的 gate_key；gate_key 使用稳定语义名，不要用 local_id。\n4. 每个实体和关系都必须带 evidence，quote 必须是 input 中逐字连续的原文片段。\n5. 维修措施、检测动作、预防建议不是故障原因，不要抽成 FaultEvent 或 CAUSES。\n6. 没有原文证据的因果关系必须省略，不得引入 input 之外的常识。\n7. 输出必须是单个 JSON 对象，顶层只有 entities 和 relationships 两个键；不要使用 top_event/children 故障树结构。\nEquipment 必填 name、equipment_tag、equipment_type；FaultEvent 必填 name、description，可选 aliases、symptoms、maintenance_measures。\n允许的类：Equipment、FaultEvent；允许的关系：CAUSES（FaultEvent -> FaultEvent）、HAS_FAULT（Equipment -> FaultEvent）。",
+    "input": "泵组 PU-01 发生停机。记录显示，当轴承润滑不足与冷却水中断同时发生时，会导致轴承温度升高；轴承温度升高或振动超标任一发生，都会触发泵组停机。",
+    "context": "泵组 PU-01 由泵、轴承和冷却水系统组成。",
+    "thought": "1. 轴承润滑不足与冷却水中断以 AND 方式导致“轴承温度升高”。2. 轴承温度升高与振动超标以 OR 方式导致“泵组停机”。3. 保留中间事件“轴承温度升高”，两个门组分别使用稳定的 gate_key。",
+    "output": {
+      "entities": [
+        {
+          "local_id": "eq1",
+          "name": "泵组",
+          "type": "Equipment",
+          "description": "发生停机的泵组",
+          "equipment_tag": "PU-01",
+          "equipment_type": "泵组",
+          "evidence": [
+            {
+              "quote": "泵组 PU-01 发生停机"
+            }
+          ]
+        },
+        {
+          "local_id": "e1",
+          "name": "轴承润滑不足",
+          "type": "FaultEvent",
+          "description": "轴承润滑不充分",
+          "evidence": [
+            {
+              "quote": "轴承润滑不足"
+            }
+          ]
+        },
+        {
+          "local_id": "e2",
+          "name": "冷却水中断",
+          "type": "FaultEvent",
+          "description": "冷却水供应中断",
+          "evidence": [
+            {
+              "quote": "冷却水中断"
+            }
+          ]
+        },
+        {
+          "local_id": "e3",
+          "name": "轴承温度升高",
+          "type": "FaultEvent",
+          "description": "轴承温度超过正常工作范围",
+          "evidence": [
+            {
+              "quote": "轴承温度升高"
+            }
+          ],
+          "cause_rule": {
+            "op": "AND",
+            "children": [
+              {
+                "event_local_id": "e1"
+              },
+              {
+                "event_local_id": "e2"
+              }
+            ]
+          }
+        },
+        {
+          "local_id": "e4",
+          "name": "振动超标",
+          "type": "FaultEvent",
+          "description": "泵组振动超过允许范围",
+          "evidence": [
+            {
+              "quote": "振动超标"
+            }
+          ]
+        },
+        {
+          "local_id": "e5",
+          "name": "泵组停机",
+          "type": "FaultEvent",
+          "description": "泵组因轴承温度升高或振动超标而停机",
+          "evidence": [
+            {
+              "quote": "泵组停机"
+            }
+          ],
+          "cause_rule": {
+            "op": "OR",
+            "children": [
+              {
+                "event_local_id": "e3"
+              },
+              {
+                "event_local_id": "e4"
+              }
+            ]
+          }
+        }
+      ],
+      "relationships": [
+        {
+          "source": "轴承润滑不足",
+          "target": "轴承温度升高",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "轴承润滑不足必须与冷却水中断同时发生才会导致轴承温度升高",
+          "evidence": [
+            {
+              "quote": "当轴承润滑不足与冷却水中断同时发生时，会导致轴承温度升高"
+            }
+          ],
+          "gate_type_hint": "AND",
+          "gate_key": "轴承温度升高_共同原因"
+        },
+        {
+          "source": "冷却水中断",
+          "target": "轴承温度升高",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "冷却水中断必须与轴承润滑不足同时发生才会导致轴承温度升高",
+          "evidence": [
+            {
+              "quote": "当轴承润滑不足与冷却水中断同时发生时，会导致轴承温度升高"
+            }
+          ],
+          "gate_type_hint": "AND",
+          "gate_key": "轴承温度升高_共同原因"
+        },
+        {
+          "source": "轴承温度升高",
+          "target": "泵组停机",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "轴承温度升高可单独触发泵组停机",
+          "evidence": [
+            {
+              "quote": "轴承温度升高或振动超标任一发生，都会触发泵组停机"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "泵组停机_触发原因"
+        },
+        {
+          "source": "振动超标",
+          "target": "泵组停机",
+          "relation_code": "CAUSES",
+          "keywords": "故障因果",
+          "description": "振动超标可单独触发泵组停机",
+          "evidence": [
+            {
+              "quote": "轴承温度升高或振动超标任一发生，都会触发泵组停机"
+            }
+          ],
+          "gate_type_hint": "OR",
+          "gate_key": "泵组停机_触发原因"
+        },
+        {
+          "source": "泵组",
+          "target": "泵组停机",
+          "relation_code": "HAS_FAULT",
+          "keywords": "设备故障",
+          "description": "泵组 PU-01 发生停机",
+          "evidence": [
+            {
+              "quote": "泵组 PU-01 发生停机"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

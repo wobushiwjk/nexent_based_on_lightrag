@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "DecisionStep": {
+      "additionalProperties": false,
+      "description": "One retrieve / reason / verify / conclude step in a decision trace.",
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "hypothesis_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "supported",
+                "rejected",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hypothesis Status"
+        },
+        "step_id": {
+          "minLength": 1,
+          "title": "Step Id",
+          "type": "string"
+        },
+        "step_type": {
+          "enum": [
+            "retrieve",
+            "reason",
+            "verify",
+            "conclude"
+          ],
+          "title": "Step Type",
+          "type": "string"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "tool_input": {
+          "additionalProperties": true,
+          "title": "Tool Input",
+          "type": "object"
+        },
+        "tool_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Name"
+        },
+        "tool_output_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Output Ref"
+        }
+      },
+      "required": [
+        "step_id",
+        "step_type",
+        "summary"
+      ],
+      "title": "DecisionStep",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/decision_trace.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The auditable chain from a question to a supported conclusion.",
+  "properties": {
+    "conclusion": {
+      "minLength": 1,
+      "title": "Conclusion",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "created_by": {
+      "minLength": 1,
+      "title": "Created By",
+      "type": "string"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "ontology_version": {
+      "minLength": 1,
+      "title": "Ontology Version",
+      "type": "string"
+    },
+    "query": {
+      "minLength": 1,
+      "title": "Query",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/DecisionStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "minLength": 1,
+      "title": "Trace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trace_id",
+    "tenant_id",
+    "query",
+    "steps",
+    "conclusion",
+    "ontology_version",
+    "created_at",
+    "created_by"
+  ],
+  "title": "DecisionTrace",
+  "type": "object",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

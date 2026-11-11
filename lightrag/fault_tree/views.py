@@ -538,7 +538,7 @@ def _orient_causal_edge(
         "CAUSES": ({"FaultEvent"}, {"FaultEvent"}),
         "HAS_CAUSE_RULE": ({"FaultEvent"}, {"FaultCauseRule"}),
         "INPUT_OF": ({"FaultEvent", "LogicGate"}, {"LogicGate"}),
-        "OUTPUT_TO": ({"LogicGate"}, {"FaultEvent"}),
+        "OUTPUT_TO": ({"LogicGate"}, {"FaultEvent", "LogicGate"}),
     }.get(relation)
     if allowed is None:
         return None

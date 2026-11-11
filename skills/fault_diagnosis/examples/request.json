@@ -1,0 +1,7 @@
+{
+  "tenant_id": "tenant-demo",
+  "equipment_ref": "P-101A",
+  "symptom": "出口压力不足",
+  "max_candidates": 3,
+  "include_tree": true
+}

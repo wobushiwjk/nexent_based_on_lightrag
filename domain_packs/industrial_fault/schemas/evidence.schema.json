@@ -1,0 +1,230 @@
+{
+  "$defs": {
+    "EvidenceTarget": {
+      "additionalProperties": false,
+      "description": "The record an evidence fragment supports or contradicts.",
+      "properties": {
+        "role": {
+          "default": "supports",
+          "enum": [
+            "supports",
+            "contradicts",
+            "mentions"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_type": {
+          "enum": [
+            "entity",
+            "fact",
+            "rule",
+            "logic_gate",
+            "decision_step"
+          ],
+          "title": "Target Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_type",
+        "target_id"
+      ],
+      "title": "EvidenceTarget",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/evidence.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A verbatim source fragment and the records it supports.",
+  "properties": {
+    "asset_id": {
+      "minLength": 1,
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "bbox": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Bbox"
+    },
+    "char_end": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Char End"
+    },
+    "char_start": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Char Start"
+    },
+    "chunk_id": {
+      "minLength": 1,
+      "title": "Chunk Id",
+      "type": "string"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "evidence_id": {
+      "minLength": 1,
+      "title": "Evidence Id",
+      "type": "string"
+    },
+    "extraction_run_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Extraction Run Id"
+    },
+    "extractor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Extractor"
+    },
+    "modality": {
+      "default": "text",
+      "enum": [
+        "text",
+        "table",
+        "image",
+        "pdf",
+        "office"
+      ],
+      "title": "Modality",
+      "type": "string"
+    },
+    "page": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Page"
+    },
+    "quote": {
+      "minLength": 1,
+      "title": "Quote",
+      "type": "string"
+    },
+    "quote_hash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Quote Hash",
+      "type": "string"
+    },
+    "review_status": {
+      "default": "proposed",
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "merged",
+        "deprecated",
+        "needs_more_evidence"
+      ],
+      "title": "Review Status",
+      "type": "string"
+    },
+    "section_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Section Path"
+    },
+    "targets": {
+      "items": {
+        "$ref": "#/$defs/EvidenceTarget"
+      },
+      "minItems": 1,
+      "title": "Targets",
+      "type": "array"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "evidence_id",
+    "tenant_id",
+    "asset_id",
+    "chunk_id",
+    "quote",
+    "quote_hash",
+    "targets"
+  ],
+  "title": "Evidence",
+  "type": "object",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

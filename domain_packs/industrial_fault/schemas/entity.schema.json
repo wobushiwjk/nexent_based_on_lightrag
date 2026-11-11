@@ -1,0 +1,1002 @@
+{
+  "$defs": {
+    "Department": {
+      "additionalProperties": false,
+      "description": "An organisational container for equipment and files.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "class_code": {
+          "const": "Department",
+          "default": "Department",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "department_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Department Code"
+        },
+        "department_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Department Path"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "external_refs": {
+          "additionalProperties": true,
+          "title": "External Refs",
+          "type": "object"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "inactive"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by"
+      ],
+      "title": "Department",
+      "type": "object"
+    },
+    "Equipment": {
+      "additionalProperties": false,
+      "description": "A physical asset that can carry faults.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "class_code": {
+          "const": "Equipment",
+          "default": "Equipment",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "commissioning_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commissioning Date"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "equipment_name": {
+          "minLength": 1,
+          "title": "Equipment Name",
+          "type": "string"
+        },
+        "equipment_tag": {
+          "minLength": 1,
+          "title": "Equipment Tag",
+          "type": "string"
+        },
+        "equipment_type": {
+          "minLength": 1,
+          "title": "Equipment Type",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "external_refs": {
+          "additionalProperties": true,
+          "title": "External Refs",
+          "type": "object"
+        },
+        "functional_location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Functional Location"
+        },
+        "lifecycle_status": {
+          "default": "in_service",
+          "enum": [
+            "in_service",
+            "stopped",
+            "retired"
+          ],
+          "title": "Lifecycle Status",
+          "type": "string"
+        },
+        "manufacturer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manufacturer"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "retirement_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retirement Date"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "serial_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Serial Number"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "equipment_tag",
+        "equipment_name",
+        "equipment_type"
+      ],
+      "title": "Equipment",
+      "type": "object"
+    },
+    "FaultEvent": {
+      "additionalProperties": false,
+      "description": "A fault, symptom, or intermediate event in a fault tree.",
+      "properties": {
+        "active_cause_rule_uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Cause Rule Uid"
+        },
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "class_code": {
+          "const": "FaultEvent",
+          "default": "FaultEvent",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "fault_name": {
+          "minLength": 1,
+          "title": "Fault Name",
+          "type": "string"
+        },
+        "maintenance_measures": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Maintenance Measures",
+          "type": "array"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "operating_conditions": {
+          "additionalProperties": true,
+          "title": "Operating Conditions",
+          "type": "object"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "severity": {
+          "default": "unknown",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical",
+            "unknown"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "symptoms": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Symptoms",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "fault_name"
+      ],
+      "title": "FaultEvent",
+      "type": "object"
+    },
+    "FileAsset": {
+      "additionalProperties": false,
+      "description": "A source document, image, table, or office file.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "checksum": {
+          "minLength": 1,
+          "title": "Checksum",
+          "type": "string"
+        },
+        "chunk_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chunk Count"
+        },
+        "class_code": {
+          "const": "File",
+          "default": "File",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "file_extension": {
+          "minLength": 1,
+          "title": "File Extension",
+          "type": "string"
+        },
+        "file_name": {
+          "minLength": 1,
+          "title": "File Name",
+          "type": "string"
+        },
+        "file_size": {
+          "minimum": 0,
+          "title": "File Size",
+          "type": "integer"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "last_parsed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Parsed At"
+        },
+        "mime_type": {
+          "minLength": 1,
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "modality": {
+          "enum": [
+            "text",
+            "table",
+            "image",
+            "pdf",
+            "office"
+          ],
+          "title": "Modality",
+          "type": "string"
+        },
+        "object_uri": {
+          "minLength": 1,
+          "title": "Object Uri",
+          "type": "string"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "page_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Count"
+        },
+        "parse_engine": {
+          "anyOf": [
+            {
+              "enum": [
+                "native",
+                "legacy",
+                "mineru",
+                "docling"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parse Engine"
+        },
+        "parse_error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parse Error"
+        },
+        "parse_status": {
+          "enum": [
+            "uploaded",
+            "parsing",
+            "parsed",
+            "failed"
+          ],
+          "title": "Parse Status",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source System"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "upload_time": {
+          "format": "date-time",
+          "title": "Upload Time",
+          "type": "string"
+        },
+        "uploader_id": {
+          "minLength": 1,
+          "title": "Uploader Id",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "file_name",
+        "file_extension",
+        "mime_type",
+        "modality",
+        "object_uri",
+        "checksum",
+        "file_size",
+        "uploader_id",
+        "upload_time",
+        "parse_status"
+      ],
+      "title": "FileAsset",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/entity.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "discriminator": {
+    "mapping": {
+      "Department": "#/$defs/Department",
+      "Equipment": "#/$defs/Equipment",
+      "FaultEvent": "#/$defs/FaultEvent",
+      "File": "#/$defs/FileAsset"
+    },
+    "propertyName": "class_code"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Department"
+    },
+    {
+      "$ref": "#/$defs/FileAsset"
+    },
+    {
+      "$ref": "#/$defs/Equipment"
+    },
+    {
+      "$ref": "#/$defs/FaultEvent"
+    }
+  ],
+  "title": "Entity",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

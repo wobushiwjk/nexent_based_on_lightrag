@@ -1,0 +1,16 @@
+{
+  "tenant_id": "tenant-demo",
+  "claims": [
+    {
+      "claim_id": "claim-fact-1",
+      "target_type": "fact",
+      "target_id": "FACT-1"
+    },
+    {
+      "claim_id": "claim-rule-and",
+      "target_type": "rule",
+      "target_id": "RULE-CAVITATION-AND"
+    }
+  ],
+  "draft_id": "TREE-P101A-LOW-PRESSURE-v1"
+}

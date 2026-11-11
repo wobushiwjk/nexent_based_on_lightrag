@@ -1,0 +1,286 @@
+# Canonical(规范的) ontology for the industrial fault-tree domain pack.
+
+# `prompts/entity_type/industrial_fault.yml` remains the prompt projection（提示词投影） used
+# by LightRAG. This file is the semantic source of truth（语义事实来源） for classes, relations,
+# constraints, and standard mappings; `scripts/validate_domain.py` keeps the two
+# profiles from drifting apart.（保持这两个文件配置一致）
+ontology_version: industrial-fault-v0.1
+schema_version: industrial-fault-schema-v0.1
+domain: advanced-manufacturing
+label: 工业设备故障诊断与维修决策
+description: >-
+  以部门、文件、设备和故障事件为核心对象，用递归 AND/OR 因果表达式表达
+  故障传播链，并用逐字原文证据支撑每个正式事实。
+prompt_profile: prompts/entity_type/industrial_fault.yml  #抽取提示词配置文件的位置
+
+standards:
+  - id: IEC 61025
+    title: Fault tree analysis (FTA)
+    role: fault-tree-structure
+  - id: ISO 14224
+    title: Collection and exchange of reliability and maintenance data
+    role: equipment-and-maintenance-taxonomy
+  - id: IEC 60812
+    title: Failure modes and effects analysis (FMEA)
+    role: failure-mode-and-effect
+  - id: ISO 13374
+    title: Condition monitoring and diagnostics of machines
+    role: condition-monitoring-and-diagnosis
+
+classes:
+  Asset:
+    label: 资产
+    prompt_visible: false   #是否放进提示词里 -->是否需要模型关注 -->引导模型去识别
+    abstract: true          #是否是抽象父类
+    schema_ref: schemas/entity.schema.json  #来源，参考文件
+
+  KnowledgeEntity:
+    label: 知识实体
+    prompt_visible: false
+    abstract: true
+    schema_ref: schemas/entity.schema.json
+
+  Department:
+    label: 部门
+    parent: Asset
+    prompt_visible: false
+    required: [uid, name]
+    schema_ref: "schemas/entity.schema.json#/$defs/Department"
+    standards: [ISO 14224]
+    metadata_properties:    #对象可以保存哪些属性，属性的类型或约束
+      department_code: {type: string}
+      department_path: {type: string}
+      status: {type: enum, values: [active, inactive]}
+      external_refs: {type: object}
+
+  File:
+    label: 数据资产文件
+    parent: Asset
+    prompt_visible: false
+    required: [uid, file_name, file_extension, mime_type, parse_status]
+    schema_ref: "schemas/entity.schema.json#/$defs/FileAsset"
+    standards: [ISO 13374]
+    metadata_properties:
+      file_name: {type: string}
+      file_extension: {type: string}  #扩展名
+      mime_type: {type: string}       #媒体类型
+      modality: {type: enum, values: [text, table, image, pdf, office]}   #内容形式
+      object_uri: {type: string}    #文件存储位置
+      checksum: {type: string}      #文件校验码
+      file_size: {type: integer}    #文件大小
+      parse_status: {type: enum, values: [uploaded, parsing, parsed, failed]} #解析状态
+      parse_engine: {type: enum, values: [native, legacy, mineru, docling]} #解析引擎
+
+  Equipment:
+    label: 具体工业设备
+    parent: Asset
+    prompt_visible: true
+    required: [name, equipment_tag, equipment_type]
+    schema_ref: "schemas/entity.schema.json#/$defs/Equipment"
+    standards: [ISO 14224]
+    extract_properties:   #需要从文本中抽取的属性
+      name: {type: string}
+      equipment_tag: {type: string}
+      equipment_type: {type: string}
+      functional_location: {type: string}   #功能位置
+      aliases: {type: string_list}          #别名
+      manufacturer: {type: string}
+      model: {type: string}                 #型号
+      serial_number: {type: string}         #序列号
+    metadata_properties:
+      equipment_tag: {type: string, unique_within_tenant: true}
+      equipment_name: {type: string}
+      equipment_type: {type: string}
+      lifecycle_status: {type: enum, values: [in_service, stopped, retired]}  #生命周期状态
+      commissioning_date: {type: date}     #投运日期
+      retirement_date: {type: date}       #退役日期
+
+  FaultEvent:
+    label: 故障事件
+    parent: KnowledgeEntity
+    prompt_visible: true
+    required: [name, description]   #该类声明的必需字段
+    schema_ref: "schemas/entity.schema.json#/$defs/FaultEvent"
+    standards: [IEC 61025, IEC 60812, ISO 14224]
+    extract_properties:
+      name: {type: string}
+      description: {type: string}
+      aliases: {type: string_list}
+      symptoms: {type: string_list}
+      maintenance_measures: {type: string_list}   #维修措施
+      severity: {type: enum, values: [low, medium, high, critical, unknown]}
+      fault_category: {type: string}  #故障类别
+      cause_rule: {type: expression}  #原因表达式？
+    metadata_properties:
+      fault_name: {type: string}
+      severity: {type: enum, values: [low, medium, high, critical, unknown]}
+      symptoms: {type: string_list}
+      maintenance_measures: {type: string_list}
+      operating_conditions: {type: object}    #运行条件？
+      active_cause_rule_uid: {type: string}   #当前生效的因果规则 UID？
+
+  FaultCauseRule:
+    label: 故障因果规则 
+    prompt_visible: false
+    required: [effect_fault_uid, expression]
+    schema_ref: "schemas/fault_rule.schema.json#/$defs/FaultCauseRule"
+    standards: [IEC 61025]
+    metadata_properties:
+      effect_fault_uid: {type: string}    #规则作用的结果故障UID？
+      expression: {type: expression}      #原因逻辑表达式
+      scenario: {type: string}            #适用场景
+      evidence_ids: {type: string_list, min_items: 1} #证据ID列表
+      review_status: {type: enum}         #审核状态
+      valid_from: {type: datetime}        #有效期开始时间
+      valid_to: {type: datetime}          #有效期结束时间
+
+  LogicGate:
+    label: 逻辑门
+    prompt_visible: false
+    required: [gate_type]
+    schema_ref: "schemas/fault_tree_draft.schema.json#/$defs/FaultTreeNode"
+    standards: [IEC 61025]
+    metadata_properties:
+      gate_type: {type: enum, values: [AND, OR]}
+      rule_uid: {type: string}    #所属规则UID
+      # OUTPUT_TO is authoritative; this optional mirror helps review UIs.
+      output_fault_uid: {type: string}    #输出故障UID
+      input_count: {type: integer, minimum: 2}    #输入数量
+      expression_path: {type: string}       #嵌套原因表达式中的位置
+
+  Evidence:
+    label: 证据片段
+    prompt_visible: false
+    required: [evidence_id, asset_id, quote]
+    schema_ref: "schemas/evidence.schema.json#/$defs/Evidence"
+    standards: [ISO 13374]
+    metadata_properties:
+      evidence_id: {type: string}
+      asset_id: {type: string}
+      chunk_id: {type: string}
+      page: {type: integer}
+      quote: {type: string}   #原文引用
+      quote_hash: {type: string}  #引文哈希
+      modality: {type: enum, values: [text, table, image, pdf, office]} #证据形式
+      targets: {type: array}   #证据支持的对象
+
+relations:
+  CAUSES:
+    source: FaultEvent
+    target: FaultEvent
+    directed: true    #表示是否有方向
+    prompt_visible: true  #是否让抽取模型识别这类关系
+    evidence_required: true #创建关系时是否需要证据
+    properties:
+      gate_type_hint: [AND, OR]
+      gate_key: string
+
+  HAS_FAULT:
+    source: Equipment
+    target: FaultEvent
+    directed: true
+    prompt_visible: true
+    evidence_required: true
+    properties:
+      relation_status: string
+      occurred_at: datetime
+
+  HAS_EQUIPMENT:
+    source: Department
+    target: Equipment
+    directed: true
+    prompt_visible: false
+    system_generated: true  #是否由系统流程生成，而非由模型直接抽取
+    properties:
+      membership_type: string #描述归属类型
+
+  HAS_SUB_DEPARTMENT:
+    source: Department
+    target: Department
+    directed: true
+    prompt_visible: false
+    system_generated: true
+
+  OWNS_FILE:          #部门拥有的文件
+    source: Department
+    target: File
+    directed: true
+    prompt_visible: false
+    system_generated: true
+    properties:
+      ownership_type: string  #所有权类型
+
+  DESCRIBES_EQUIPMENT:    #文件描述设备
+    source: File
+    target: Equipment
+    directed: true
+    prompt_visible: false
+    system_generated: true
+    properties:
+      coverage: string
+
+  MENTIONS_FAULT:         #文件提及故障
+    source: File
+    target: FaultEvent
+    directed: true
+    prompt_visible: false
+    system_generated: true
+
+  PROVIDES_EVIDENCE_FOR:  #文件为故障、因果规则、逻辑门提供证据
+    source: File
+    target: [FaultEvent, FaultCauseRule, LogicGate]
+    directed: true
+    prompt_visible: false
+    system_generated: true
+    evidence_required: true
+    properties:
+      evidence_uid: string  #证据标识
+
+  HAS_CAUSE_RULE:     #故障关联的因果规则
+    source: FaultEvent
+    target: FaultCauseRule
+    directed: true
+    prompt_visible: false
+    system_generated: true
+
+  INPUT_OF:
+    source: [FaultEvent, LogicGate]
+    target: LogicGate
+    directed: true
+    prompt_visible: false
+    system_generated: true
+    properties:
+      input_role: string
+
+  OUTPUT_TO:
+    source: LogicGate
+    target: [FaultEvent, LogicGate]  # nested expressions feed a parent gate
+    directed: true
+    prompt_visible: false
+    system_generated: true
+
+constraints:
+  - id: stable-uid
+    applies_to: [Department, File, Equipment, FaultEvent]
+    rule: 正式对象必须有稳定 UID；名称修改不能改变 UID。
+  - id: unique-equipment-tag
+    applies_to: [Equipment]
+    rule: equipment_tag 在租户内唯一。
+  - id: single-top-event
+    applies_to: [FaultTreeDraft]
+    rule: 一棵已发布故障树只能有一个顶事件。
+  - id: acyclic-fault-tree
+    applies_to: [FaultTreeDraft]
+    rule: 因果图必须是有向无环图。
+  - id: gate-min-inputs
+    applies_to: [LogicGate]
+    rule: AND/OR 门至少有两个输入；每个门只能有一个输出。
+  - id: evidence-required
+    applies_to: [CAUSES, HAS_FAULT, FaultCauseRule, PROVIDES_EVIDENCE_FOR]
+    rule: 正式因果事实必须至少有一条证据。
+  - id: evidence-verbatim
+    applies_to: [Evidence]
+    rule: quote 必须是来源文档中的逐字连续片段。
+  - id: review-before-publish
+    applies_to: [FaultEvent, FaultCauseRule, Fact]
+    rule: 候选知识不能直接发布；必须经过人工审核。

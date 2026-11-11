@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "Claim": {
+      "additionalProperties": false,
+      "description": "One record whose evidence should be verified.",
+      "properties": {
+        "claim_id": {
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_type": {
+          "enum": [
+            "entity",
+            "fact",
+            "rule",
+            "logic_gate",
+            "decision_step"
+          ],
+          "title": "Target Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "claim_id",
+        "target_type",
+        "target_id"
+      ],
+      "title": "Claim",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/skills/evidence_verification/input.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Input contract for the evidence-verification skill.",
+  "properties": {
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "draft_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Draft Id"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "tenant_id"
+  ],
+  "title": "VerificationRequest",
+  "type": "object",
+  "x-skill-name": "evidence_verification",
+  "x-skill-version": "0.1.0"
+}

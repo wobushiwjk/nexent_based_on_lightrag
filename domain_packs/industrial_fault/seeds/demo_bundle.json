@@ -1,0 +1,823 @@
+{
+  "bundle_version": "demo-v0.1",    
+  "ontology_version": "industrial-fault-v0.1",
+  "schema_version": "industrial-fault-schema-v0.1",
+  "tenant_id": "tenant-demo",
+  "entities": [
+    {
+      "uid": "DEPT-UTILITY",
+      "class_code": "Department",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "公用工程部",
+      "description": "负责冷却水系统运行与维护",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 1.0,
+      "source_uids": [],
+      "evidence_ids": [],
+      "created_at": "2026-10-20T09:00:00+08:00",
+      "updated_at": "2026-10-20T09:00:00+08:00",
+      "created_by": "seed-v1",
+      "department_code": "UTIL",
+      "department_path": "/工厂/公用工程部",
+      "status": "active",
+      "external_refs": {}
+    },
+    {
+      "uid": "FILE-P101A-MANUAL",
+      "class_code": "File",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "P-101A 冷却水泵维护手册（节选）",
+      "description": "P-101A 的出口压力不足、汽蚀与处理措施说明",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 1.0,
+      "source_uids": [],
+      "evidence_ids": [
+        "EV-MANUAL-1",
+        "EV-MANUAL-2",
+        "EV-MANUAL-3"
+      ],
+      "created_at": "2026-10-20T09:05:00+08:00",
+      "updated_at": "2026-10-20T09:05:00+08:00",
+      "created_by": "seed-v1",
+      "file_name": "pump_manual_excerpt.md",
+      "file_extension": "md",
+      "mime_type": "text/markdown",
+      "modality": "text",
+      "object_uri": "seeds/documents/pump_manual_excerpt.md",
+      "checksum": "sha256:76e63a58cd77b3fd95817d20f5da4b94d0fb27c034d48548a54a1087081d687b",
+      "file_size": 551,
+      "version": "v1",
+      "language": "zh-CN",
+      "source_system": "demo",
+      "uploader_id": "seed-v1",
+      "upload_time": "2026-10-20T09:05:00+08:00",
+      "parse_status": "parsed",
+      "parse_engine": "native",
+      "page_count": 1,
+      "chunk_count": 3,
+      "last_parsed_at": "2026-10-20T09:06:00+08:00"
+    },
+    {
+      "uid": "FILE-P101A-RECORD",
+      "class_code": "File",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "P-101A 维修记录",
+      "description": "P-101A 两次出口压力不足的维修记录",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 1.0,
+      "source_uids": [],
+      "evidence_ids": [
+        "EV-RECORD-1",
+        "EV-RECORD-2"
+      ],
+      "created_at": "2026-10-20T09:07:00+08:00",
+      "updated_at": "2026-10-20T09:07:00+08:00",
+      "created_by": "seed-v1",
+      "file_name": "maintenance_record.md",
+      "file_extension": "md",
+      "mime_type": "text/markdown",
+      "modality": "text",
+      "object_uri": "seeds/documents/maintenance_record.md",
+      "checksum": "sha256:bdc7716a2068b224de352997e092f329d118ff0209b22d404e182d0ef689346e",
+      "file_size": 322,
+      "version": "v1",
+      "language": "zh-CN",
+      "source_system": "demo",
+      "uploader_id": "seed-v1",
+      "upload_time": "2026-10-20T09:07:00+08:00",
+      "parse_status": "parsed",
+      "parse_engine": "native",
+      "page_count": 1,
+      "chunk_count": 2,
+      "last_parsed_at": "2026-10-20T09:08:00+08:00"
+    },
+    {
+      "uid": "FILE-P101A-INSPECTION",
+      "class_code": "File",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "2026 年第三季度设备巡检表",
+      "description": "包含 P-101A 出口压力不足与初步判断的巡检表",
+      "aliases": [],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 1.0,
+      "source_uids": [],
+      "evidence_ids": [
+        "EV-TABLE-1"
+      ],
+      "created_at": "2026-10-20T09:09:00+08:00",
+      "updated_at": "2026-10-20T09:09:00+08:00",
+      "created_by": "seed-v1",
+      "file_name": "inspection_table.md",
+      "file_extension": "md",
+      "mime_type": "text/markdown",
+      "modality": "table",
+      "object_uri": "seeds/documents/inspection_table.md",
+      "checksum": "sha256:00886b553f0ca3fbee7fe0fe8faf44c333386c6cb260d958fc1e3bb57f5d2aeb",
+      "file_size": 313,
+      "version": "v1",
+      "language": "zh-CN",
+      "source_system": "demo",
+      "uploader_id": "seed-v1",
+      "upload_time": "2026-10-20T09:09:00+08:00",
+      "parse_status": "parsed",
+      "parse_engine": "native",
+      "page_count": 1,
+      "chunk_count": 1,
+      "last_parsed_at": "2026-10-20T09:10:00+08:00"
+    },
+    {
+      "uid": "EQ-P101A",
+      "class_code": "Equipment",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "冷却水泵",
+      "description": "P-101A 离心式冷却水泵",
+      "aliases": [
+        "循环泵",
+        "冷却泵"
+      ],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 1.0,
+      "source_uids": [
+        "FILE-P101A-MANUAL"
+      ],
+      "evidence_ids": [
+        "EV-MANUAL-1"
+      ],
+      "created_at": "2026-10-20T09:11:00+08:00",
+      "updated_at": "2026-10-20T09:11:00+08:00",
+      "created_by": "seed-v1",
+      "equipment_tag": "P-101A",
+      "equipment_name": "冷却水泵",
+      "equipment_type": "PUMP.CENTRIFUGAL",
+      "manufacturer": "Example Co.",
+      "model": "CP-200",
+      "serial_number": "SN-2024-00931",
+      "functional_location": "CN-SH.U1.COOLING",
+      "lifecycle_status": "in_service",
+      "commissioning_date": "2024-01-15",
+      "external_refs": {}
+    },
+    {
+      "uid": "FAULT-FILTER-BLOCKED",
+      "class_code": "FaultEvent",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "入口过滤器堵塞",
+      "description": "过滤器流通面积减小，泵入口流量下降",
+      "aliases": [
+        "过滤器堵塞"
+      ],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 0.94,
+      "source_uids": [
+        "FILE-P101A-MANUAL",
+        "FILE-P101A-RECORD",
+        "FILE-P101A-INSPECTION"
+      ],
+      "evidence_ids": [
+        "EV-MANUAL-1",
+        "EV-RECORD-1",
+        "EV-TABLE-1"
+      ],
+      "created_at": "2026-10-20T09:12:00+08:00",
+      "updated_at": "2026-10-20T09:12:00+08:00",
+      "created_by": "seed-v1",
+      "fault_name": "入口过滤器堵塞",
+      "severity": "medium",
+      "symptoms": [
+        "入口流量下降"
+      ],
+      "maintenance_measures": [
+        "清理或更换入口过滤器"
+      ],
+      "operating_conditions": {}
+    },
+    {
+      "uid": "FAULT-CAVITATION",
+      "class_code": "FaultEvent",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "叶轮汽蚀",
+      "description": "泵入口压力过低导致叶轮表面发生汽蚀",
+      "aliases": [
+        "汽蚀"
+      ],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 0.91,
+      "source_uids": [
+        "FILE-P101A-MANUAL",
+        "FILE-P101A-RECORD"
+      ],
+      "evidence_ids": [
+        "EV-MANUAL-2",
+        "EV-MANUAL-3",
+        "EV-RECORD-2"
+      ],
+      "created_at": "2026-10-20T09:13:00+08:00",
+      "updated_at": "2026-10-20T09:13:00+08:00",
+      "created_by": "seed-v1",
+      "fault_name": "叶轮汽蚀",
+      "severity": "high",
+      "symptoms": [
+        "异常振动",
+        "噪声增大"
+      ],
+      "maintenance_measures": [
+        "更换叶轮",
+        "检查吸入管密封"
+      ],
+      "operating_conditions": {}
+    },
+    {
+      "uid": "FAULT-INLET-LEAK",
+      "class_code": "FaultEvent",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "吸入管法兰漏气",
+      "description": "吸入管法兰密封失效，空气进入泵入口",
+      "aliases": [
+        "法兰漏气"
+      ],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 0.9,
+      "source_uids": [
+        "FILE-P101A-MANUAL",
+        "FILE-P101A-RECORD"
+      ],
+      "evidence_ids": [
+        "EV-MANUAL-3",
+        "EV-RECORD-2"
+      ],
+      "created_at": "2026-10-20T09:14:00+08:00",
+      "updated_at": "2026-10-20T09:14:00+08:00",
+      "created_by": "seed-v1",
+      "fault_name": "吸入管法兰漏气",
+      "severity": "medium",
+      "symptoms": [
+        "吸入管密封失效"
+      ],
+      "maintenance_measures": [
+        "紧固或更换法兰密封"
+      ],
+      "operating_conditions": {}
+    },
+    {
+      "uid": "FAULT-LOW-PRESSURE",
+      "class_code": "FaultEvent",
+      "tenant_id": "tenant-demo",
+      "canonical_name": "出口压力不足",
+      "description": "泵出口压力低于正常工作范围",
+      "aliases": [
+        "出口压力低",
+        "压力不够"
+      ],
+      "ontology_version": "industrial-fault-v0.1",
+      "schema_version": "industrial-fault-schema-v0.1",
+      "review_status": "approved",
+      "confidence": 0.96,
+      "source_uids": [
+        "FILE-P101A-MANUAL",
+        "FILE-P101A-RECORD",
+        "FILE-P101A-INSPECTION"
+      ],
+      "evidence_ids": [
+        "EV-MANUAL-1",
+        "EV-MANUAL-2",
+        "EV-RECORD-1",
+        "EV-TABLE-1"
+      ],
+      "created_at": "2026-10-20T09:15:00+08:00",
+      "updated_at": "2026-10-20T09:15:00+08:00",
+      "created_by": "seed-v1",
+      "fault_name": "出口压力不足",
+      "severity": "high",
+      "symptoms": [
+        "压力表读数下降",
+        "系统流量不足"
+      ],
+      "maintenance_measures": [
+        "清理过滤器",
+        "检查吸入管",
+        "更换叶轮"
+      ],
+      "operating_conditions": {},
+      "active_cause_rule_uid": "RULE-LOW-PRESSURE-OR"
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "EV-MANUAL-1",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-MANUAL",
+      "chunk_id": "manual-4.2-1",
+      "page": 12,
+      "section_path": "4.2 出口压力不足",
+      "char_start": 77,
+      "char_end": 107,
+      "quote": "入口过滤器堵塞会降低泵的入口流量，并进一步造成出口压力不足。",
+      "quote_hash": "sha256:715a1cd42f0358dd05bf071b5ecb04a2b4ca80ce0c74446d04c95f9af82b333d",
+      "modality": "text",
+      "targets": [
+        {
+          "target_type": "fact",
+          "target_id": "FACT-1",
+          "role": "supports"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-FILTER-BLOCKED",
+          "role": "mentions"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-LOW-PRESSURE",
+          "role": "mentions"
+        }
+      ],
+      "confidence": 0.95,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-2026-10-20",
+      "review_status": "approved"
+    },
+    {
+      "evidence_id": "EV-MANUAL-2",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-MANUAL",
+      "chunk_id": "manual-4.2-3",
+      "page": 12,
+      "section_path": "4.2 出口压力不足",
+      "char_start": 136,
+      "char_end": 158,
+      "quote": "叶轮汽蚀会导致出口压力不足，并伴随异常振动。",
+      "quote_hash": "sha256:08b92f7b479400f9655c4ddeee33f89de2cc4e019dda17859c098c81367ba495",
+      "modality": "text",
+      "targets": [
+        {
+          "target_type": "fact",
+          "target_id": "FACT-2",
+          "role": "supports"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-CAVITATION",
+          "role": "mentions"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-LOW-PRESSURE",
+          "role": "mentions"
+        }
+      ],
+      "confidence": 0.95,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-2026-10-20",
+      "review_status": "approved"
+    },
+    {
+      "evidence_id": "EV-MANUAL-3",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-MANUAL",
+      "chunk_id": "manual-4.2-2",
+      "page": 12,
+      "section_path": "4.2 出口压力不足",
+      "char_start": 109,
+      "char_end": 134,
+      "quote": "当入口过滤器堵塞且吸入管法兰漏气时，泵会发生汽蚀。",
+      "quote_hash": "sha256:295864917691ac9107cd522517962c310d5e44ddca462c52435bfb9382d7659c",
+      "modality": "text",
+      "targets": [
+        {
+          "target_type": "rule",
+          "target_id": "RULE-CAVITATION-AND",
+          "role": "supports"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-FILTER-BLOCKED",
+          "role": "mentions"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-INLET-LEAK",
+          "role": "mentions"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-CAVITATION",
+          "role": "mentions"
+        }
+      ],
+      "confidence": 0.96,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-2026-10-20",
+      "review_status": "approved"
+    },
+    {
+      "evidence_id": "EV-RECORD-1",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-RECORD",
+      "chunk_id": "record-2026-09-12",
+      "page": 1,
+      "section_path": "2026-09-12 维修记录",
+      "char_start": 42,
+      "char_end": 65,
+      "quote": "检查发现入口过滤器堵塞，清理过滤器后压力恢复。",
+      "quote_hash": "sha256:59640352f5aa974b523a25575905c1dc3680a577f884fdf825def9433b4c1ccc",
+      "modality": "text",
+      "targets": [
+        {
+          "target_type": "fact",
+          "target_id": "FACT-1",
+          "role": "supports"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-FILTER-BLOCKED",
+          "role": "mentions"
+        }
+      ],
+      "confidence": 0.93,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-2026-10-20",
+      "review_status": "approved"
+    },
+    {
+      "evidence_id": "EV-RECORD-2",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-RECORD",
+      "chunk_id": "record-2026-10-03",
+      "page": 1,
+      "section_path": "2026-10-03 维修记录",
+      "char_start": 96,
+      "char_end": 115,
+      "quote": "检查发现吸入管法兰漏气，导致叶轮汽蚀。",
+      "quote_hash": "sha256:1b9a53ec1c621414e4cd75d18493cc3a96b0d706e62570e7fcb431d7c379ad25",
+      "modality": "text",
+      "targets": [
+        {
+          "target_type": "rule",
+          "target_id": "RULE-CAVITATION-AND",
+          "role": "supports"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-INLET-LEAK",
+          "role": "mentions"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-CAVITATION",
+          "role": "mentions"
+        }
+      ],
+      "confidence": 0.93,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-2026-10-20",
+      "review_status": "approved"
+    },
+    {
+      "evidence_id": "EV-TABLE-1",
+      "tenant_id": "tenant-demo",
+      "asset_id": "FILE-P101A-INSPECTION",
+      "chunk_id": "inspection-2026q3-row1",
+      "page": 1,
+      "section_path": "P-101A 2026-09-12 行",
+      "char_start": 117,
+      "char_end": 124,
+      "quote": "入口过滤器堵塞",
+      "quote_hash": "sha256:75fffeaaaf8881673568e8ad25f09ffaff7bc245ce0cc4efc77e1e219cde59e6",
+      "modality": "table",
+      "targets": [
+        {
+          "target_type": "fact",
+          "target_id": "FACT-1",
+          "role": "supports"
+        },
+        {
+          "target_type": "entity",
+          "target_id": "FAULT-FILTER-BLOCKED",
+          "role": "mentions"
+        }
+      ],
+      "confidence": 0.9,
+      "extractor": "seed-v1",
+      "extraction_run_id": "seed-2026-10-20",
+      "review_status": "approved"
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "FACT-1",
+      "tenant_id": "tenant-demo",
+      "subject_uid": "FAULT-FILTER-BLOCKED",
+      "predicate": "CAUSES",
+      "object_uid": "FAULT-LOW-PRESSURE",
+      "properties": {},
+      "evidence_ids": [
+        "EV-MANUAL-1",
+        "EV-RECORD-1",
+        "EV-TABLE-1"
+      ],
+      "confidence": 0.94,
+      "review_status": "approved",
+      "ontology_version": "industrial-fault-v0.1"
+    },
+    {
+      "fact_id": "FACT-2",
+      "tenant_id": "tenant-demo",
+      "subject_uid": "FAULT-CAVITATION",
+      "predicate": "CAUSES",
+      "object_uid": "FAULT-LOW-PRESSURE",
+      "properties": {},
+      "evidence_ids": [
+        "EV-MANUAL-2"
+      ],
+      "confidence": 0.91,
+      "review_status": "approved",
+      "ontology_version": "industrial-fault-v0.1"
+    }
+  ],
+  "rules": [
+    {
+      "rule_uid": "RULE-LOW-PRESSURE-OR",
+      "tenant_id": "tenant-demo",
+      "effect_fault_uid": "FAULT-LOW-PRESSURE",
+      "expression": {
+        "op": "OR",
+        "children": [
+          {
+            "event_uid": "FAULT-FILTER-BLOCKED"
+          },
+          {
+            "event_uid": "FAULT-CAVITATION"
+          }
+        ]
+      },
+      "scenario": "冷却水系统正常运行工况",
+      "evidence_ids": [
+        "EV-MANUAL-1",
+        "EV-MANUAL-2"
+      ],
+      "review_status": "approved",
+      "ontology_version": "industrial-fault-v0.1",
+      "created_at": "2026-10-20T09:20:00+08:00",
+      "created_by": "seed-v1"
+    },
+    {
+      "rule_uid": "RULE-CAVITATION-AND",
+      "tenant_id": "tenant-demo",
+      "effect_fault_uid": "FAULT-CAVITATION",
+      "expression": {
+        "op": "AND",
+        "children": [
+          {
+            "event_uid": "FAULT-FILTER-BLOCKED"
+          },
+          {
+            "event_uid": "FAULT-INLET-LEAK"
+          }
+        ]
+      },
+      "scenario": "吸入管密封失效且过滤器阻力增大",
+      "evidence_ids": [
+        "EV-MANUAL-3",
+        "EV-RECORD-2"
+      ],
+      "review_status": "approved",
+      "ontology_version": "industrial-fault-v0.1",
+      "created_at": "2026-10-20T09:21:00+08:00",
+      "created_by": "seed-v1"
+    }
+  ],
+  "tree": {
+    "draft_id": "TREE-P101A-LOW-PRESSURE-v1",
+    "tenant_id": "tenant-demo",
+    "top_event_uid": "FAULT-LOW-PRESSURE",
+    "nodes": [
+      {
+        "uid": "FAULT-LOW-PRESSURE",
+        "class_code": "FaultEvent",
+        "label": "出口压力不足",
+        "properties": {
+          "severity": "high"
+        }
+      },
+      {
+        "uid": "FAULT-FILTER-BLOCKED",
+        "class_code": "FaultEvent",
+        "label": "入口过滤器堵塞",
+        "properties": {
+          "severity": "medium"
+        }
+      },
+      {
+        "uid": "FAULT-CAVITATION",
+        "class_code": "FaultEvent",
+        "label": "叶轮汽蚀",
+        "properties": {
+          "severity": "high"
+        }
+      },
+      {
+        "uid": "FAULT-INLET-LEAK",
+        "class_code": "FaultEvent",
+        "label": "吸入管法兰漏气",
+        "properties": {
+          "severity": "medium"
+        }
+      },
+      {
+        "uid": "RULE-LOW-PRESSURE-OR",
+        "class_code": "FaultCauseRule",
+        "label": "出口压力不足的 OR 规则",
+        "properties": {
+          "effect_fault_uid": "FAULT-LOW-PRESSURE"
+        }
+      },
+      {
+        "uid": "RULE-CAVITATION-AND",
+        "class_code": "FaultCauseRule",
+        "label": "叶轮汽蚀的 AND 规则",
+        "properties": {
+          "effect_fault_uid": "FAULT-CAVITATION"
+        }
+      },
+      {
+        "uid": "GATE-OR-LOW-PRESSURE",
+        "class_code": "LogicGate",
+        "label": "OR 门",
+        "properties": {
+          "gate_type": "OR",
+          "rule_uid": "RULE-LOW-PRESSURE-OR",
+          "input_count": 2
+        }
+      },
+      {
+        "uid": "GATE-AND-CAVITATION",
+        "class_code": "LogicGate",
+        "label": "AND 门",
+        "properties": {
+          "gate_type": "AND",
+          "rule_uid": "RULE-CAVITATION-AND",
+          "input_count": 2
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source_uid": "FAULT-LOW-PRESSURE",
+        "target_uid": "RULE-LOW-PRESSURE-OR",
+        "relation_code": "HAS_CAUSE_RULE",
+        "properties": {}
+      },
+      {
+        "source_uid": "GATE-OR-LOW-PRESSURE",
+        "target_uid": "FAULT-LOW-PRESSURE",
+        "relation_code": "OUTPUT_TO",
+        "properties": {}
+      },
+      {
+        "source_uid": "FAULT-FILTER-BLOCKED",
+        "target_uid": "GATE-OR-LOW-PRESSURE",
+        "relation_code": "INPUT_OF",
+        "properties": {}
+      },
+      {
+        "source_uid": "FAULT-CAVITATION",
+        "target_uid": "GATE-OR-LOW-PRESSURE",
+        "relation_code": "INPUT_OF",
+        "properties": {}
+      },
+      {
+        "source_uid": "FAULT-CAVITATION",
+        "target_uid": "RULE-CAVITATION-AND",
+        "relation_code": "HAS_CAUSE_RULE",
+        "properties": {}
+      },
+      {
+        "source_uid": "GATE-AND-CAVITATION",
+        "target_uid": "FAULT-CAVITATION",
+        "relation_code": "OUTPUT_TO",
+        "properties": {}
+      },
+      {
+        "source_uid": "FAULT-FILTER-BLOCKED",
+        "target_uid": "GATE-AND-CAVITATION",
+        "relation_code": "INPUT_OF",
+        "properties": {}
+      },
+      {
+        "source_uid": "FAULT-INLET-LEAK",
+        "target_uid": "GATE-AND-CAVITATION",
+        "relation_code": "INPUT_OF",
+        "properties": {}
+      }
+    ],
+    "validation": {
+      "valid": true,
+      "issues": []
+    },
+    "version": 1,
+    "review_status": "approved",
+    "ontology_version": "industrial-fault-v0.1",
+    "created_at": "2026-10-20T09:25:00+08:00",
+    "created_by": "seed-v1"
+  },
+  "trace": {
+    "trace_id": "TRACE-P101A-001",
+    "tenant_id": "tenant-demo",
+    "query": "P-101A 出口压力不足的原因是什么？",
+    "steps": [
+      {
+        "step_id": "step-1",
+        "step_type": "retrieve",
+        "summary": "检索 P-101A 出口压力不足相关的手册、维修记录和巡检表",
+        "tool_name": "search_context",
+        "tool_input": {
+          "query": "P-101A 出口压力不足 原因",
+          "top_k": 5
+        },
+        "tool_output_ref": "search:demo-1",
+        "evidence_ids": [
+          "EV-MANUAL-1",
+          "EV-MANUAL-2",
+          "EV-MANUAL-3",
+          "EV-RECORD-1",
+          "EV-RECORD-2",
+          "EV-TABLE-1"
+        ],
+        "hypothesis_status": "unknown",
+        "confidence": 0.8
+      },
+      {
+        "step_id": "step-2",
+        "step_type": "reason",
+        "summary": "提出入口过滤器堵塞和叶轮汽蚀两个候选原因",
+        "evidence_ids": [
+          "EV-MANUAL-1",
+          "EV-MANUAL-2"
+        ],
+        "hypothesis_status": "supported",
+        "confidence": 0.9
+      },
+      {
+        "step_id": "step-3",
+        "step_type": "verify",
+        "summary": "用 AND 规则核对叶轮汽蚀的两个必要条件",
+        "tool_name": "validate_fault_tree",
+        "tool_input": {
+          "draft_id": "TREE-P101A-LOW-PRESSURE-v1"
+        },
+        "tool_output_ref": "validation:demo-1",
+        "evidence_ids": [
+          "EV-MANUAL-3",
+          "EV-RECORD-2"
+        ],
+        "hypothesis_status": "supported",
+        "confidence": 0.93
+      },
+      {
+        "step_id": "step-4",
+        "step_type": "conclude",
+        "summary": "给出带证据的结论，并说明 AND 条件",
+        "evidence_ids": [
+          "EV-MANUAL-1",
+          "EV-MANUAL-2",
+          "EV-MANUAL-3",
+          "EV-RECORD-1",
+          "EV-RECORD-2"
+        ],
+        "hypothesis_status": "supported",
+        "confidence": 0.92
+      }
+    ],
+    "conclusion": "入口过滤器堵塞和叶轮汽蚀都可能导致 P-101A 出口压力不足；其中叶轮汽蚀需要入口过滤器堵塞与吸入管法兰漏气同时成立。",
+    "evidence_ids": [
+      "EV-MANUAL-1",
+      "EV-MANUAL-2",
+      "EV-MANUAL-3",
+      "EV-RECORD-1",
+      "EV-RECORD-2",
+      "EV-TABLE-1"
+    ],
+    "ontology_version": "industrial-fault-v0.1",
+    "created_at": "2026-10-20T09:30:00+08:00",
+    "created_by": "seed-v1"
+  }
+}

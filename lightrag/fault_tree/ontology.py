@@ -39,8 +39,10 @@ class OntologyRegistry:
         version: str,
         classes: dict[str, ClassDefinition],
         relations: dict[str, RelationDefinition],
+        schema_version: str | None = None,
     ) -> None:
         self.version = version
+        self.schema_version = schema_version
         self.classes = classes
         self.relations = relations
         self._class_aliases = {code.casefold(): code for code in classes}
@@ -101,7 +103,13 @@ class OntologyRegistry:
                 evidence_required=bool(definition.get("evidence_required", False)),
             )
 
-        return cls(version=version, classes=classes, relations=relations)
+        schema_version = str(raw.get("schema_version") or "").strip() or None
+        return cls(
+            version=version,
+            schema_version=schema_version,
+            classes=classes,
+            relations=relations,
+        )
 
     @staticmethod
     def has_ontology_definition(path: str | Path) -> bool:

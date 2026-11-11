@@ -1,0 +1,91 @@
+{
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/fact.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A binary assertion such as ``filter blocked CAUSES low pressure``.",
+  "properties": {
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "fact_id": {
+      "minLength": 1,
+      "title": "Fact Id",
+      "type": "string"
+    },
+    "object_uid": {
+      "minLength": 1,
+      "title": "Object Uid",
+      "type": "string"
+    },
+    "ontology_version": {
+      "minLength": 1,
+      "title": "Ontology Version",
+      "type": "string"
+    },
+    "predicate": {
+      "minLength": 1,
+      "title": "Predicate",
+      "type": "string"
+    },
+    "properties": {
+      "additionalProperties": true,
+      "title": "Properties",
+      "type": "object"
+    },
+    "review_status": {
+      "default": "proposed",
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "merged",
+        "deprecated",
+        "needs_more_evidence"
+      ],
+      "title": "Review Status",
+      "type": "string"
+    },
+    "subject_uid": {
+      "minLength": 1,
+      "title": "Subject Uid",
+      "type": "string"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "fact_id",
+    "tenant_id",
+    "subject_uid",
+    "predicate",
+    "object_uid",
+    "evidence_ids",
+    "ontology_version"
+  ],
+  "title": "Fact",
+  "type": "object",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

@@ -1,0 +1,74 @@
+{
+  "chunk_id": "record-2026-09-12",
+  "entities": [
+    {
+      "local_id": "filter",
+      "class": "FaultEvent",
+      "uid": "FAULT-FILTER-BLOCKED",
+      "name": "入口过滤器堵塞",
+      "description": "过滤器流通面积减小，泵入口流量下降",
+      "aliases": ["过滤器堵塞"],
+      "severity": "medium",
+      "symptoms": ["入口流量下降"],
+      "maintenance_measures": ["清理或更换入口过滤器"],
+      "confidence": 0.93,
+      "evidence": [
+        {
+          "quote": "检查发现入口过滤器堵塞，清理过滤器后压力恢复。",
+          "evidence_id": "EV-RECORD-1",
+          "asset_id": "FILE-P101A-RECORD",
+          "chunk_id": "record-2026-09-12",
+          "page": 1,
+          "section_path": "2026-09-12 维修记录",
+          "char_start": 42,
+          "char_end": 65,
+          "modality": "text",
+          "confidence": 0.93,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    },
+    {
+      "local_id": "lp",
+      "class": "FaultEvent",
+      "uid": "FAULT-LOW-PRESSURE",
+      "name": "出口压力不足",
+      "description": "泵出口压力低于正常工作范围",
+      "aliases": ["出口压力低", "压力不够"],
+      "severity": "high",
+      "symptoms": ["压力表读数下降", "系统流量不足"],
+      "maintenance_measures": ["清理过滤器", "检查吸入管", "更换叶轮"],
+      "confidence": 0.96
+    }
+  ],
+  "relations": [
+    {
+      "local_id": "rel-filter-lp",
+      "fact_id": "FACT-1",
+      "relation_code": "CAUSES",
+      "source_local_id": "filter",
+      "target_local_id": "lp",
+      "model_confidence": 0.94,
+      "review_status": "approved",
+      "evidence": [
+        {
+          "quote": "检查发现入口过滤器堵塞，清理过滤器后压力恢复。",
+          "evidence_id": "EV-RECORD-1",
+          "asset_id": "FILE-P101A-RECORD",
+          "chunk_id": "record-2026-09-12",
+          "page": 1,
+          "section_path": "2026-09-12 维修记录",
+          "char_start": 42,
+          "char_end": 65,
+          "modality": "text",
+          "confidence": 0.93,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    }
+  ]
+}

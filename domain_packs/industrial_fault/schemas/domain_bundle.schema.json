@@ -1,0 +1,1942 @@
+{
+  "$defs": {
+    "DecisionStep": {
+      "additionalProperties": false,
+      "description": "One retrieve / reason / verify / conclude step in a decision trace.",
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "hypothesis_status": {
+          "anyOf": [
+            {
+              "enum": [
+                "supported",
+                "rejected",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hypothesis Status"
+        },
+        "step_id": {
+          "minLength": 1,
+          "title": "Step Id",
+          "type": "string"
+        },
+        "step_type": {
+          "enum": [
+            "retrieve",
+            "reason",
+            "verify",
+            "conclude"
+          ],
+          "title": "Step Type",
+          "type": "string"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "tool_input": {
+          "additionalProperties": true,
+          "title": "Tool Input",
+          "type": "object"
+        },
+        "tool_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Name"
+        },
+        "tool_output_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Output Ref"
+        }
+      },
+      "required": [
+        "step_id",
+        "step_type",
+        "summary"
+      ],
+      "title": "DecisionStep",
+      "type": "object"
+    },
+    "DecisionTrace": {
+      "additionalProperties": false,
+      "description": "The auditable chain from a question to a supported conclusion.",
+      "properties": {
+        "conclusion": {
+          "minLength": 1,
+          "title": "Conclusion",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "query": {
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/DecisionStep"
+          },
+          "minItems": 1,
+          "title": "Steps",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "trace_id": {
+          "minLength": 1,
+          "title": "Trace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trace_id",
+        "tenant_id",
+        "query",
+        "steps",
+        "conclusion",
+        "ontology_version",
+        "created_at",
+        "created_by"
+      ],
+      "title": "DecisionTrace",
+      "type": "object"
+    },
+    "Department": {
+      "additionalProperties": false,
+      "description": "An organisational container for equipment and files.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "class_code": {
+          "const": "Department",
+          "default": "Department",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "department_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Department Code"
+        },
+        "department_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Department Path"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "external_refs": {
+          "additionalProperties": true,
+          "title": "External Refs",
+          "type": "object"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "status": {
+          "default": "active",
+          "enum": [
+            "active",
+            "inactive"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by"
+      ],
+      "title": "Department",
+      "type": "object"
+    },
+    "Equipment": {
+      "additionalProperties": false,
+      "description": "A physical asset that can carry faults.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "class_code": {
+          "const": "Equipment",
+          "default": "Equipment",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "commissioning_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commissioning Date"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "equipment_name": {
+          "minLength": 1,
+          "title": "Equipment Name",
+          "type": "string"
+        },
+        "equipment_tag": {
+          "minLength": 1,
+          "title": "Equipment Tag",
+          "type": "string"
+        },
+        "equipment_type": {
+          "minLength": 1,
+          "title": "Equipment Type",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "external_refs": {
+          "additionalProperties": true,
+          "title": "External Refs",
+          "type": "object"
+        },
+        "functional_location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Functional Location"
+        },
+        "lifecycle_status": {
+          "default": "in_service",
+          "enum": [
+            "in_service",
+            "stopped",
+            "retired"
+          ],
+          "title": "Lifecycle Status",
+          "type": "string"
+        },
+        "manufacturer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manufacturer"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "retirement_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retirement Date"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "serial_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Serial Number"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "equipment_tag",
+        "equipment_name",
+        "equipment_type"
+      ],
+      "title": "Equipment",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "description": "A verbatim source fragment and the records it supports.",
+      "properties": {
+        "asset_id": {
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "bbox": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 4,
+              "minItems": 4,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bbox"
+        },
+        "char_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char End"
+        },
+        "char_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Char Start"
+        },
+        "chunk_id": {
+          "minLength": 1,
+          "title": "Chunk Id",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "extraction_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extraction Run Id"
+        },
+        "extractor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extractor"
+        },
+        "modality": {
+          "default": "text",
+          "enum": [
+            "text",
+            "table",
+            "image",
+            "pdf",
+            "office"
+          ],
+          "title": "Modality",
+          "type": "string"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "quote": {
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        },
+        "quote_hash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Quote Hash",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "section_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section Path"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/EvidenceTarget"
+          },
+          "minItems": 1,
+          "title": "Targets",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "tenant_id",
+        "asset_id",
+        "chunk_id",
+        "quote",
+        "quote_hash",
+        "targets"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "EvidenceTarget": {
+      "additionalProperties": false,
+      "description": "The record an evidence fragment supports or contradicts.",
+      "properties": {
+        "role": {
+          "default": "supports",
+          "enum": [
+            "supports",
+            "contradicts",
+            "mentions"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        },
+        "target_type": {
+          "enum": [
+            "entity",
+            "fact",
+            "rule",
+            "logic_gate",
+            "decision_step"
+          ],
+          "title": "Target Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_type",
+        "target_id"
+      ],
+      "title": "EvidenceTarget",
+      "type": "object"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "description": "A binary assertion such as ``filter blocked CAUSES low pressure``.",
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "fact_id": {
+          "minLength": 1,
+          "title": "Fact Id",
+          "type": "string"
+        },
+        "object_uid": {
+          "minLength": 1,
+          "title": "Object Uid",
+          "type": "string"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "predicate": {
+          "minLength": 1,
+          "title": "Predicate",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "subject_uid": {
+          "minLength": 1,
+          "title": "Subject Uid",
+          "type": "string"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fact_id",
+        "tenant_id",
+        "subject_uid",
+        "predicate",
+        "object_uid",
+        "evidence_ids",
+        "ontology_version"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "FaultCauseRule": {
+      "additionalProperties": false,
+      "description": "The reviewed causal rule that produces one fault event.",
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "effect_fault_uid": {
+          "minLength": 1,
+          "title": "Effect Fault Uid",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "expression": {
+          "$ref": "#/$defs/UidExpression"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "rule_uid": {
+          "minLength": 1,
+          "title": "Rule Uid",
+          "type": "string"
+        },
+        "scenario": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scenario"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "rule_uid",
+        "tenant_id",
+        "effect_fault_uid",
+        "expression",
+        "evidence_ids",
+        "ontology_version",
+        "created_at",
+        "created_by"
+      ],
+      "title": "FaultCauseRule",
+      "type": "object"
+    },
+    "FaultEvent": {
+      "additionalProperties": false,
+      "description": "A fault, symptom, or intermediate event in a fault tree.",
+      "properties": {
+        "active_cause_rule_uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Cause Rule Uid"
+        },
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "class_code": {
+          "const": "FaultEvent",
+          "default": "FaultEvent",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "fault_name": {
+          "minLength": 1,
+          "title": "Fault Name",
+          "type": "string"
+        },
+        "maintenance_measures": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Maintenance Measures",
+          "type": "array"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "operating_conditions": {
+          "additionalProperties": true,
+          "title": "Operating Conditions",
+          "type": "object"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "severity": {
+          "default": "unknown",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical",
+            "unknown"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "symptoms": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Symptoms",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "fault_name"
+      ],
+      "title": "FaultEvent",
+      "type": "object"
+    },
+    "FaultTreeDraft": {
+      "additionalProperties": false,
+      "description": "A reviewable projection of rules and facts into a fault tree.",
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "draft_id": {
+          "minLength": 1,
+          "title": "Draft Id",
+          "type": "string"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/FaultTreeEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/FaultTreeNode"
+          },
+          "minItems": 1,
+          "title": "Nodes",
+          "type": "array"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "top_event_uid": {
+          "minLength": 1,
+          "title": "Top Event Uid",
+          "type": "string"
+        },
+        "validation": {
+          "$ref": "#/$defs/ValidationResult"
+        },
+        "version": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "draft_id",
+        "tenant_id",
+        "top_event_uid",
+        "nodes",
+        "validation",
+        "ontology_version",
+        "created_at",
+        "created_by"
+      ],
+      "title": "FaultTreeDraft",
+      "type": "object"
+    },
+    "FaultTreeEdge": {
+      "additionalProperties": false,
+      "description": "A directed edge in a projected fault-tree draft.",
+      "properties": {
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "relation_code": {
+          "enum": [
+            "CAUSES",
+            "HAS_CAUSE_RULE",
+            "INPUT_OF",
+            "OUTPUT_TO"
+          ],
+          "title": "Relation Code",
+          "type": "string"
+        },
+        "source_uid": {
+          "minLength": 1,
+          "title": "Source Uid",
+          "type": "string"
+        },
+        "target_uid": {
+          "minLength": 1,
+          "title": "Target Uid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_uid",
+        "target_uid",
+        "relation_code"
+      ],
+      "title": "FaultTreeEdge",
+      "type": "object"
+    },
+    "FaultTreeNode": {
+      "additionalProperties": false,
+      "description": "A node in a projected fault-tree draft.",
+      "properties": {
+        "class_code": {
+          "enum": [
+            "FaultEvent",
+            "FaultCauseRule",
+            "LogicGate"
+          ],
+          "title": "Class Code",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uid",
+        "class_code",
+        "label"
+      ],
+      "title": "FaultTreeNode",
+      "type": "object"
+    },
+    "FileAsset": {
+      "additionalProperties": false,
+      "description": "A source document, image, table, or office file.",
+      "properties": {
+        "aliases": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Aliases",
+          "type": "array"
+        },
+        "canonical_name": {
+          "minLength": 1,
+          "title": "Canonical Name",
+          "type": "string"
+        },
+        "checksum": {
+          "minLength": 1,
+          "title": "Checksum",
+          "type": "string"
+        },
+        "chunk_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chunk Count"
+        },
+        "class_code": {
+          "const": "File",
+          "default": "File",
+          "title": "Class Code",
+          "type": "string"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "created_by": {
+          "minLength": 1,
+          "title": "Created By",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "file_extension": {
+          "minLength": 1,
+          "title": "File Extension",
+          "type": "string"
+        },
+        "file_name": {
+          "minLength": 1,
+          "title": "File Name",
+          "type": "string"
+        },
+        "file_size": {
+          "minimum": 0,
+          "title": "File Size",
+          "type": "integer"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Language"
+        },
+        "last_parsed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Parsed At"
+        },
+        "mime_type": {
+          "minLength": 1,
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "modality": {
+          "enum": [
+            "text",
+            "table",
+            "image",
+            "pdf",
+            "office"
+          ],
+          "title": "Modality",
+          "type": "string"
+        },
+        "object_uri": {
+          "minLength": 1,
+          "title": "Object Uri",
+          "type": "string"
+        },
+        "ontology_version": {
+          "minLength": 1,
+          "title": "Ontology Version",
+          "type": "string"
+        },
+        "page_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Count"
+        },
+        "parse_engine": {
+          "anyOf": [
+            {
+              "enum": [
+                "native",
+                "legacy",
+                "mineru",
+                "docling"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parse Engine"
+        },
+        "parse_error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parse Error"
+        },
+        "parse_status": {
+          "enum": [
+            "uploaded",
+            "parsing",
+            "parsed",
+            "failed"
+          ],
+          "title": "Parse Status",
+          "type": "string"
+        },
+        "review_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "approved",
+            "rejected",
+            "merged",
+            "deprecated",
+            "needs_more_evidence"
+          ],
+          "title": "Review Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_system": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source System"
+        },
+        "source_uids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Uids",
+          "type": "array"
+        },
+        "tenant_id": {
+          "minLength": 1,
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uid": {
+          "minLength": 1,
+          "title": "Uid",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "upload_time": {
+          "format": "date-time",
+          "title": "Upload Time",
+          "type": "string"
+        },
+        "uploader_id": {
+          "minLength": 1,
+          "title": "Uploader Id",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_to": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid To"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "uid",
+        "tenant_id",
+        "canonical_name",
+        "ontology_version",
+        "schema_version",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "file_name",
+        "file_extension",
+        "mime_type",
+        "modality",
+        "object_uri",
+        "checksum",
+        "file_size",
+        "uploader_id",
+        "upload_time",
+        "parse_status"
+      ],
+      "title": "FileAsset",
+      "type": "object"
+    },
+    "UidExpression": {
+      "additionalProperties": false,
+      "description": "A recursive AND/OR expression over durable fault-event UIDs.",
+      "properties": {
+        "children": {
+          "items": {
+            "$ref": "#/$defs/UidExpression"
+          },
+          "title": "Children",
+          "type": "array"
+        },
+        "event_uid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Uid"
+        },
+        "op": {
+          "anyOf": [
+            {
+              "enum": [
+                "AND",
+                "OR"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Op"
+        }
+      },
+      "title": "UidExpression",
+      "type": "object"
+    },
+    "ValidationIssue": {
+      "additionalProperties": false,
+      "description": "One structural or evidence problem found in a bundle or tree.",
+      "properties": {
+        "code": {
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "target_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Id"
+        }
+      },
+      "required": [
+        "code",
+        "severity",
+        "message"
+      ],
+      "title": "ValidationIssue",
+      "type": "object"
+    },
+    "ValidationResult": {
+      "additionalProperties": false,
+      "description": "The result of validating a fault-tree draft.",
+      "properties": {
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/ValidationIssue"
+          },
+          "title": "Issues",
+          "type": "array"
+        },
+        "valid": {
+          "title": "Valid",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "valid"
+      ],
+      "title": "ValidationResult",
+      "type": "object"
+    }
+  },
+  "$id": "https://pump-copilot.local/schemas/industrial-fault/domain_bundle.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A self-contained, reviewable snapshot of one domain workspace.",
+  "properties": {
+    "bundle_version": {
+      "minLength": 1,
+      "title": "Bundle Version",
+      "type": "string"
+    },
+    "entities": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "Department": "#/$defs/Department",
+            "Equipment": "#/$defs/Equipment",
+            "FaultEvent": "#/$defs/FaultEvent",
+            "File": "#/$defs/FileAsset"
+          },
+          "propertyName": "class_code"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/Department"
+          },
+          {
+            "$ref": "#/$defs/FileAsset"
+          },
+          {
+            "$ref": "#/$defs/Equipment"
+          },
+          {
+            "$ref": "#/$defs/FaultEvent"
+          }
+        ]
+      },
+      "minItems": 1,
+      "title": "Entities",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "facts": {
+      "items": {
+        "$ref": "#/$defs/Fact"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "ontology_version": {
+      "minLength": 1,
+      "title": "Ontology Version",
+      "type": "string"
+    },
+    "rules": {
+      "items": {
+        "$ref": "#/$defs/FaultCauseRule"
+      },
+      "title": "Rules",
+      "type": "array"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "trace": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DecisionTrace"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tree": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/FaultTreeDraft"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "bundle_version",
+    "ontology_version",
+    "schema_version",
+    "tenant_id",
+    "entities"
+  ],
+  "title": "DomainBundle",
+  "type": "object",
+  "x-ontology-version": "industrial-fault-v0.1",
+  "x-schema-version": "industrial-fault-schema-v0.1"
+}

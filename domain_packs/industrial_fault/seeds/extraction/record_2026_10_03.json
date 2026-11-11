@@ -1,0 +1,112 @@
+{
+  "chunk_id": "record-2026-10-03",
+  "entities": [
+    {
+      "local_id": "filter",
+      "class": "FaultEvent",
+      "uid": "FAULT-FILTER-BLOCKED",
+      "name": "入口过滤器堵塞",
+      "description": "过滤器流通面积减小，泵入口流量下降",
+      "aliases": ["过滤器堵塞"],
+      "severity": "medium",
+      "symptoms": ["入口流量下降"],
+      "maintenance_measures": ["清理或更换入口过滤器"],
+      "confidence": 0.93
+    },
+    {
+      "local_id": "leak",
+      "class": "FaultEvent",
+      "uid": "FAULT-INLET-LEAK",
+      "name": "吸入管法兰漏气",
+      "description": "吸入管法兰密封失效，空气进入泵入口",
+      "aliases": ["法兰漏气"],
+      "severity": "medium",
+      "symptoms": ["吸入管密封失效"],
+      "maintenance_measures": ["紧固或更换法兰密封"],
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "quote": "检查发现吸入管法兰漏气，导致叶轮汽蚀。",
+          "evidence_id": "EV-RECORD-2",
+          "asset_id": "FILE-P101A-RECORD",
+          "chunk_id": "record-2026-10-03",
+          "page": 1,
+          "section_path": "2026-10-03 维修记录",
+          "char_start": 96,
+          "char_end": 115,
+          "modality": "text",
+          "confidence": 0.93,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    },
+    {
+      "local_id": "cavitation",
+      "class": "FaultEvent",
+      "uid": "FAULT-CAVITATION",
+      "name": "叶轮汽蚀",
+      "description": "泵入口压力过低导致叶轮表面发生汽蚀",
+      "aliases": ["汽蚀"],
+      "severity": "high",
+      "symptoms": ["异常振动", "噪声增大"],
+      "maintenance_measures": ["更换叶轮", "检查吸入管密封"],
+      "confidence": 0.93,
+      "rule_uid": "RULE-CAVITATION-AND",
+      "rule_scenario": "吸入管密封失效且过滤器阻力增大",
+      "cause_rule": {
+        "op": "AND",
+        "children": [
+          {"event_local_id": "filter"},
+          {"event_local_id": "leak"}
+        ]
+      },
+      "evidence": [
+        {
+          "quote": "检查发现吸入管法兰漏气，导致叶轮汽蚀。",
+          "evidence_id": "EV-RECORD-2",
+          "asset_id": "FILE-P101A-RECORD",
+          "chunk_id": "record-2026-10-03",
+          "page": 1,
+          "section_path": "2026-10-03 维修记录",
+          "char_start": 96,
+          "char_end": 115,
+          "modality": "text",
+          "confidence": 0.93,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "local_id": "rel-leak-cavitation",
+      "fact_id": "FACT-LEAK-CAVITATION",
+      "relation_code": "CAUSES",
+      "source_local_id": "leak",
+      "target_local_id": "cavitation",
+      "model_confidence": 0.93,
+      "review_status": "approved",
+      "evidence": [
+        {
+          "quote": "检查发现吸入管法兰漏气，导致叶轮汽蚀。",
+          "evidence_id": "EV-RECORD-2",
+          "asset_id": "FILE-P101A-RECORD",
+          "chunk_id": "record-2026-10-03",
+          "page": 1,
+          "section_path": "2026-10-03 维修记录",
+          "char_start": 96,
+          "char_end": 115,
+          "modality": "text",
+          "confidence": 0.93,
+          "extractor": "seed-v1",
+          "extraction_run_id": "seed-2026-10-20",
+          "review_status": "approved"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "generated_by": "scripts/export_skill_schemas.py",
+  "manifest_version": "0.1.0",
+  "runtime_version": "0.1.0",
+  "skills": [
+    {
+      "doc": "fault_diagnosis/SKILL.md",
+      "entrypoint": "skills.fault_diagnosis.handler:run",
+      "inputs": "fault_diagnosis/input.schema.json",
+      "name": "fault_diagnosis",
+      "outputs": "fault_diagnosis/output.schema.json",
+      "schema_sha256": {
+        "input.schema.json": "9c4474e5be02095039f0ab98e9aefc5e896d1a7e69d7a5f51b4e52032a33c963",
+        "output.schema.json": "595de313f5d34463cc0fc891ed2d8aa861fa143e5dec0fac94c442bc6fe228ab"
+      },
+      "tools": [
+        "get_ontology",
+        "get_equipment",
+        "search_faults",
+        "trace_evidence",
+        "get_fault_tree",
+        "validate_fault_tree"
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "doc": "evidence_verification/SKILL.md",
+      "entrypoint": "skills.evidence_verification.handler:run",
+      "inputs": "evidence_verification/input.schema.json",
+      "name": "evidence_verification",
+      "outputs": "evidence_verification/output.schema.json",
+      "schema_sha256": {
+        "input.schema.json": "82d0a306663e5c93f2bb3b745110d9cb2d36e842f44febd18a053138f4448b89",
+        "output.schema.json": "29d89b2a0fced32fd988daa79ecc90d81775bf8d56c7366f811c51752e017829"
+      },
+      "tools": [
+        "trace_evidence",
+        "validate_fault_tree"
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "doc": "ontology_change_draft/SKILL.md",
+      "entrypoint": "skills.ontology_change_draft.handler:run",
+      "inputs": "ontology_change_draft/input.schema.json",
+      "name": "ontology_change_draft",
+      "outputs": "ontology_change_draft/output.schema.json",
+      "schema_sha256": {
+        "input.schema.json": "dbf31c04c6b1d64b15b8e6b046b7b8aa4b43c8b85c817702e632290dbd95f7fa",
+        "output.schema.json": "9507ad947e35bd109f2315a6cb71aa5797f42859a473d6d402b22adefbacea90"
+      },
+      "tools": [
+        "get_ontology",
+        "trace_evidence"
+      ],
+      "version": "0.1.0"
+    }
+  ]
+}
