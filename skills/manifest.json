@@ -10,8 +10,8 @@
       "name": "fault_diagnosis",
       "outputs": "fault_diagnosis/output.schema.json",
       "schema_sha256": {
-        "input.schema.json": "9c4474e5be02095039f0ab98e9aefc5e896d1a7e69d7a5f51b4e52032a33c963",
-        "output.schema.json": "595de313f5d34463cc0fc891ed2d8aa861fa143e5dec0fac94c442bc6fe228ab"
+        "input.schema.json": "a06723cbde8e1840410a84bb7c2e60031d69ca4bb71406282c6e6d7657b6dfb2",
+        "output.schema.json": "ae023eabf14ed3a4dc6a333f209def9eaafb54230483fc9366ff79463bf65259"
       },
       "tools": [
         "get_ontology",
@@ -30,8 +30,8 @@
       "name": "evidence_verification",
       "outputs": "evidence_verification/output.schema.json",
       "schema_sha256": {
-        "input.schema.json": "82d0a306663e5c93f2bb3b745110d9cb2d36e842f44febd18a053138f4448b89",
-        "output.schema.json": "29d89b2a0fced32fd988daa79ecc90d81775bf8d56c7366f811c51752e017829"
+        "input.schema.json": "2fac3e48772a14499b9e51cbccac75ed3c8f9a4d912a544e8c93de9ac780e128",
+        "output.schema.json": "a0bffbec402ffb089b4878b2856afbde5af8ae4c34f7b5a1dc62676d80b10dd7"
       },
       "tools": [
         "trace_evidence",
@@ -46,8 +46,8 @@
       "name": "ontology_change_draft",
       "outputs": "ontology_change_draft/output.schema.json",
       "schema_sha256": {
-        "input.schema.json": "dbf31c04c6b1d64b15b8e6b046b7b8aa4b43c8b85c817702e632290dbd95f7fa",
-        "output.schema.json": "9507ad947e35bd109f2315a6cb71aa5797f42859a473d6d402b22adefbacea90"
+        "input.schema.json": "b7848f211a75d40ecebe3fb2bb77352a2d9911e7ca327e7ff4b7f8e5b14dadaf",
+        "output.schema.json": "c25d0ad32baf691fe2a207bff3d72f1fc16bda977ff6637368179ab3d4652942"
       },
       "tools": [
         "get_ontology",

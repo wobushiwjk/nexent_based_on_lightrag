@@ -205,6 +205,19 @@ def test_checked_in_manifest_matches_the_schema_files():
         assert (SKILLS_DIR / skill["outputs"]).exists()
 
 
+def test_checked_in_skill_json_uses_lf():
+    """The manifest hashes raw bytes, so CRLF would diverge from Linux checkouts."""
+
+    from scripts.export_skill_schemas import SKILLS_DIR
+
+    for path in SKILLS_DIR.rglob("*.json"):
+        assert b"\r\n" not in path.read_bytes(), (
+            f"{path} has CRLF line endings; the manifest hashes raw bytes, so a "
+            "Windows checkout would not match a Linux one. Run "
+            "`python scripts/export_skill_schemas.py` and commit the result."
+        )
+
+
 @pytest.mark.parametrize(
     ("skill_name", "module_name"),
     [
