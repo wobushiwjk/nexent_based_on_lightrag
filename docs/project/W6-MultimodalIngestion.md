@@ -1,6 +1,6 @@
 # W6：多模态文档解析与证据定位
 
-状态：🟡 已完成待验收（自动验收命令已全部通过，等待确认）
+状态：✅ 已完成并验收（2026-11-12）
 
 W6 把 PDF、表格、图片变成“带页码/版面/字符区间的证据”，并保证原始数据不出本地、
 失败文件有明确状态和错误原因、失败可以重试。本文记录解析路由、定位语义、契约变化、
@@ -129,7 +129,9 @@ error_code / error_message / page_count / chunk_count / text_uri / updated_at
 - `FILE-P101A-PDF`：英文两页 PDF。第 1 页含“过滤器堵塞/汽蚀 → 出口压力低”的 OR
   规则；第 2 页是维修措施负样本（不应产生证据）。
 - `FILE-P101A-INSPECTION-CSV` / `FILE-P101A-INSPECTION-XLSX`：同一份中文巡检表，
-  CSV 与 XLSX（`inspection`、`equipment` 两个 sheet）各导入一次。
+  CSV 与 XLSX（`inspection`、`equipment` 两个 sheet）各导入一次；第 2 行给出
+  过滤器压差 `0.08 MPa`，第 3 行给出出口压力 `0.32 MPa`、下限 `0.45 MPa` 与
+  “入口过滤器压差偏高”。
 - `FILE-P101A-NAMEPLATE`：ASCII 铭牌与故障挂牌 PNG，离线验收使用 fixture 转写。
 
 ```bash
@@ -149,6 +151,10 @@ python scripts/import_domain_multimodal.py --verify
 预期：4 份文档 `parsed`；`verify_evidence` 通过且 `rules=1`；第二次导入的
 `run_id` 与各项计数不变；`--verify` 确认 `trace_evidence` 使用目标索引、MCP 存储
 仓库不预加载 quote，按需加载数 `quotes_loaded >= 1`。
+
+**验收结果（2026-11-12）**：4 份文档 `parsed`；8 个实体、15 条证据、33 条证据目标、
+3 条事实、1 条规则；故障树 5 节点/4 边；图谱 10 节点/7 边；`run_id`
+`run-0fc559390d7e` 在重复导入中保持不变；`tests/domain` 56 passed。用户已确认验收。
 
 ## W6 边界（明确没做）
 

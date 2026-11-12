@@ -24,7 +24,7 @@
 | W3 | 证据链与图谱投影 | ✅ 已完成并验收 | W1、W2 |
 | W4 | Skills 工作流 | ✅ 已完成并验收 | W2、W3 |
 | W5 | Nexent 编排与导入 | 🟡 已完成待验收 | W2、W4 |
-| W6 | 多模态数据管线 | 🟡 已完成待验收 | W3 |
+| W6 | 多模态数据管线 | ✅ 已完成并验收 | W3 |
 | W7 | 教师-学生与主动学习 | ⏳ 未开始 | W3、W6 |
 | W8 | 本体演化（上传标准→审核→迁移） | ⏳ 未开始 | W3、W5、W6 |
 | W9 | 评测与消融 | ⏳ 未开始 | W2–W8 |
@@ -308,16 +308,16 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 - `make_multimodal_samples.py`：生成 PDF/CSV/XLSX/PNG 四份样例（产物被 gitignore）。
 - `export_domain_schemas.py`：`entity.schema.json` 等 7 份 schema 与 manifest 已随
   `text_uri` 重新生成。
-- `import_domain_multimodal.py --verify`：4 份文档全部 `parsed`；11 条证据、3 条事实、
-  1 条规则；故障树 5 节点/4 边；图谱 10 节点/7 边；`trace_evidence` 使用
-  `idx_evidence_targets_trace`，按需加载 5 条 quote；重复导入 `run_id`
-  `run-598fda7e47db` 与全部计数不变。
+- `import_domain_multimodal.py --verify`：4 份文档全部 `parsed`；8 个实体、15 条证据、
+  33 条证据目标、3 条事实、1 条规则；故障树 5 节点/4 边；图谱 10 节点/7 边；
+  `trace_evidence` 使用 `idx_evidence_targets_trace`，按需加载 8 条 quote；重复导入
+  `run_id` `run-0fc559390d7e` 与全部计数不变。
 - `tests/domain`：56 passed（其中 `test_multimodal_ingest.py` 17 个）。
 - `ruff check --select E4,E7,E9,F` 通过；ruff 0.17 的扩展默认规则会报既有文件
   （`contracts.py` 等）的 I001/UP 类问题，不属于本次改动。
 - 验收中发现并修复一处兼容性回归：演示包的巡检表是 `modality=table` 的 Markdown
   文件；改为按**文件扩展名**判断是否需要 `text_uri`，纯文本格式仍直接校验。
-- 待你确认后把状态改为 ✅。
+- 2026-11-12 用户确认验收，状态改为 ✅。
 
 **边界**：不做扫描件 OCR、不推断版面/bbox、不做真实模型抽取（W7）、不接入
 `/file/process` 上传流水线；真实 VLM 只验证请求发往本地，识别质量属于 W9。
@@ -420,3 +420,5 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 | 2026-11-08 | W4 生成 schema、通过 58 个测试并跑通三个 stdio 示例，标记为待验收 | 验收命令与结果可复现，等待用户确认后再进入 W5 |
 | 2026-11-10 | W4 标记为已完成并验收；W5 标记为进行中 | 用户确认 W4；W5 以 W2 工具、W4 Skill 和 W3 storage 为输入 |
 | 2026-11-10 | 新增 `nexent/` 版本锁定、Skill 打包、脚本化导入、Agent 提示词、演示脚本与回滚说明 | 让 Nexent 侧注册可从零复现，而不是手工点页面 |
+| 2026-11-12 | W5 提示词改为按实测数值取证；多模态 CSV/XLSX 增加第 2 行压差 fixture | Nexent 答复此前漏引出口压力实测值与 `0.08 MPa` 压差；补齐后证据数 11→15 |
+| 2026-11-12 | W6 标记为已完成并验收 | 用户确认多模态导入与证据定位；4 份文档 `parsed`，15 条证据逐字校验通过 |
