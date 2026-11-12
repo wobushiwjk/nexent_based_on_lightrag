@@ -23,7 +23,7 @@
 | W2 | MCP 只读服务 | ✅ 已完成并验收 | W1 |
 | W3 | 证据链与图谱投影 | ✅ 已完成并验收 | W1、W2 |
 | W4 | Skills 工作流 | ✅ 已完成并验收 | W2、W3 |
-| W5 | Nexent 编排与导入 | 🟡 已完成待验收 | W2、W4 |
+| W5 | Nexent 编排与导入 | ✅ 已完成并验收 | W2、W4 |
 | W6 | 多模态数据管线 | ✅ 已完成并验收 | W3 |
 | W7 | 教师-学生与主动学习 | ⏳ 未开始 | W3、W6 |
 | W8 | 本体演化（上传标准→审核→迁移） | ⏳ 未开始 | W3、W5、W6 |
@@ -221,7 +221,7 @@ PYTHON=.venv/Scripts/python.exe ./scripts/test.sh tests/skills -q
 **验收**：在 Nexent 中从零导入成功；Agent 能调用 W2 工具和 W4 Skill；完成一次“设备故障诊断 + 证据展示”；重启后配置不丢；给出录屏或截图。
 
 **已交付**（2026-11-10）：
-- `nexent/versions.lock.json`：锁定 Nexent v2.8.3（commit `5876d6ec`）、端口、MCP 传输方式、Agent/知识库名称、领域包与 Skill 版本。
+- `nexent/versions.lock.json`：锁定 Nexent v2.8.0（`nexent/nexent:v2.8.0`）、端口、MCP 传输方式、Agent/知识库名称、领域包与 Skill 版本。
 - `nexent/config/{mcp,agent,knowledge_base,skills}.json`：MCP 注册、Agent 工具/Skill/示例问题、知识库文档、Skill 改名映射。
 - `nexent/agent/system_prompt.md`：诊断流程、证据硬规则（逐字引用 + `[evidence:id]`）、输出模板、边界。
 - `nexent/kb/01..03`：报告写法、泵故障术语、证据政策三份知识库文档（明确声明自身不是证据）。
@@ -259,14 +259,19 @@ PYTHON=.venv/Scripts/python.exe ./scripts/test.sh tests/skills -q
 .venv/Scripts/python.exe -m nexent.scripts.demo
 ```
 
-**验证进展**（2026-11-10）：
+**验证进展**（2026-11-12）：
 - `tests/nexent`：58 passed（Python 3.13.5）。
+- 实机部署：Nexent v2.8.0 容器恢复后，`import_to_nexent` 在服务器登录租户下
+  导入成功；MCP 以 `http://host.docker.internal:8765/mcp` 注册，工具目录包含
+  6 个只读工具，3 个 Skill 与知识库均已创建。
+- 端到端：Agent 在 Nexent 对话中完成 P-101A“出口压力低”诊断，答复带
+  `[evidence:...]` 逐字引用；重新导入多模态 bundle 并重启 MCP 后，下一次答复
+  反映了新增的 `0.08 MPa` 压差证据，确认 MCP 重启后读取新 tenant run 的链路。
+- 提示词在实机答复中迭代：要求顶层故障现象取实测数值、OR 规则覆盖全部分支、
+  证据未闭环时不得写“已确认”；对应提交 `944521856`、`b715c9f20`、`13cfe5a79`。
 - `ruff` 未安装在该 venv，`uvx ruff` 拉取超时，lint 尚未执行。
-- 实机验收被部署环境阻断：`nexent-config`（5010）、`nexent-runtime`（5014）、
-  `supabase-db` 等容器为 Exited(127)，Docker bind mount 报 “not a directory”；
-  5010 未监听，导入脚本无法登录。需先在 WSL 部署目录重建容器。
-- 待 Nexent 恢复后执行两遍导入、demo transcript、重启验证；
-  `host.docker.internal:8765` 连通性随第 3 步一并验证。
+
+**状态**：✅ 已完成并验收（2026-11-12，用户确认）。
 
 ### W6 多模态数据管线
 
@@ -422,3 +427,4 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 | 2026-11-10 | 新增 `nexent/` 版本锁定、Skill 打包、脚本化导入、Agent 提示词、演示脚本与回滚说明 | 让 Nexent 侧注册可从零复现，而不是手工点页面 |
 | 2026-11-12 | W5 提示词改为按实测数值取证；多模态 CSV/XLSX 增加第 2 行压差 fixture | Nexent 答复此前漏引出口压力实测值与 `0.08 MPa` 压差；补齐后证据数 11→15 |
 | 2026-11-12 | W6 标记为已完成并验收 | 用户确认多模态导入与证据定位；4 份文档 `parsed`，15 条证据逐字校验通过 |
+| 2026-11-12 | W5 标记为已完成并验收 | 服务器 Nexent v2.8.0 导入成功，Agent 完成带逐字证据的 P-101A 诊断；用户确认 |
