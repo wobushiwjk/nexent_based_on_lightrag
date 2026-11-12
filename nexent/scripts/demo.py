@@ -26,7 +26,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, Mapping
 
 from nexent.scripts.nexent_client import (
     DEFAULT_CONFIG_URL,
@@ -48,6 +48,55 @@ DEFAULT_PASSWORD = "Nexent@123"
 
 class DemoError(RuntimeError):
     """The chat run produced no answer or ended in an error event."""
+
+
+def _answer_text(event: Mapping[str, Any]) -> str:
+    """Return the text carried by one answer event, of whatever shape."""
+    content = event.get("content")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, dict):
+        for key in ("content", "text", "answer"):
+            value = content.get(key)
+            if isinstance(value, str):
+                return value
+        return json.dumps(content, ensure_ascii=False)
+    return "" if content is None else str(content)
+
+
+class AnswerStream:
+    """Reassemble the final answer from Nexent's answer events.
+
+    Nexent v2.8.0 ignores ``final_answer_mode`` and always streams the answer
+    as ``answer_phase: "delta"`` fragments, followed by one ``complete``
+    marker whose content is normally empty. A multi-step run can emit an
+    answer per step, so a step change resets the buffer and the last step's
+    answer wins. Newer builds send a single ``complete`` event carrying the
+    whole text; a non-empty one supersedes the fragments.
+    """
+
+    def __init__(self) -> None:
+        self._step: Any = None
+        self._fragments: list[str] = []
+        self._complete: str | None = None
+
+    def feed(self, event: Mapping[str, Any]) -> None:
+        step = event.get("step_id")
+        if step is not None and step != self._step:
+            self._step = step
+            self._fragments = []
+            self._complete = None
+        text = _answer_text(event)
+        if event.get("answer_phase") == "complete":
+            if text:
+                self._complete = text
+        elif text:
+            self._fragments.append(text)
+
+    def text(self) -> str:
+        if self._complete is not None:
+            return self._complete
+        return "".join(self._fragments)
 
 
 @dataclass(frozen=True)
@@ -77,7 +126,7 @@ def run_chat(
 ) -> dict[str, Any]:
     """Run one chat request and collect its streamed events."""
     event_counts: dict[str, int] = {}
-    answers: list[str] = []
+    answer = AnswerStream()
     errors: list[Any] = []
     conversation_id: Any = None
 
@@ -98,18 +147,19 @@ def run_chat(
         if event_type == "conversation_created" and isinstance(content, dict):
             conversation_id = content.get("conversation_id")
         elif event_type == "final_answer":
-            answers.append(content if isinstance(content, str) else json.dumps(content, ensure_ascii=False))
+            answer.feed(event)
         elif event_type == "error":
             errors.append(content)
 
+    final_answer = answer.text()
     result: dict[str, Any] = {
         "query": query,
         "conversation_id": conversation_id,
         "events": event_counts,
         "errors": errors,
-        "final_answer": answers[-1] if answers else None,
+        "final_answer": final_answer or None,
     }
-    if not answers:
+    if not final_answer:
         raise DemoError(
             f"no final_answer event for query {query!r}; "
             f"errors: {errors or 'none'}; events: {event_counts}"

@@ -57,7 +57,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 
 ## 前置条件
 
-1. Nexent 已部署并运行，版本 **v2.8.3**；Web UI 能登录。
+1. Nexent 已部署并运行，版本 **v2.8.0**；Web UI 能登录。
 2. Nexent 里已配置**一个对话模型**和**一个 embedding 模型**。导入第 6 步建知识库要 embedding 模型，第 7 步导入 Agent 要对话模型；没有就先在「模型管理」里添加。
 3. 本仓库的 Python 环境可用（`.venv/Scripts/python.exe`），且已安装 `mcp` 依赖（`uv sync --extra api` 或按 `mcp_server/README.md`）。
 4. 端口 **8765** 可从 Docker 容器访问到宿主机。Docker Desktop 用 `host.docker.internal`；首次启动 MCP Server 时 Windows 防火墙弹窗要允许专用网络。

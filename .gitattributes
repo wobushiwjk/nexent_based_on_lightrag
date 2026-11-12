@@ -1,2 +1,5 @@
 lightrag/api/webui/** binary
 lightrag/api/webui/** linguist-generated
+# Skill schemas are hashed byte-for-byte by scripts/build_skills.py; keep LF
+# on every platform or the committed manifest fails on a Linux checkout.
+skills/**/*.json text eol=lf

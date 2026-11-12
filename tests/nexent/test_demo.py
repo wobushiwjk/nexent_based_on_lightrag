@@ -69,6 +69,64 @@ def test_run_chat_collects_events_and_answer():
     assert request["json_body"]["agent_name"] == "industrial_fault_agent"
 
 
+def test_run_chat_joins_delta_answers():
+    """v2.8.0 streams fragments and ends with an empty complete marker."""
+    north = FakeNorthbound(
+        [
+            {"type": "final_answer", "content": "\n", "answer_phase": "delta"},
+            {"type": "final_answer", "content": "出口压力不足", "answer_phase": "delta"},
+            {"type": "final_answer", "content": "，可能是过滤器堵塞。", "answer_phase": "delta"},
+            {"type": "final_answer", "content": "", "answer_phase": "complete"},
+        ]
+    )
+
+    result = run_chat(
+        north,
+        access_key="ak-demo",
+        agent_name="industrial_fault_agent",
+        query="question",
+    )
+
+    assert result["final_answer"] == "\n出口压力不足，可能是过滤器堵塞。"
+
+
+def test_run_chat_keeps_only_the_last_step_answer():
+    north = FakeNorthbound(
+        [
+            {"type": "final_answer", "content": "中间步骤", "answer_phase": "delta", "step_id": "s1"},
+            {"type": "final_answer", "content": "最终回答", "answer_phase": "delta", "step_id": "s2"},
+            {"type": "final_answer", "content": "", "answer_phase": "complete", "step_id": "s2"},
+        ]
+    )
+
+    result = run_chat(
+        north,
+        access_key="ak-demo",
+        agent_name="industrial_fault_agent",
+        query="question",
+    )
+
+    assert result["final_answer"] == "最终回答"
+
+
+def test_run_chat_prefers_non_empty_complete_answer():
+    north = FakeNorthbound(
+        [
+            {"type": "final_answer", "content": "片段", "answer_phase": "delta"},
+            {"type": "final_answer", "content": "完整回答", "answer_phase": "complete"},
+        ]
+    )
+
+    result = run_chat(
+        north,
+        access_key="ak-demo",
+        agent_name="industrial_fault_agent",
+        query="question",
+    )
+
+    assert result["final_answer"] == "完整回答"
+
+
 def test_run_chat_without_answer_raises():
     north = FakeNorthbound([{"type": "error", "content": "boom"}])
 

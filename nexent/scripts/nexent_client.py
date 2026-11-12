@@ -1,6 +1,6 @@
 """Minimal Nexent HTTP client used by the import and demo scripts.
 
-Nexent v2.8.3 exposes three services this package talks to:
+Nexent v2.8.0 exposes three services this package talks to:
 
 * the configuration service (default ``http://localhost:5010``) for identity,
   MCP registration, tools, Skills, knowledge bases, models and agent import;
@@ -8,7 +8,7 @@ Nexent v2.8.3 exposes three services this package talks to:
   ``/nb/v1/chat/run``, authenticated with an API key instead of a JWT;
 * nothing else — the runtime service is driven by the configuration service.
 
-Every route below was checked against the v2.8.3 source; the paths are
+Every route below was checked against the v2.8.0 deployment; the paths are
 relative to the service root (the configuration service also accepts them
 under ``/api``, which is how its web frontend proxies them).
 
@@ -237,7 +237,7 @@ def redact(value: Any) -> Any:
 
 
 class NexentClient:
-    """Thin, typed wrapper over the Nexent v2.8.3 HTTP surface."""
+    """Thin, typed wrapper over the Nexent v2.8.0 HTTP surface."""
 
     def __init__(
         self,
@@ -249,7 +249,11 @@ class NexentClient:
     ) -> None:
         self.base_url = _normalize_base(base_url)
         self._transport = transport or UrllibTransport(timeout)
-        self._stream_transport = stream_transport or UrllibTransport(timeout)
+        # ``UrllibTransport`` is callable for ordinary requests and exposes
+        # ``stream`` for SSE; an injected callable replaces the latter only.
+        self._stream_transport = (
+            stream_transport or UrllibTransport(timeout).stream
+        )
         self.jwt: str | None = None
 
     # ------------------------------------------------------------------
@@ -483,13 +487,15 @@ class NexentClient:
     # Skills
     # ------------------------------------------------------------------
     def list_skills(self) -> list[dict[str, Any]]:
-        payload = self.request("GET", "/skill")
+        payload = self.request("GET", "/skills")
+        if isinstance(payload, list):
+            return payload
         return list((payload or {}).get("skills") or [])
 
     def delete_skill(self, name: str) -> None:
         self.request(
             "DELETE",
-            "/skill/" + urllib.parse.quote(name, safe=""),
+            "/skills/" + urllib.parse.quote(name, safe=""),
             expected=(200, 400, 404),
         )
 
@@ -525,8 +531,10 @@ class NexentClient:
         return list((payload or {}).get("indices_info") or [])
 
     def find_index_by_display_name(self, display_name: str) -> dict[str, Any] | None:
+        # ``display_name`` is the user-facing name; older builds only return
+        # the internal ``name``, so match either.
         for info in self.list_indices():
-            if info.get("display_name") == display_name:
+            if display_name in {info.get("display_name"), info.get("name")}:
                 return info
         return None
 
@@ -586,6 +594,9 @@ class NexentClient:
                 "destination": destination,
                 "chunking_strategy": chunking_strategy,
             },
+            # The route declares 201 Created: the body is the task submission
+            # result, not an error.
+            expected=(200, 201),
         )
 
     # ------------------------------------------------------------------

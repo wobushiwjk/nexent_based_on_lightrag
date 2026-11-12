@@ -2,8 +2,10 @@
   "schema_version": "1",
   "note": "Versions this integration was developed against. Documentation only: no script reads this file, so update it by hand when a pin changes.",
   "nexent": {
-    "version": "v2.8.3",
-    "commit": "5876d6ec80da07e3cd44282bba2733535853151f",
+    "version": "v2.8.0",
+    "commit": null,
+    "image": "nexent/nexent:v2.8.0",
+    "image_id": "sha256:cc15a58792916a30416b55e6b6f8b3a2c91fb7cedfa9d9b4951303ab219a2fc8",
     "source": "https://gitcode.com/gh_mirrors/ne/nexent.git",
     "deploy": "bash deploy.sh docker",
     "ports": {

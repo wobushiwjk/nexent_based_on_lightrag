@@ -68,7 +68,10 @@ def write_schemas(output_dir: Path = SKILLS_DIR) -> list[Path]:
         path = output_dir / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         text = json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True)
-        path.write_text(text + "\n", encoding="utf-8")
+        # The manifest hashes raw bytes, so pin LF explicitly: write_text's
+        # default newline translation would emit CRLF on Windows and make the
+        # committed hashes platform-dependent.
+        path.write_text(text + "\n", encoding="utf-8", newline="\n")
         written.append(path)
 
     # The manifest hashes the files just written in the real skills directory.
@@ -81,6 +84,7 @@ def write_schemas(output_dir: Path = SKILLS_DIR) -> list[Path]:
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True)
         + "\n",
         encoding="utf-8",
+        newline="\n",
     )
     written.append(manifest_path)
     return written

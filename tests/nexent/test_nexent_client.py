@@ -16,6 +16,7 @@ from nexent.scripts.nexent_client import (
     NexentClient,
     NexentConfigError,
     NexentError,
+    UrllibTransport,
     encode_multipart,
     parse_sse_events,
     redact,
@@ -166,6 +167,43 @@ def test_upload_files_propagates_http_errors(tmp_path):
     assert info.value.status == 400
 
 
+def test_process_files_accepts_created_status():
+    """Nexent returns 201 for the task-submission route, not an error."""
+    payload = {
+        "message": "Files processing triggered successfully",
+        "process_tasks": {"status": "success", "task_ids": ["t1"]},
+    }
+    transport = ScriptedTransport(json_response(payload, 201))
+    client = NexentClient(transport=transport)
+
+    result = client.process_files(
+        "kb-index",
+        [{"path_or_url": "knowledge_base/x.md", "filename": "x.md"}],
+    )
+
+    assert result == payload
+
+
+def test_find_index_by_display_name_matches_internal_name():
+    transport = ScriptedTransport(
+        json_response(
+            {
+                "indices_info": [
+                    {"name": "kb-uuid", "display_name": "industrial-fault-kb"},
+                    {"name": "other"},
+                ]
+            }
+        )
+    )
+    client = NexentClient(transport=transport)
+
+    assert client.find_index_by_display_name("industrial-fault-kb")["name"] == "kb-uuid"
+    # Older builds expose only ``name``; the display name may equal it.
+    transport = ScriptedTransport(json_response({"indices_info": [{"name": "kb"}]}))
+    client = NexentClient(transport=transport)
+    assert client.find_index_by_display_name("kb")["name"] == "kb"
+
+
 def test_resolve_embedding_model_prefers_display_name():
     transport = ScriptedTransport(
         json_response(
@@ -224,6 +262,28 @@ def test_parse_sse_events_ignores_noise_and_bad_json():
         "conversation_created",
         "final_answer",
     ]
+
+
+def test_stream_events_defaults_to_the_streaming_method(monkeypatch):
+    """The default SSE path must call ``UrllibTransport.stream``, not ``__call__``."""
+    captured: dict[str, Any] = {}
+
+    def fake_stream(self, method, url, headers, body):
+        captured.update(method=method, url=url, headers=dict(headers), body=body)
+        return iter([b'data: {"type": "final_answer", "content": "ok"}\n'])
+
+    monkeypatch.setattr(UrllibTransport, "stream", fake_stream)
+    client = NexentClient("http://nexent:5010")
+    client.jwt = "jwt-token"
+
+    events = list(
+        client.stream_events("POST", "/nb/v1/chat/run", json_body={"q": 1})
+    )
+
+    assert events == [{"type": "final_answer", "content": "ok"}]
+    assert captured["url"] == "http://nexent:5010/nb/v1/chat/run"
+    assert captured["headers"]["Accept"] == "text/event-stream"
+    assert json.loads(captured["body"]) == {"q": 1}
 
 
 def test_encode_multipart_is_deterministic():
