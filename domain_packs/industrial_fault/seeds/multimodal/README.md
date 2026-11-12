@@ -13,7 +13,9 @@
 | --- | --- | --- |
 | `manifest.json` | 手写清单 | 4 份文档的 asset_id、路径、模态、抽取 fixture、顶层事件与 VLM 配置 |
 | `extraction/pdf_manual.json` | 人工抽取 fixture | PDF 第 1 页的实体、关系与 OR 因果规则 |
+| `extraction/table_row2.json` | 人工抽取 fixture | CSV 第 2 行的过滤器压差实测值 |
 | `extraction/table_row3.json` | 人工抽取 fixture | CSV 第 3 行的过滤器与出口压力证据 |
+| `extraction/xlsx_row2.json` | 人工抽取 fixture | XLSX `inspection` sheet 第 2 行的同一实测值 |
 | `extraction/xlsx_row3.json` | 人工抽取 fixture | XLSX `inspection` sheet 第 3 行的同一组证据 |
 | `extraction/image_nameplate.json` | 人工抽取 fixture | 铭牌与故障挂牌转写文本中的设备与故障事件 |
 | `extraction/image_transcript.json` | VLM 转写 fixture | 离线验收时替代真实 VLM 的逐字转写 |

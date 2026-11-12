@@ -1,0 +1,34 @@
+{
+  "chunk_id": "FILE-P101A-INSPECTION-XLSX:inspection:row2",
+  "entities": [
+    {
+      "local_id": "pump",
+      "class": "Equipment",
+      "uid": "EQ-P101A",
+      "name": "P-101A 离心泵",
+      "description": "P-101A 单级离心式冷却水泵",
+      "equipment_tag": "P-101A",
+      "equipment_name": "P-101A 离心泵",
+      "equipment_type": "PUMP.CENTRIFUGAL",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    },
+    {
+      "local_id": "filter",
+      "class": "FaultEvent",
+      "uid": "FAULT-FILTER-BLOCKED",
+      "name": "入口过滤器堵塞",
+      "description": "巡检实测入口过滤器压差 0.08 MPa，滤芯堵塞",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "压差 0.08 MPa，滤芯堵塞"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

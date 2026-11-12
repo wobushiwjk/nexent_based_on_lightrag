@@ -43,7 +43,9 @@ ROOT = Path(__file__).resolve().parents[2]
 REAL_PACK = ROOT / "domain_packs" / "industrial_fault"
 FIXTURES = (
     "pdf_manual.json",
+    "table_row2.json",
     "table_row3.json",
+    "xlsx_row2.json",
     "xlsx_row3.json",
     "image_nameplate.json",
     "image_transcript.json",

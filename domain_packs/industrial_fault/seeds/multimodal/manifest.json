@@ -34,6 +34,7 @@
       "language": "zh",
       "header_row": true,
       "extraction": [
+        "seeds/multimodal/extraction/table_row2.json",
         "seeds/multimodal/extraction/table_row3.json"
       ]
     },
@@ -47,6 +48,7 @@
       "language": "zh",
       "header_row": true,
       "extraction": [
+        "seeds/multimodal/extraction/xlsx_row2.json",
         "seeds/multimodal/extraction/xlsx_row3.json"
       ]
     },
