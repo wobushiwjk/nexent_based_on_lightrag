@@ -21,6 +21,7 @@
 | `seeds/documents/pump_manual_excerpt.md` | 手册语料，覆盖因果链与 AND 条件 |
 | `seeds/documents/maintenance_record.md` | 维修记录语料，覆盖跨文档佐证 |
 | `seeds/documents/inspection_table.md` | 表格语料，覆盖表格模态证据 |
+| `seeds/multimodal/` | W6 多模态样例：合成 PDF/CSV/XLSX/PNG、manifest 与抽取 fixture（见该目录 README） |
 | `seeds/demo_bundle.json` | 9 个实体、6 条证据、2 条事实、2 条规则、1 棵 gold 树、1 条决策轨迹 |
 | `seeds/bad_bundle_sample.json` | 故意写坏的反例：非逐字 quote + 引用缺失证据，用于验证 CLI 会失败 |
 
@@ -73,6 +74,10 @@ ISO 14224 完整代码表、IEC 61025 定量概率计算。
 python scripts/validate_domain.py
 python scripts/validate_domain.py --json
 ./scripts/test.sh tests/domain
+
+# W6 多模态样例：先生成合成二进制，再离线导入并校验
+python scripts/make_multimodal_samples.py
+python scripts/import_domain_multimodal.py --verify
 ```
 
 预期输出开头：

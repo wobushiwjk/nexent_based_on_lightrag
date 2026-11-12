@@ -1637,6 +1637,18 @@
           "title": "Tenant Id",
           "type": "string"
         },
+        "text_uri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text Uri"
+        },
         "uid": {
           "minLength": 1,
           "title": "Uid",

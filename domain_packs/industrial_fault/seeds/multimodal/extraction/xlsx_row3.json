@@ -1,0 +1,68 @@
+{
+  "chunk_id": "FILE-P101A-INSPECTION-XLSX:inspection:row3",
+  "entities": [
+    {
+      "local_id": "pump",
+      "class": "Equipment",
+      "uid": "EQ-P101A",
+      "name": "P-101A 离心泵",
+      "description": "P-101A 单级离心式冷却水泵",
+      "equipment_tag": "P-101A",
+      "equipment_name": "P-101A 离心泵",
+      "equipment_type": "PUMP.CENTRIFUGAL",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    },
+    {
+      "local_id": "filter",
+      "class": "FaultEvent",
+      "uid": "FAULT-FILTER-BLOCKED",
+      "name": "入口过滤器堵塞",
+      "description": "巡检发现入口过滤器压差偏高",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "入口过滤器压差偏高"
+        }
+      ]
+    },
+    {
+      "local_id": "lp",
+      "class": "FaultEvent",
+      "uid": "FAULT-LOW-PRESSURE",
+      "name": "出口压力不足",
+      "description": "出口压力低于 0.45 MPa 下限",
+      "severity": "high",
+      "evidence": [
+        {
+          "quote": "出口压力 0.32 MPa，低于 0.45 MPa 下限"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relation_code": "CAUSES",
+      "source_local_id": "filter",
+      "target_local_id": "lp",
+      "evidence": [
+        {
+          "quote": "入口过滤器压差偏高"
+        }
+      ]
+    },
+    {
+      "relation_code": "HAS_FAULT",
+      "source_local_id": "pump",
+      "target_local_id": "lp",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    }
+  ]
+}

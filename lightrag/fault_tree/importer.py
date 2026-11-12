@@ -139,7 +139,7 @@ def load_seed_workspace(
         if not isinstance(spec, dict):
             raise SeedInputError("each seed file entry must be an object")
         assets.append(
-            _build_file_asset(
+            build_file_asset(
                 pack=pack,
                 spec=spec,
                 tenant_id=tenant_id,
@@ -248,9 +248,33 @@ def build_imported_domain(
 ) -> ImportedDomain:
     pack = Path(pack_dir).resolve()
     extraction = Path(extraction_dir).resolve()
+    workspace = load_seed_workspace(pack, extraction, tenant_id=tenant_id)
+    return build_imported_domain_from_workspace(
+        pack,
+        workspace,
+        ontology=ontology,
+        review_status=review_status,
+        bundle_version=bundle_version,
+    )
+
+
+def build_imported_domain_from_workspace(
+    pack_dir: str | Path,
+    workspace: SeedWorkspace,
+    *,
+    ontology: OntologyRegistry | None = None,
+    review_status: str | None = None,
+    bundle_version: str | None = None,
+) -> ImportedDomain:
+    """Project an already-loaded workspace into a validated domain bundle.
+
+    The seed loader and the multimodal loader both stop here, so projection,
+    tree building, and bundle validation stay shared.
+    """
+
+    pack = Path(pack_dir).resolve()
     if ontology is None:
         ontology = OntologyRegistry.from_file(pack / "ontology.yml")
-    workspace = load_seed_workspace(pack, extraction, tenant_id=tenant_id)
     context = workspace.context
     tenant_id = str(context["tenant_id"])
     schema_version = str(
@@ -453,7 +477,7 @@ def _remove_legacy_layout(tenant_dir: Path) -> None:
         shutil.rmtree(legacy_graph)
 
 
-def _build_file_asset(
+def build_file_asset(
     *,
     pack: Path,
     spec: dict[str, Any],
@@ -462,6 +486,13 @@ def _build_file_asset(
     schema_version: str,
     created_by: str,
 ) -> FileAsset:
+    """Build a FileAsset for one seed or parsed document.
+
+    ``object_uri``/``checksum``/``file_size`` always describe the original
+    binary; ``text_uri`` optionally names the UTF-8 transcript that evidence
+    quotes are verified against.
+    """
+
     relative = str(spec.get("path") or "").strip()
     if not relative:
         raise SeedInputError("seed file entries require path")
@@ -489,6 +520,7 @@ def _build_file_asset(
         mime_type=str(spec.get("mime_type") or "application/octet-stream"),
         modality=spec.get("modality") or "text",
         object_uri=relative,
+        text_uri=spec.get("text_uri"),
         checksum="sha256:" + hashlib.sha256(data).hexdigest(),
         file_size=len(data),
         version=str(spec.get("version") or "v1"),
@@ -496,8 +528,8 @@ def _build_file_asset(
         source_system=str(spec.get("source_system") or "seed"),
         uploader_id=created_by,
         upload_time=upload_time,
-        parse_status="parsed",
-        parse_engine="native",
+        parse_status=spec.get("parse_status") or "parsed",
+        parse_engine=spec.get("parse_engine") or "native",
         page_count=spec.get("page_count") or 1,
         chunk_count=spec.get("chunk_count"),
         last_parsed_at=_parse_datetime(spec.get("last_parsed_at")),

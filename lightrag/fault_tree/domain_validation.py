@@ -37,8 +37,37 @@ from lightrag.fault_tree.ontology import OntologyRegistry
 
 #被视作因果方向的关系类型，用于故障树循环和可达性检查
 CAUSAL_RELATIONS = {"CAUSES", "INPUT_OF", "OUTPUT_TO"}
-#标准对照文件中必须出现的标准名称  
+#标准对照文件中必须出现的标准名称
 REQUIRED_STANDARDS = {"IEC 61025", "ISO 14224", "IEC 60812", "ISO 13374"}
+
+#文件格式本身可被当作 UTF-8 文本读取的扩展名。modality 不等于“可读文本”：
+#演示包里的巡检表是 Markdown 文件、modality 为 table，但它仍能直接校验 quote。
+#PDF/图片/XLSX 这类二进制格式才需要单独提供 FileAsset.text_uri。
+_TEXTUAL_EXTENSIONS = frozenset(
+    {
+        "txt",
+        "md",
+        "markdown",
+        "rst",
+        "csv",
+        "tsv",
+        "json",
+        "jsonl",
+        "yaml",
+        "yml",
+        "xml",
+        "html",
+        "htm",
+        "log",
+    }
+)
+
+
+def _source_is_textual(asset: FileAsset) -> bool:
+    extension = (asset.file_extension or "").strip().lower().lstrip(".")
+    if not extension:
+        extension = Path(asset.object_uri).suffix.lower().lstrip(".")
+    return extension in _TEXTUAL_EXTENSIONS
 
 #对quote计算SHA-256，检查存储的数据是否与证据原文一致
 def quote_hash(quote: str) -> str:
@@ -524,37 +553,67 @@ def _validate_evidence_source(
             )
         )
         return
-    if "://" in asset.object_uri:
+    # A text-format source (Markdown, CSV, plain text) is its own transcript;
+    # a binary source (PDF, image, XLSX) carries its quotable text in
+    # ``text_uri``.  Without it there is nothing UTF-8 to verify against, so
+    # fail closed instead of decoding the binary and crashing.
+    text_uri = asset.text_uri
+    if text_uri is None:
+        if not _source_is_textual(asset):
+            issues.append(
+                _issue(
+                    "evidence-text-artifact-missing",
+                    "error",
+                    f"asset {asset.uid!r} has no text_uri; quotes from a "
+                    f"{asset.modality} source cannot be verified",
+                    item.evidence_id,
+                )
+            )
+            return
+        text_uri = asset.object_uri
+    if "://" in text_uri:
         issues.append(
             _issue(
                 "evidence-source-remote",
                 "warning",
                 f"evidence {item.evidence_id!r} points at remote object "
-                f"{asset.object_uri!r}; quote presence was not checked",
+                f"{text_uri!r}; quote presence was not checked",
                 item.evidence_id,
             )
         )
         return
 
-    source = (pack_dir / asset.object_uri).resolve()
-    if not source.is_file():
+    text_path = (pack_dir / text_uri).resolve()
+    if not text_path.is_file():
         issues.append(
             _issue(
                 "evidence-source-missing",
                 "error",
-                f"source file {source} does not exist",
+                f"source text {text_path} does not exist",
                 item.evidence_id,
             )
         )
         return
-    text = source.read_text(encoding="utf-8")
+    try:
+        text = text_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        issues.append(
+            _issue(
+                "evidence-source-not-text",
+                "error",
+                f"source {text_path.name} is not valid UTF-8; set text_uri "
+                f"to the parsed transcript for asset {asset.uid!r}",
+                item.evidence_id,
+            )
+        )
+        return
     if item.quote not in text:
         issues.append(
             _issue(
                 "evidence-quote-not-verbatim",
                 "error",
                 f"evidence {item.evidence_id!r} quote is not a verbatim "
-                f"substring of {source.name}",
+                f"substring of {text_path.name}",
                 item.evidence_id,
             )
         )
@@ -571,6 +630,30 @@ def _validate_evidence_source(
                 item.evidence_id,
             )
         )
+
+    # checksum and size describe the original binary, not the text artifact.
+    if "://" in asset.object_uri:
+        issues.append(
+            _issue(
+                "asset-checksum-unverified",
+                "warning",
+                f"original object {asset.object_uri!r} is remote; checksum "
+                f"was not verified for asset {asset.uid!r}",
+                asset.uid,
+            )
+        )
+        return
+    source = (pack_dir / asset.object_uri).resolve()
+    if not source.is_file():
+        issues.append(
+            _issue(
+                "asset-source-missing",
+                "error",
+                f"original source file {source} does not exist",
+                asset.uid,
+            )
+        )
+        return
     checksum = asset.checksum.removeprefix("sha256:")
     actual = hashlib.sha256(source.read_bytes()).hexdigest()
     if checksum and checksum != actual:

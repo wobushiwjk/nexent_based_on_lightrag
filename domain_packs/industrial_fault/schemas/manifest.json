@@ -2,7 +2,7 @@
   "files": [
     {
       "name": "entity.schema.json",
-      "sha256": "f1822d2e0231794483944880cd1e4b586a7cd2a3baa1de10c77b92d51725e0d4",
+      "sha256": "cc64d6caeddfa8b16e6369173a11b3c25cf41b3ce9fa34cac221efbefc3c68b2",
       "title": "Entity"
     },
     {
@@ -32,7 +32,7 @@
     },
     {
       "name": "domain_bundle.schema.json",
-      "sha256": "ec803e695a47a306fb4890bb5820fb2860cb9b874b8a8581d9aa7bcbd377a089",
+      "sha256": "c8c9064c99f4bbf4375fd2c5087473bdc1b1f46f3e85e704e5212291b72cefdf",
       "title": "DomainBundle"
     }
   ],

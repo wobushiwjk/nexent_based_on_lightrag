@@ -61,6 +61,10 @@ data/
 # Domain import output; regenerate with scripts/import_seed_domain.py
 domain_packs/*/storage/
 
+# Multimodal sample binaries and parsed transcripts; regenerate with
+# scripts/make_multimodal_samples.py and scripts/import_domain_multimodal.py
+domain_packs/industrial_fault/seeds/multimodal/generated/
+
 
 
 # User-defined UI template bundle (UI_TEMPLATES_DIR).

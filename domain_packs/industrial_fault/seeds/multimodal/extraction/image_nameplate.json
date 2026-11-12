@@ -1,0 +1,45 @@
+{
+  "chunk_id": "FILE-P101A-NAMEPLATE:image",
+  "entities": [
+    {
+      "local_id": "pump",
+      "class": "Equipment",
+      "uid": "EQ-P101A",
+      "name": "P-101A 离心泵",
+      "description": "P-101A 单级离心式冷却水泵",
+      "equipment_tag": "P-101A",
+      "equipment_name": "P-101A 离心泵",
+      "equipment_type": "PUMP.CENTRIFUGAL",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    },
+    {
+      "local_id": "lp",
+      "class": "FaultEvent",
+      "uid": "FAULT-LOW-PRESSURE",
+      "name": "出口压力不足",
+      "description": "铭牌旁的挂牌标注出口压力低",
+      "severity": "high",
+      "evidence": [
+        {
+          "quote": "OUTLET PRESSURE LOW"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relation_code": "HAS_FAULT",
+      "source_local_id": "pump",
+      "target_local_id": "lp",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    }
+  ]
+}

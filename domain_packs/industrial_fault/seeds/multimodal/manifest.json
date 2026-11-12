@@ -1,0 +1,72 @@
+{
+  "tenant_id": "tenant-multimodal-demo",
+  "ontology_version": "industrial-fault-v0.1",
+  "schema_version": "industrial-fault-schema-v0.1",
+  "top_event_uid": "FAULT-LOW-PRESSURE",
+  "draft_id": "TREE-P101A-LOW-PRESSURE-MULTIMODAL-v1",
+  "created_by": "multimodal-ingest",
+  "created_at": "2026-11-12T00:00:00+00:00",
+  "review_status": "approved",
+  "bundle_version": "multimodal-import-v1",
+  "extraction_run_id": "multimodal-run-1",
+  "tree_version": 1,
+  "text_dir": "seeds/multimodal/generated/text",
+  "documents": [
+    {
+      "asset_id": "FILE-P101A-PDF",
+      "path": "seeds/multimodal/generated/pump_manual_p101a.pdf",
+      "canonical_name": "P-101A 泵操作手册（合成样例）",
+      "description": "英文两页 PDF：第一页含因果句，第二页是维修措施负样本。",
+      "modality": "pdf",
+      "mime_type": "application/pdf",
+      "language": "en",
+      "extraction": [
+        "seeds/multimodal/extraction/pdf_manual.json"
+      ]
+    },
+    {
+      "asset_id": "FILE-P101A-INSPECTION-CSV",
+      "path": "seeds/multimodal/generated/inspection_p101a.csv",
+      "canonical_name": "P-101A 巡检记录（CSV 合成样例）",
+      "description": "中文巡检表；第 3 行同时含过滤器与出口压力证据。",
+      "modality": "table",
+      "mime_type": "text/csv",
+      "language": "zh",
+      "header_row": true,
+      "extraction": [
+        "seeds/multimodal/extraction/table_row3.json"
+      ]
+    },
+    {
+      "asset_id": "FILE-P101A-INSPECTION-XLSX",
+      "path": "seeds/multimodal/generated/inspection_p101a.xlsx",
+      "canonical_name": "P-101A 巡检记录（XLSX 合成样例）",
+      "description": "两个 sheet：inspection 提供证据，equipment 是设备台账。",
+      "modality": "table",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "language": "zh",
+      "header_row": true,
+      "extraction": [
+        "seeds/multimodal/extraction/xlsx_row3.json"
+      ]
+    },
+    {
+      "asset_id": "FILE-P101A-NAMEPLATE",
+      "path": "seeds/multimodal/generated/nameplate_p101a.png",
+      "canonical_name": "P-101A 铭牌照片（合成样例）",
+      "description": "ASCII 铭牌 PNG；离线验收使用 VLM fixture 的逐字转写。",
+      "modality": "image",
+      "mime_type": "image/png",
+      "language": "en",
+      "extraction": [
+        "seeds/multimodal/extraction/image_nameplate.json"
+      ]
+    }
+  ],
+  "vlm": {
+    "endpoint": "http://localhost:11434/v1/chat/completions",
+    "model": "qwen2.5vl:3b",
+    "timeout": 120.0,
+    "transcript_fixture": "seeds/multimodal/extraction/image_transcript.json"
+  }
+}

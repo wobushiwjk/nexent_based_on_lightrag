@@ -24,7 +24,7 @@
 | W3 | 证据链与图谱投影 | ✅ 已完成并验收 | W1、W2 |
 | W4 | Skills 工作流 | ✅ 已完成并验收 | W2、W3 |
 | W5 | Nexent 编排与导入 | 🟡 已完成待验收 | W2、W4 |
-| W6 | 多模态数据管线 | ⏳ 未开始 | W3 |
+| W6 | 多模态数据管线 | 🟡 已完成待验收 | W3 |
 | W7 | 教师-学生与主动学习 | ⏳ 未开始 | W3、W6 |
 | W8 | 本体演化（上传标准→审核→迁移） | ⏳ 未开始 | W3、W5、W6 |
 | W9 | 评测与消融 | ⏳ 未开始 | W2–W8 |
@@ -272,9 +272,55 @@ PYTHON=.venv/Scripts/python.exe ./scripts/test.sh tests/skills -q
 
 **目标**：解析 PDF、表格、图片，生成带页码/版面/字符区间的证据。
 
-**交付物**：解析路由、OCR/VLM 适配、表格结构化、证据定位、失败重试；本地模型优先。
+**方案**：独立领域前置层 `lightrag/fault_tree/multimodal.py`，不接入服务器流水线；
+PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转写 fixture）；解析后
+的 `SeedWorkspace` 直接进入 W3 的投影/校验/故障树/图谱链路。MinerU/Docling 仍是
+服务器侧扩展路径。详见 [`W6-MultimodalIngestion.md`](W6-MultimodalIngestion.md)。
 
-**验收**：3 种模态各至少 1 份样例导入；quote 逐字校验通过；原始数据不出本地；失败文件有明确状态和错误原因。
+**交付物**：
+- 契约：`FileAsset.text_uri`（原始二进制与可校验文本分离）；`_validate_evidence_source`
+  对二进制格式（PDF/图片/XLSX 等）无转写时报 `evidence-text-artifact-missing`，
+  不再抛解码异常；Markdown/CSV 等文本格式仍直接校验（兼容既有 seed）。
+- `lightrag/fault_tree/multimodal.py`：manifest 加载、PDF 逐页/CSV/XLSX 逐行/图片
+  VLM 解析、`DocumentStatusStore`（原子写、失败码、重试）、隐私守卫
+  `ensure_local_endpoint`、`build_multimodal_workspace`。
+- `lightrag/fault_tree/verification.py`：从 `scripts/import_seed_domain.py` 迁出的
+  验收检查（证据逐字、query plan、存储仓库读取）。
+- `scripts/import_domain_multimodal.py`：导入 + 幂等检查 + 可选 `--verify`；
+  失败时退出码 2 且不写 bundle。
+- `scripts/make_multimodal_samples.py` + `domain_packs/industrial_fault/seeds/multimodal/`：
+  4 份合成文档（英文 PDF、中文 CSV/XLSX、ASCII 铭牌 PNG）与抽取 fixture。
+- `tests/domain/test_multimodal_ingest.py`。
+- JSON Schema 再生成（`scripts/export_domain_schemas.py`）。
+
+**验收**：3 种模态各至少 1 份样例导入；quote 逐字校验通过；原始数据不出本地；
+失败文件有明确状态和错误原因。
+
+**验收命令**：
+```bash
+.venv/Scripts/python.exe scripts/make_multimodal_samples.py
+.venv/Scripts/python.exe scripts/export_domain_schemas.py
+.venv/Scripts/python.exe scripts/import_domain_multimodal.py --verify
+./scripts/test.sh tests/domain
+```
+
+**验证进展**（2026-11-12）：
+- `make_multimodal_samples.py`：生成 PDF/CSV/XLSX/PNG 四份样例（产物被 gitignore）。
+- `export_domain_schemas.py`：`entity.schema.json` 等 7 份 schema 与 manifest 已随
+  `text_uri` 重新生成。
+- `import_domain_multimodal.py --verify`：4 份文档全部 `parsed`；11 条证据、3 条事实、
+  1 条规则；故障树 5 节点/4 边；图谱 10 节点/7 边；`trace_evidence` 使用
+  `idx_evidence_targets_trace`，按需加载 5 条 quote；重复导入 `run_id`
+  `run-598fda7e47db` 与全部计数不变。
+- `tests/domain`：56 passed（其中 `test_multimodal_ingest.py` 17 个）。
+- `ruff check --select E4,E7,E9,F` 通过；ruff 0.17 的扩展默认规则会报既有文件
+  （`contracts.py` 等）的 I001/UP 类问题，不属于本次改动。
+- 验收中发现并修复一处兼容性回归：演示包的巡检表是 `modality=table` 的 Markdown
+  文件；改为按**文件扩展名**判断是否需要 `text_uri`，纯文本格式仍直接校验。
+- 待你确认后把状态改为 ✅。
+
+**边界**：不做扫描件 OCR、不推断版面/bbox、不做真实模型抽取（W7）、不接入
+`/file/process` 上传流水线；真实 VLM 只验证请求发往本地，识别质量属于 W9。
 
 ### W7 教师-学生与主动学习
 

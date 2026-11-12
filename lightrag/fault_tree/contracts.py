@@ -98,6 +98,7 @@ class FileAsset(EntityBase):
     mime_type: str = Field(min_length=1)
     modality: Modality
     object_uri: str = Field(min_length=1)
+    text_uri: str | None = None
     checksum: str = Field(min_length=1)
     file_size: int = Field(ge=0)
     version: str | None = None

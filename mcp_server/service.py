@@ -764,6 +764,7 @@ def _file_summary(entity: FileAsset) -> dict[str, Any]:
         "modality": entity.modality,
         "mime_type": entity.mime_type,
         "object_uri": entity.object_uri,
+        "text_uri": entity.text_uri,
         "checksum": entity.checksum,
         "page_count": entity.page_count,
         "parse_status": entity.parse_status,

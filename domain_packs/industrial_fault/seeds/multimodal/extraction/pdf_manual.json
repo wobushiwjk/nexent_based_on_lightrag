@@ -1,0 +1,105 @@
+{
+  "chunk_id": "FILE-P101A-PDF:p1",
+  "entities": [
+    {
+      "local_id": "pump",
+      "class": "Equipment",
+      "uid": "EQ-P101A",
+      "name": "P-101A 离心泵",
+      "description": "P-101A 单级离心式冷却水泵",
+      "equipment_tag": "P-101A",
+      "equipment_name": "P-101A 离心泵",
+      "equipment_type": "PUMP.CENTRIFUGAL",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    },
+    {
+      "local_id": "filter",
+      "class": "FaultEvent",
+      "uid": "FAULT-FILTER-BLOCKED",
+      "name": "入口过滤器堵塞",
+      "description": "过滤器流通面积减小，泵入口流量下降",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "A blocked inlet filter reduces pump inlet flow and causes low outlet pressure."
+        }
+      ]
+    },
+    {
+      "local_id": "cavitation",
+      "class": "FaultEvent",
+      "uid": "FAULT-CAVITATION",
+      "name": "叶轮汽蚀",
+      "description": "入口流量受限导致叶轮表面发生汽蚀",
+      "severity": "high",
+      "evidence": [
+        {
+          "quote": "Cavitation occurs when the inlet flow is restricted and causes low outlet pressure."
+        }
+      ]
+    },
+    {
+      "local_id": "lp",
+      "class": "FaultEvent",
+      "uid": "FAULT-LOW-PRESSURE",
+      "name": "出口压力不足",
+      "description": "泵出口压力低于正常工作范围",
+      "severity": "high",
+      "rule_uid": "RULE-MM-LOW-PRESSURE-OR",
+      "rule_scenario": "入口过滤器堵塞或汽蚀任一发生",
+      "active_cause_rule_uid": "RULE-MM-LOW-PRESSURE-OR",
+      "cause_rule": {
+        "op": "OR",
+        "children": [
+          {
+            "event_local_id": "filter"
+          },
+          {
+            "event_local_id": "cavitation"
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "quote": "A blocked inlet filter reduces pump inlet flow and causes low outlet pressure."
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "relation_code": "CAUSES",
+      "source_local_id": "filter",
+      "target_local_id": "lp",
+      "evidence": [
+        {
+          "quote": "A blocked inlet filter reduces pump inlet flow and causes low outlet pressure."
+        }
+      ]
+    },
+    {
+      "relation_code": "CAUSES",
+      "source_local_id": "cavitation",
+      "target_local_id": "lp",
+      "evidence": [
+        {
+          "quote": "Cavitation occurs when the inlet flow is restricted and causes low outlet pressure."
+        }
+      ]
+    },
+    {
+      "relation_code": "HAS_FAULT",
+      "source_local_id": "pump",
+      "target_local_id": "lp",
+      "evidence": [
+        {
+          "quote": "P-101A"
+        }
+      ]
+    }
+  ]
+}
