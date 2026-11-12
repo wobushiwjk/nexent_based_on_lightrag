@@ -15,7 +15,7 @@
 | `extraction/pdf_manual.json` | 人工抽取 fixture | PDF 第 1 页的实体、关系与 OR 因果规则 |
 | `extraction/table_row3.json` | 人工抽取 fixture | CSV 第 3 行的过滤器与出口压力证据 |
 | `extraction/xlsx_row3.json` | 人工抽取 fixture | XLSX `inspection` sheet 第 3 行的同一组证据 |
-| `extraction/image_nameplate.json` | 人工抽取 fixture | 铭牌转写文本中的设备与故障事件 |
+| `extraction/image_nameplate.json` | 人工抽取 fixture | 铭牌与故障挂牌转写文本中的设备与故障事件 |
 | `extraction/image_transcript.json` | VLM 转写 fixture | 离线验收时替代真实 VLM 的逐字转写 |
 | `generated/*` | 生成的二进制 | PDF/CSV/XLSX/PNG 与解析文本，已被 `.gitignore` 忽略 |
 

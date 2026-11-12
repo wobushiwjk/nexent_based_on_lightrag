@@ -52,9 +52,9 @@
     },
     {
       "asset_id": "FILE-P101A-NAMEPLATE",
-      "path": "seeds/multimodal/generated/nameplate_p101a.png",
-      "canonical_name": "P-101A 铭牌照片（合成样例）",
-      "description": "ASCII 铭牌 PNG；离线验收使用 VLM fixture 的逐字转写。",
+      "path": "seeds/multimodal/generated/nameplate_and_tag_p101a.png",
+      "canonical_name": "P-101A 铭牌与故障挂牌（合成样例）",
+      "description": "ASCII 铭牌与故障挂牌 PNG：位号、泵型与挂牌文字；离线验收使用 VLM fixture 的逐字转写。",
       "modality": "image",
       "mime_type": "image/png",
       "language": "en",

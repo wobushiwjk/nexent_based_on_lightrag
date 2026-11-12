@@ -93,7 +93,7 @@ def _write_pack(tmp_path: Path, *, missing: set[str] | None = None) -> Path:
     write_xlsx(
         generated / "inspection_p101a.xlsx", CSV_ROWS, EQUIPMENT_ROWS
     )
-    write_png(generated / "nameplate_p101a.png", NAMEPLATE_LINES)
+    write_png(generated / "nameplate_and_tag_p101a.png", NAMEPLATE_LINES)
     for name in missing or set():
         (generated / name).unlink()
     return pack
@@ -333,7 +333,7 @@ def test_three_modalities_import_with_verbatim_evidence(
 
 
 def test_missing_source_is_reported_not_swallowed(tmp_path: Path) -> None:
-    pack = _write_pack(tmp_path, missing={"nameplate_p101a.png"})
+    pack = _write_pack(tmp_path, missing={"nameplate_and_tag_p101a.png"})
     manifest = load_manifest(pack)
     ingested = build_multimodal_workspace(
         manifest, vlm=_fixture(pack)

@@ -130,7 +130,7 @@ error_code / error_message / page_count / chunk_count / text_uri / updated_at
   规则；第 2 页是维修措施负样本（不应产生证据）。
 - `FILE-P101A-INSPECTION-CSV` / `FILE-P101A-INSPECTION-XLSX`：同一份中文巡检表，
   CSV 与 XLSX（`inspection`、`equipment` 两个 sheet）各导入一次。
-- `FILE-P101A-NAMEPLATE`：ASCII 铭牌 PNG，离线验收使用 fixture 转写。
+- `FILE-P101A-NAMEPLATE`：ASCII 铭牌与故障挂牌 PNG，离线验收使用 fixture 转写。
 
 ```bash
 # 1. 生成合成样例（PDF/CSV/XLSX/PNG）

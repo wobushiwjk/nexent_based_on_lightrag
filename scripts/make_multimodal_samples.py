@@ -44,7 +44,7 @@ PDF_PAGES = [
 
 CSV_HEADER = ["设备编号", "检查项目", "检查结果", "处理措施"]
 CSV_ROWS = [
-    ["P-101A", "入口过滤器", "压差 0.08 MPa，滤芯堵塞", "清理滤芯后出口压力恢复"],
+    ["P-101A", "入口过滤器", "压差 0.08 MPa，滤芯堵塞", "建议清理滤芯并复测出口压力"],
     [
         "P-101A",
         "出口压力",
@@ -57,7 +57,12 @@ EQUIPMENT_ROWS = [
     ["P-101A", "P-101A 离心泵", "离心泵"],
 ]
 
-NAMEPLATE_LINES = ["P-101A", "CENTRIFUGAL PUMP", "OUTLET PRESSURE LOW"]
+NAMEPLATE_LINES = [
+    "P-101A",
+    "CENTRIFUGAL PUMP",
+    "FAULT TAG",
+    "OUTLET PRESSURE LOW",
+]
 
 # 5x7 bitmap font.  Only these glyphs are needed by NAMEPLATE_LINES; an
 # unknown character renders as a filled box so the sample stays visibly wrong
@@ -259,7 +264,7 @@ def generate(pack: Path) -> dict[str, Path]:
         "pdf": out / "pump_manual_p101a.pdf",
         "csv": out / "inspection_p101a.csv",
         "xlsx": out / "inspection_p101a.xlsx",
-        "png": out / "nameplate_p101a.png",
+        "png": out / "nameplate_and_tag_p101a.png",
     }
     write_simple_pdf(files["pdf"], PDF_PAGES)
     write_csv(files["csv"], CSV_HEADER, CSV_ROWS)
