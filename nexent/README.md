@@ -3,10 +3,18 @@
 本目录把仓库里的领域与治理服务注册进一个已经运行的 Nexent 实例，形成可演示的问答、诊断和本体版本查询闭环：
 
 - **领域 MCP**：`mcp_server/` 暴露的 6 个只读领域工具；
-- **治理 MCP**：`governance_mcp_server/` 暴露的 5 个只读版本/变更工具和 1 个草案写入工具；
+- **治理 MCP**：`governance_mcp_server/` 暴露版本查询、草案、审核、影响分析、迁移发布、回滚和快照历史工具；
 - **Skill**：`skills/` 下的 3 个确定性技能，由 `nexent/scripts/build_skills.py` 打包成 ZIP 上传；
 - **知识库**：`nexent/kb/` 下的 3 份写作规范/术语/证据政策文档；
 - **Agent**：`industrial_fault_agent`，提示词在 `nexent/agent/system_prompt.md`。
+
+当前 `config/agents.json` 定义三个 Agent：
+
+- `industrial_fault_agent`：主 Agent，负责最终答复；
+- `evidence_review_agent`：证据复核子 Agent；
+- `ontology_expert_agent`：本体专家子 Agent。
+
+主 Agent 通过 Nexent `managed_agents` 管理两个子 Agent；子 Agent 无权发布或回滚。
 
 Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓库是领域服务的唯一事实来源，Nexent 是消费者；删除 Nexent 里的任何配置都不会丢源码，重新导入即可恢复。
 
@@ -18,6 +26,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | Agent 能调用 W2 工具 | 演示 transcript 的 `events` 中 `tool` / `tool_result` 类事件计数 > 0；导入报告第 4 步列出 6 个 MCP 工具 |
 | Agent 能调用 W4 Skill | 导入报告第 5 步列出 3 个 Skill；Agent 绑定 `skill_names`；对话中 `read_skill_md` / `run_skill_script` 出现在事件里 |
 | Agent 能查询本体治理 | 用户询问当前本体版本时，Agent 调用 `get_ontology_governance_status`，答复包含活动版本和安装信息 |
+| 三个 Agent 正确绑定 | 导入报告列出 3 个 Agent；`/agent/call_relationship/<main_id>` 的主 Agent 下有两个子 Agent |
 | 完成一次「设备故障诊断 + 证据展示」 | `nexent/build/demo-*.json` 中的 `final_answer`，含 `[evidence:...]` 与逐字引文 |
 | 配置在重启后仍在 | 重启 Nexent 容器后重跑演示脚本，回答不变；Agent 仍在列表中 |
 | 录屏或截图 | Web UI 对话截图 + `demo-*.json` + `import-report.json` 三件套 |
@@ -44,9 +53,12 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | `versions.lock.json` | 锁定的 Nexent 版本与接口约定 |
 | `config/mcp.json` | MCP 服务注册名、容器内可达 URL、传输方式 |
 | `config/governance_mcp.json` | 本体治理 MCP 注册名、容器内可达 URL、传输方式 |
-| `config/agent.json` | Agent 名称、工具清单、Skill 清单、知识库工具与示例问题 |
+| `config/agents.json` | 当前三 Agent 图、工具/Skill 权限、知识库和示例问题 |
+| `config/agent.json` | 早期单 Agent 配置，保留兼容 |
 | `config/knowledge_base.json` | 知识库显示名、待导入文档、切分策略 |
 | `agent/system_prompt.md` | Agent 系统提示词（证据规则、诊断流程、输出模板） |
+| `agent/evidence_review_prompt.md` | 证据复核子 Agent 的输出契约 |
+| `agent/ontology_expert_prompt.md` | 本体专家子 Agent 的只建议、不发布边界 |
 | `kb/*.md` | 知识库文档：报告写法、术语、证据政策 |
 | `scripts/nexent_client.py` | 标准库 HTTP 客户端，封装导入用到的全部接口 |
 | `scripts/agent_bundle.py` | 从配置 + 实时工具目录生成 `POST /agent/import` 请求体 |
@@ -125,7 +137,7 @@ set -a; source nexent/.env; set +a
 这一遍第 2 步检测到 `storage/tenants/<tenant_id>/active.json` 存在会自动跳过，然后依次：
 
 1. 初始化空白治理库并注册两个 MCP（`add` 或 `update` + `enable`）；
-2. 扫描工具目录，确认 12 个 MCP 工具都在；
+2. 扫描工具目录，确认 Agent 所需的 18 个 MCP 工具都在；
 3. 打包并上传 3 个 Skill（首次创建）；
 4. 创建知识库、上传 3 份文档、等待切分完成；
 5. 导入 Agent（自动发布 V1）；
@@ -167,6 +179,19 @@ set -a; source nexent/.env; set +a
 
 预期 Agent 调用 `create_ontology_change_draft`，返回草案 ID、操作数和证据数，
 并明确说明草案尚未审核、未迁移、未发布。
+
+完整本体演化流程可在 Nexent 中按以下顺序对话：
+
+1. “把 CHG-... 提交审核。”
+2. “分析 CHG-... 的影响。”
+3. “我确认批准 CHG-...。”
+4. “对 CHG-... 做迁移 dry-run。”
+5. “我确认发布 CHG-...。”
+6. “列出该租户的故障树快照历史。”
+7. “我确认回滚 CHG-...，原因是……。”
+
+普通“继续”不会构成审核或发布授权；Agent 必须分别调用带 `confirm=true`
+的审核、发布和回滚工具。
 
 **注意**：北向 API 只能看到**已发布**的 Agent。导入流程会自动发布；如果你在 UI 里手动改过 Agent 但没有发布，演示会报 `Published agent not found`。
 

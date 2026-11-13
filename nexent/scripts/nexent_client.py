@@ -160,7 +160,9 @@ class UrllibTransport:
                 method, url, exc.code, exc.read().decode("utf-8", "replace")
             ) from exc
         except urllib.error.URLError as exc:
-            raise NexentError(method, url, 0, f"connection failed: {exc.reason}") from exc
+            raise NexentError(
+                method, url, 0, f"connection failed: {exc.reason}"
+            ) from exc
         with response:
             for line in response:
                 yield line
@@ -251,9 +253,7 @@ class NexentClient:
         self._transport = transport or UrllibTransport(timeout)
         # ``UrllibTransport`` is callable for ordinary requests and exposes
         # ``stream`` for SSE; an injected callable replaces the latter only.
-        self._stream_transport = (
-            stream_transport or UrllibTransport(timeout).stream
-        )
+        self._stream_transport = stream_transport or UrllibTransport(timeout).stream
         self.jwt: str | None = None
 
     # ------------------------------------------------------------------
@@ -314,9 +314,7 @@ class NexentClient:
             {"Content-Type": "application/json", "Accept": "text/event-stream"},
             token=token,
         )
-        lines = self._stream_transport(
-            method, f"{self.base_url}{path}", headers, body
-        )
+        lines = self._stream_transport(method, f"{self.base_url}{path}", headers, body)
         yield from parse_sse_events(lines)
 
     # ------------------------------------------------------------------
@@ -355,7 +353,7 @@ class NexentClient:
             "GET",
             "/user/tokens?" + urllib.parse.urlencode({"user_id": user_id}),
         )
-        for token in ((payload or {}).get("data") or []):
+        for token in (payload or {}).get("data") or []:
             access_key = token.get("access_key")
             if (
                 isinstance(access_key, str)
@@ -385,9 +383,7 @@ class NexentClient:
     def _model_label(model: Mapping[str, Any]) -> str:
         return str(model.get("display_name") or model.get("model_name") or "")
 
-    def resolve_embedding_model(
-        self, preferred: str | None = None
-    ) -> dict[str, Any]:
+    def resolve_embedding_model(self, preferred: str | None = None) -> dict[str, Any]:
         models = [
             model
             for model in self.list_models()
@@ -412,11 +408,14 @@ class NexentClient:
         return None
 
     def test_mcp_connection(self, server_url: str) -> dict[str, Any]:
-        return self.request(
-            "POST",
-            "/mcp/test-connection",
-            json_body={"server_url": server_url, "authorization_token": None},
-        ) or {}
+        return (
+            self.request(
+                "POST",
+                "/mcp/test-connection",
+                json_body={"server_url": server_url, "authorization_token": None},
+            )
+            or {}
+        )
 
     def add_mcp(
         self,
@@ -541,9 +540,7 @@ class NexentClient:
     def list_index_files(self, index_name: str) -> list[dict[str, Any]]:
         payload = self.request(
             "GET",
-            "/indices/"
-            + urllib.parse.quote(index_name, safe="")
-            + "/files",
+            "/indices/" + urllib.parse.quote(index_name, safe="") + "/files",
         )
         return list((payload or {}).get("files") or [])
 
@@ -570,12 +567,15 @@ class NexentClient:
             for path in paths
         ]
         body, content_type = encode_multipart(fields, files)
-        return self.request(
-            "POST",
-            "/file/upload",
-            body=body,
-            content_type=content_type,
-        ) or {}
+        return (
+            self.request(
+                "POST",
+                "/file/upload",
+                body=body,
+                content_type=content_type,
+            )
+            or {}
+        )
 
     def process_files(
         self,
@@ -618,6 +618,14 @@ class NexentClient:
         self.request(
             "DELETE", "/agent", json_body={"agent_id": agent_id}, expected=(200, 404)
         )
+
+    def get_agent_call_relationship(self, agent_id: int) -> dict[str, Any]:
+        """Return the persisted manager-to-sub-agent call tree."""
+
+        payload = self.request("GET", f"/agent/call_relationship/{agent_id}")
+        if not isinstance(payload, dict):
+            raise NexentConfigError("/agent/call_relationship returned no object")
+        return payload
 
     def import_agent(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         result = self.request("POST", "/agent/import", json_body=payload)

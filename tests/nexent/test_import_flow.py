@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from nexent.scripts import import_to_nexent as flow
-from nexent.scripts.agent_bundle import load_agent_spec
+from nexent.scripts.agent_bundle import load_agent_specs
 
 MCP_TOOLS = (
     "get_ontology",
@@ -28,6 +28,12 @@ MCP_TOOLS = (
     "list_ontology_changes",
     "get_ontology_change",
     "create_ontology_change_draft",
+    "submit_ontology_change_review",
+    "review_ontology_change",
+    "analyze_ontology_change_impact",
+    "publish_ontology_change",
+    "rollback_ontology_publication",
+    "list_tenant_snapshot_history",
 )
 
 GOVERNANCE_TOOLS = {
@@ -37,6 +43,12 @@ GOVERNANCE_TOOLS = {
     "list_ontology_changes",
     "get_ontology_change",
     "create_ontology_change_draft",
+    "submit_ontology_change_review",
+    "review_ontology_change",
+    "analyze_ontology_change_impact",
+    "publish_ontology_change",
+    "rollback_ontology_publication",
+    "list_tenant_snapshot_history",
 }
 
 
@@ -87,6 +99,8 @@ class StubClient:
         self.processed = False
         self.uploaded: list[Path] = []
         self.agent: dict | None = None
+        self.agents: dict[str, dict] = {}
+        self.agent_relations: dict[int, list[int]] = {}
         self.calls: list[str] = []
         self.imported_payload: dict | None = None
         self.index_status = "available"
@@ -207,17 +221,59 @@ class StubClient:
         return {"model_id": 9, "display_name": "qwen"}
 
     def get_agent_by_name(self, name):
-        return dict(self.agent) if self.agent else None
+        if name in self.agents:
+            return dict(self.agents[name])
+        if self.agent and name == "industrial_fault_agent":
+            return dict(self.agent)
+        return None
 
     def delete_agent(self, agent_id):
         self.calls.append(f"delete_agent:{agent_id}")
         self.agent = None
+        self.agents = {
+            name: item
+            for name, item in self.agents.items()
+            if item.get("agent_id") != agent_id
+        }
+        self.agent_relations.pop(agent_id, None)
 
     def import_agent(self, payload):
         self.calls.append("import_agent")
         self.imported_payload = payload
-        self.agent = {"agent_id": 55, "latest_version_no": 1}
-        return {"agent_id": 55, "agent_id_mapping": {"1001": 55}}
+        bundle = payload["agent_info"]
+        mapping = {
+            str(source_id): 5000 + index
+            for index, source_id in enumerate(bundle["agent_info"], start=1)
+        }
+        self.agents = {
+            info["name"]: {
+                "agent_id": mapping[source_id],
+                "latest_version_no": 1,
+            }
+            for source_id, info in bundle["agent_info"].items()
+        }
+        root_id = int(bundle["agent_id"])
+        root = bundle["agent_info"][str(root_id)]
+        self.agent_relations = {
+            mapping[str(root_id)]: [
+                mapping[str(child_id)] for child_id in root["managed_agents"]
+            ]
+        }
+        self.agent = dict(self.agents[root["name"]])
+        return {
+            "agent_id": mapping[str(root_id)],
+            "agent_id_mapping": mapping,
+        }
+
+    def get_agent_call_relationship(self, agent_id):
+        self.calls.append(f"agent_relationship:{agent_id}")
+        return {
+            "agent_id": str(agent_id),
+            "sub_agents": [
+                {"agent_id": str(child_id)}
+                for child_id in self.agent_relations.get(agent_id, [])
+            ],
+        }
 
 
 def options(**overrides):
@@ -337,7 +393,7 @@ def test_catalog_reports_missing_tools():
     ]
 
     with pytest.raises(flow.ImportStepError) as info:
-        flow.step_catalog(client, load_agent_spec(), dry_run=False)
+        flow.step_catalog(client, load_agent_specs(), dry_run=False)
 
     assert "get_equipment" in str(info.value)
 
@@ -348,7 +404,7 @@ def test_catalog_dry_run_warns_instead_of_raising():
         entry for entry in catalog() if entry["name"] != "get_equipment"
     ]
 
-    _, details = flow.step_catalog(client, load_agent_spec(), dry_run=True)
+    _, details = flow.step_catalog(client, load_agent_specs(), dry_run=True)
 
     assert details["action"] == "warning"
 
@@ -494,7 +550,7 @@ def test_step_agent_refuses_to_replace_by_default():
     with pytest.raises(flow.ImportStepError) as info:
         flow.step_agent(
             client,
-            load_agent_spec(),
+            load_agent_specs(),
             catalog(),
             kb_index_name="kb-index",
             mcp_url="http://mcp",
@@ -514,7 +570,7 @@ def test_step_agent_replaces_and_imports_bundle():
 
     details = flow.step_agent(
         client,
-        load_agent_spec(),
+        load_agent_specs(),
         catalog(),
         kb_index_name="kb-index",
         mcp_url="http://host.docker.internal:8765/mcp",
@@ -527,7 +583,9 @@ def test_step_agent_replaces_and_imports_bundle():
         dry_run=False,
     )
 
-    assert details["action"] == "replaced"
+    assert "industrial_fault_agent:replaced" in details["action"]
+    assert "evidence_review_agent:created" in details["action"]
+    assert "ontology_expert_agent:created" in details["action"]
     assert "delete_agent:5" in client.calls
     payload = client.imported_payload
     assert payload is not None
@@ -567,8 +625,9 @@ def test_run_import_end_to_end(tmp_path, monkeypatch):
         "agent",
         "verify",
     }
-    assert report["steps"]["agent"]["agent_id"] == 55
+    assert report["steps"]["agent"]["agent_id"] == 5001
     assert report["steps"]["verify"]["latest_version_no"] == 1
+    assert report["steps"]["verify"]["sub_agent_ids"] == ["5002", "5003"]
 
     written = json.loads(report_path.read_text(encoding="utf-8"))
     assert written["ok"] is True

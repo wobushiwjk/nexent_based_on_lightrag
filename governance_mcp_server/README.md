@@ -12,10 +12,25 @@ the three domain Skills are unchanged.
 - `list_ontology_changes`
 - `get_ontology_change`
 - `create_ontology_change_draft`
+- `submit_ontology_change_review`
+- `review_ontology_change`
+- `analyze_ontology_change_impact`
+- `publish_ontology_change`
+- `rollback_ontology_publication`
+- `list_tenant_snapshot_history`
 
 `create_ontology_change_draft` writes an immutable draft and its source excerpt
 snapshot. It validates verbatim evidence quotes and conflicts with the active
 ontology, but never approves, migrates, activates, or publishes a version.
+
+The review and publication tools require explicit `confirm=true`. Publication
+first builds all migrated tenant snapshots, then atomically switches the
+ontology and tenant pointers. The previous ontology version and tenant runs are
+retained for rollback and historical inspection.
+
+Impact analysis and snapshot history are read-only. The domain MCP refreshes its
+served ontology when the governance active pointer changes, so published or
+rolled-back semantics become visible without restarting the domain MCP.
 
 ## Start locally for Nexent
 

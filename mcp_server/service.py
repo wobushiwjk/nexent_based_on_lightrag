@@ -61,6 +61,7 @@ class DomainService:
     # ------------------------------------------------------------------
 
     def meta(self, tenant_id: str | None = None) -> ToolMeta:
+        self._refresh_ontology()
         return ToolMeta(
             ontology_version=self.ontology.version,
             schema_version=self.ontology.schema_version or "",
@@ -95,6 +96,7 @@ class DomainService:
     # ------------------------------------------------------------------
 
     def get_ontology(self) -> dict[str, Any]:
+        self._refresh_ontology()
         raw = self.repository.ontology_document
         raw_classes = raw.get("classes")
         raw_relations = raw.get("relations")
@@ -159,6 +161,12 @@ class DomainService:
             "constraints": constraints,
             "standards": standards,
         }
+
+    def _refresh_ontology(self) -> None:
+        refresh = getattr(self.repository, "refresh_active_ontology", None)
+        if callable(refresh):
+            refresh()
+            self.ontology = self.repository.ontology
 
     def get_equipment(
         self,

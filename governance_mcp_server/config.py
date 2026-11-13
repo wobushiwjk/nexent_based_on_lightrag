@@ -1,4 +1,4 @@
-"""Configuration for the read-only ontology governance MCP server."""
+"""Configuration for the ontology governance MCP server."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PACK = REPO_ROOT / "domain_packs" / "industrial_fault"
 DEFAULT_ONTOLOGY = DEFAULT_PACK / "ontology.yml"
 DEFAULT_ROOT = DEFAULT_PACK / "storage" / "governance"
+DEFAULT_DOMAIN_STORAGE = DEFAULT_PACK / "storage"
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,7 @@ class GovernanceServerConfig:
 
     governance_root: Path
     ontology_path: Path
+    domain_storage_root: Path
     server_name: str
     log_level: str
     host: str
@@ -28,6 +30,12 @@ class GovernanceServerConfig:
         root = _resolve(os.environ.get("ONTOLOGY_GOVERNANCE_ROOT", str(DEFAULT_ROOT)))
         ontology = _resolve(
             os.environ.get("ONTOLOGY_GOVERNANCE_SOURCE", str(DEFAULT_ONTOLOGY))
+        )
+        domain_storage_root = _resolve(
+            os.environ.get(
+                "ONTOLOGY_GOVERNANCE_DOMAIN_STORAGE",
+                str(DEFAULT_DOMAIN_STORAGE),
+            )
         )
         log_level = (
             os.environ.get("ONTOLOGY_GOVERNANCE_LOG_LEVEL", "INFO").strip().upper()
@@ -48,6 +56,7 @@ class GovernanceServerConfig:
         return cls(
             governance_root=root,
             ontology_path=ontology,
+            domain_storage_root=domain_storage_root,
             server_name=os.environ.get(
                 "ONTOLOGY_GOVERNANCE_SERVER_NAME",
                 "ontology-governance",
@@ -67,6 +76,7 @@ def _resolve(value: str | Path) -> Path:
 
 __all__ = [
     "DEFAULT_ONTOLOGY",
+    "DEFAULT_DOMAIN_STORAGE",
     "DEFAULT_PACK",
     "DEFAULT_ROOT",
     "GovernanceServerConfig",

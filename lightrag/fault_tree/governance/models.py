@@ -150,6 +150,15 @@ ReviewAction = Literal[
     "rollback",
 ]
 
+OntologyChangeStatus = Literal[
+    "draft",
+    "under_review",
+    "approved",
+    "rejected",
+    "published",
+    "rolled_back",
+]
+
 
 class ReviewEvent(GovernanceModel):
     """One immutable audit event attached to an ontology change set."""
@@ -167,6 +176,28 @@ class ReviewEvent(GovernanceModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
+class TenantMigrationRecord(GovernanceModel):
+    """One tenant snapshot switch performed by a publication."""
+
+    tenant_id: str = Field(min_length=1)
+    previous_run_id: str = Field(pattern=SAFE_ID_PATTERN)
+    new_run_id: str = Field(pattern=SAFE_ID_PATTERN)
+
+
+class OntologyPublicationRecord(GovernanceModel):
+    """Prepared or completed publication used for idempotent retry and rollback."""
+
+    change_id: str = Field(pattern=SAFE_ID_PATTERN)
+    ontology_version: str = Field(pattern=SAFE_ID_PATTERN)
+    schema_version: str = Field(min_length=1)
+    previous_ontology_version: str = Field(pattern=SAFE_ID_PATTERN)
+    previous_schema_version: str = Field(min_length=1)
+    prepared_at: datetime
+    prepared_by: str = Field(min_length=1)
+    status: Literal["prepared", "published", "rolled_back"] = "prepared"
+    tenants: list[TenantMigrationRecord] = Field(default_factory=list)
+
+
 __all__ = [
     "GOVERNANCE_SCHEMA_VERSION",
     "ActiveOntologyPointer",
@@ -174,9 +205,12 @@ __all__ = [
     "GovernanceModel",
     "OntologyChangeOperation",
     "OntologyChangeSet",
+    "OntologyChangeStatus",
+    "OntologyPublicationRecord",
     "OntologyStandardDraftRequest",
     "OntologyVersionManifest",
     "ReviewAction",
     "ReviewEvent",
     "StandardSourceManifest",
+    "TenantMigrationRecord",
 ]

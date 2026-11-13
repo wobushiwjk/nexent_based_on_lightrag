@@ -56,7 +56,13 @@
           "get_ontology_version",
           "list_ontology_changes",
           "get_ontology_change",
-          "create_ontology_change_draft"
+          "create_ontology_change_draft",
+          "submit_ontology_change_review",
+          "review_ontology_change",
+          "analyze_ontology_change_impact",
+          "publish_ontology_change",
+          "rollback_ontology_publication",
+          "list_tenant_snapshot_history"
         ]
       }
     ]
@@ -64,7 +70,12 @@
   "agent": {
     "name": "industrial_fault_agent",
     "display_name": "工业设备故障诊断助手",
-    "max_steps": 15,
+    "config": "nexent/config/agents.json",
+    "max_steps": 18,
+    "managed_agents": [
+      "evidence_review_agent",
+      "ontology_expert_agent"
+    ],
     "skills": [
       "fault-diagnosis",
       "evidence-verification",

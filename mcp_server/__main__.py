@@ -50,6 +50,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Tenant used when a tool receives an empty tenant_id.",
     )
     parser.add_argument(
+        "--governance-root",
+        help=(
+            "Ontology governance root; defaults to <storage-dir>/governance "
+            "when present."
+        ),
+    )
+    parser.add_argument(
         "--transport",
         choices=("stdio", "sse", "streamable-http"),
         default="stdio",
@@ -80,9 +87,7 @@ def main(argv: list[str] | None = None) -> None:
                 Path(item).expanduser().resolve() for item in args.bundles
             )
         if args.storage_dir:
-            overrides["storage_dir"] = (
-                Path(args.storage_dir).expanduser().resolve()
-            )
+            overrides["storage_dir"] = Path(args.storage_dir).expanduser().resolve()
         if args.default_tenant is not None:
             overrides["default_tenant"] = args.default_tenant.strip() or None
         if args.host:
@@ -105,6 +110,11 @@ def main(argv: list[str] | None = None) -> None:
                 config.pack_dir,
                 config.storage_dir,
                 default_tenant=config.default_tenant,
+                governance_root=(
+                    Path(args.governance_root).expanduser().resolve()
+                    if args.governance_root
+                    else None
+                ),
             )
         else:
             repository = DomainRepository.from_paths(

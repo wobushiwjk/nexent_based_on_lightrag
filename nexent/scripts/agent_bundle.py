@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CONFIG = REPO_ROOT / "nexent" / "config" / "agent.json"
+DEFAULT_CONFIG = REPO_ROOT / "nexent" / "config" / "agents.json"
 
 # Nexent resolves the imported agent id through a mapping, so any value works;
 # a constant keeps the bundle byte-comparable between runs.
@@ -69,6 +69,9 @@ class AgentSpec:
     greeting_message: str
     example_questions: tuple[str, ...]
     additional_mcp_server_names: tuple[str, ...] = ()
+    agent_id: int = SENTINEL_AGENT_ID
+    is_main_agent: bool = True
+    managed_agents: tuple[int, ...] = ()
     provide_run_summary: bool = True
     enabled: bool = True
     model_id: int | None = None
@@ -91,9 +94,47 @@ def load_agent_spec(config_path: Path = DEFAULT_CONFIG) -> AgentSpec:
         raise AgentBundleError(f"{config_path} must contain a JSON object")
 
     agent = data.get("agent")
+    if agent is None:
+        raw_agents = data.get("agents")
+        if isinstance(raw_agents, list) and raw_agents:
+            agent = raw_agents[0]
     if not isinstance(agent, dict):
-        raise AgentBundleError(f"{config_path} has no 'agent' object")
+        raise AgentBundleError(f"{config_path} has no 'agent' or main 'agents'")
 
+    return _agent_spec_from_data(data, agent, config_path)
+
+
+def load_agent_specs(
+    config_path: Path = DEFAULT_CONFIG,
+) -> tuple[AgentSpec, ...]:
+    """Load either the legacy single-Agent config or an ``agents`` list."""
+
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AgentBundleError(f"cannot read {config_path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise AgentBundleError(f"{config_path} must contain a JSON object")
+    raw_agents = data.get("agents")
+    if raw_agents is None:
+        agent = data.get("agent")
+        if not isinstance(agent, dict):
+            raise AgentBundleError(f"{config_path} has no 'agent' or 'agents'")
+        return (_agent_spec_from_data(data, agent, config_path),)
+    if not isinstance(raw_agents, list) or not raw_agents:
+        raise AgentBundleError(f"{config_path}.agents must be a non-empty list")
+    if any(not isinstance(item, dict) for item in raw_agents):
+        raise AgentBundleError(f"{config_path}.agents entries must be objects")
+    return tuple(
+        _agent_spec_from_data(data, agent, config_path) for agent in raw_agents
+    )
+
+
+def _agent_spec_from_data(
+    data: Mapping[str, Any],
+    agent: Mapping[str, Any],
+    config_path: Path,
+) -> AgentSpec:
     prompt_file = agent.get("prompt_file")
     if not isinstance(prompt_file, str) or not prompt_file:
         raise AgentBundleError("agent.prompt_file is required")
@@ -124,6 +165,7 @@ def load_agent_spec(config_path: Path = DEFAULT_CONFIG) -> AgentSpec:
             default_params=dict(params),
         )
 
+    use_knowledge_base = bool(agent.get("use_knowledge_base", True))
     return AgentSpec(
         name=_required_str(agent, "name", "agent"),
         display_name=_required_str(agent, "display_name", "agent"),
@@ -134,7 +176,7 @@ def load_agent_spec(config_path: Path = DEFAULT_CONFIG) -> AgentSpec:
         skill_names=_string_tuple(agent.get("skills"), "agent.skills"),
         mcp_server_name=_required_str(agent, "mcp_server_name", "agent"),
         mcp_tools=mcp_tools,
-        kb_tool=kb_tool,
+        kb_tool=kb_tool if use_knowledge_base else None,
         greeting_message=str(agent.get("greeting_message") or ""),
         example_questions=_string_tuple(
             agent.get("example_questions"), "agent.example_questions"
@@ -142,6 +184,12 @@ def load_agent_spec(config_path: Path = DEFAULT_CONFIG) -> AgentSpec:
         additional_mcp_server_names=_string_tuple(
             agent.get("additional_mcp_servers"),
             "agent.additional_mcp_servers",
+        ),
+        agent_id=int(agent.get("agent_id") or SENTINEL_AGENT_ID),
+        is_main_agent=bool(agent.get("is_main_agent", True)),
+        managed_agents=_int_tuple(
+            agent.get("managed_agents"),
+            "agent.managed_agents",
         ),
         provide_run_summary=bool(agent.get("provide_run_summary", True)),
         enabled=bool(agent.get("enabled", True)),
@@ -165,6 +213,16 @@ def _string_tuple(value: Any, owner: str) -> tuple[str, ...]:
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise AgentBundleError(f"{owner} must be a list of strings")
     return tuple(item for item in value if item)
+
+
+def _int_tuple(value: Any, owner: str) -> tuple[int, ...]:
+    if value is None:
+        return ()
+    if not isinstance(value, list) or any(
+        isinstance(item, bool) or not isinstance(item, int) for item in value
+    ):
+        raise AgentBundleError(f"{owner} must be a list of integers")
+    return tuple(value)
 
 
 def _catalog_index(
@@ -279,7 +337,106 @@ def build_agent_bundle(
     agent_id: int = SENTINEL_AGENT_ID,
 ) -> dict[str, Any]:
     """Build the ``ExportAndImportDataFormat`` body for ``POST /agent/import``."""
+    info = build_agent_info(
+        spec,
+        catalog,
+        kb_index_name=kb_index_name,
+        agent_id=agent_id,
+    )
+    mcp_info = _mcp_info(
+        spec,
+        mcp_server_url=mcp_server_url,
+        additional_mcp_server_urls=additional_mcp_server_urls,
+    )
+    return {
+        "agent_id": agent_id,
+        "agent_info": {str(agent_id): info},
+        "mcp_info": mcp_info,
+    }
+
+
+def build_agent_info(
+    spec: AgentSpec,
+    catalog: Sequence[Mapping[str, Any]],
+    *,
+    kb_index_name: str | None,
+    agent_id: int | None = None,
+) -> dict[str, Any]:
+    """Build one ``agent_info`` entry for a single or managed Agent."""
+
     tools = build_tool_configs(spec, catalog, kb_index_name=kb_index_name)
+    effective_id = spec.agent_id if agent_id is None else agent_id
+    return {
+        "agent_id": effective_id,
+        "tenant_id": None,
+        "name": spec.name,
+        "display_name": spec.display_name,
+        "description": spec.description,
+        "author": spec.author,
+        "max_steps": spec.max_steps,
+        "requested_output_tokens": None,
+        "is_main_agent": spec.is_main_agent,
+        "provide_run_summary": spec.provide_run_summary,
+        "allow_chat_metadata": False,
+        "enable_protocol_repair_retry": False,
+        "verification_config": None,
+        "context_policy": None,
+        "prompt": spec.prompt,
+        "enabled": spec.enabled,
+        "tools": tools,
+        "managed_agents": list(spec.managed_agents),
+        "model_ids": [spec.model_id] if spec.model_id is not None else [],
+        "model_names": [spec.model_name] if spec.model_name else [],
+        "business_logic_model_id": spec.business_logic_model_id,
+        "business_logic_model_name": spec.business_logic_model_name,
+        "skill_names": list(spec.skill_names),
+        "model_params_override": None,
+        "greeting_message": spec.greeting_message,
+        "example_questions": list(spec.example_questions),
+    }
+
+
+def build_multi_agent_bundle(
+    specs: Sequence[AgentSpec],
+    catalog: Sequence[Mapping[str, Any]],
+    *,
+    kb_index_name: str | None,
+    mcp_server_url: str,
+    additional_mcp_server_urls: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Build one Nexent bundle containing a main Agent and managed children."""
+
+    if not specs:
+        raise AgentBundleError("at least one Agent specification is required")
+    validate_agent_spec_graph(specs)
+    primary = specs[0]
+    infos = {
+        str(spec.agent_id): build_agent_info(
+            spec,
+            catalog,
+            kb_index_name=kb_index_name,
+        )
+        for spec in specs
+    }
+    bundle = {
+        "agent_id": primary.agent_id,
+        "agent_info": infos,
+        "mcp_info": _mcp_info(
+            primary,
+            mcp_server_url=mcp_server_url,
+            additional_mcp_server_urls=additional_mcp_server_urls,
+        ),
+    }
+    validate_multi_agent_bundle(bundle, specs)
+    return bundle
+
+
+def _mcp_info(
+    spec: AgentSpec,
+    *,
+    mcp_server_url: str,
+    additional_mcp_server_urls: Mapping[str, str] | None,
+) -> list[dict[str, str]]:
     additional_urls = dict(additional_mcp_server_urls or {})
     missing_urls = sorted(set(spec.additional_mcp_server_names) - set(additional_urls))
     if missing_urls:
@@ -294,51 +451,19 @@ def build_agent_bundle(
             "URLs were supplied for undeclared MCP servers: "
             + ", ".join(unexpected_urls)
         )
-    info = {
-        "agent_id": agent_id,
-        "tenant_id": None,
-        "name": spec.name,
-        "display_name": spec.display_name,
-        "description": spec.description,
-        "author": spec.author,
-        "max_steps": spec.max_steps,
-        "requested_output_tokens": None,
-        "is_main_agent": True,
-        "provide_run_summary": spec.provide_run_summary,
-        "allow_chat_metadata": False,
-        "enable_protocol_repair_retry": False,
-        "verification_config": None,
-        "context_policy": None,
-        "prompt": spec.prompt,
-        "enabled": spec.enabled,
-        "tools": tools,
-        "managed_agents": [],
-        "model_ids": [spec.model_id] if spec.model_id is not None else [],
-        "model_names": [spec.model_name] if spec.model_name else [],
-        "business_logic_model_id": spec.business_logic_model_id,
-        "business_logic_model_name": spec.business_logic_model_name,
-        "skill_names": list(spec.skill_names),
-        "model_params_override": None,
-        "greeting_message": spec.greeting_message,
-        "example_questions": list(spec.example_questions),
-    }
-    return {
-        "agent_id": agent_id,
-        "agent_info": {str(agent_id): info},
-        "mcp_info": [
+    return [
+        {
+            "mcp_server_name": spec.mcp_server_name,
+            "mcp_url": mcp_server_url,
+        },
+        *[
             {
-                "mcp_server_name": spec.mcp_server_name,
-                "mcp_url": mcp_server_url,
-            },
-            *[
-                {
-                    "mcp_server_name": name,
-                    "mcp_url": additional_urls[name],
-                }
-                for name in spec.additional_mcp_server_names
-            ],
+                "mcp_server_name": name,
+                "mcp_url": additional_urls[name],
+            }
+            for name in spec.additional_mcp_server_names
         ],
-    }
+    ]
 
 
 def import_payload(
@@ -421,3 +546,79 @@ def validate_bundle(bundle: Mapping[str, Any], spec: AgentSpec) -> None:
         raise AgentBundleError(
             f"bundle MCP servers {sorted(names)} != spec {sorted(expected_servers)}"
         )
+
+
+def validate_agent_spec_graph(specs: Sequence[AgentSpec]) -> None:
+    """Validate a main Agent and its managed child specifications."""
+
+    ids = [spec.agent_id for spec in specs]
+    names = [spec.name for spec in specs]
+    if len(set(ids)) != len(ids):
+        raise AgentBundleError("Agent ids must be unique")
+    if len(set(names)) != len(names):
+        raise AgentBundleError("Agent names must be unique")
+    mains = [spec for spec in specs if spec.is_main_agent]
+    if len(mains) != 1:
+        raise AgentBundleError("exactly one Agent must be the main Agent")
+    main = mains[0]
+    if main is not specs[0]:
+        raise AgentBundleError("the main Agent must be the bundle root")
+    expected_children = {spec.agent_id for spec in specs if spec is not main}
+    if set(main.managed_agents) != expected_children:
+        raise AgentBundleError(
+            "main Agent managed_agents must list every child Agent exactly once"
+        )
+    for child in specs:
+        if child is main:
+            continue
+        if child.managed_agents:
+            raise AgentBundleError(
+                f"child Agent {child.name!r} cannot manage other Agents"
+            )
+        if (
+            child.mcp_server_name != main.mcp_server_name
+            or child.additional_mcp_server_names != main.additional_mcp_server_names
+        ):
+            raise AgentBundleError(
+                f"child Agent {child.name!r} must use the same MCP servers"
+            )
+
+
+def validate_multi_agent_bundle(
+    bundle: Mapping[str, Any],
+    specs: Sequence[AgentSpec],
+) -> None:
+    """Validate every Agent entry and the persisted parent-child relation."""
+
+    validate_agent_spec_graph(specs)
+    infos = bundle.get("agent_info")
+    if not isinstance(infos, dict):
+        raise AgentBundleError("bundle.agent_info must be an object")
+    expected_ids = {str(spec.agent_id) for spec in specs}
+    if set(infos) != expected_ids:
+        raise AgentBundleError(
+            f"bundle Agent ids {sorted(infos)} != {sorted(expected_ids)}"
+        )
+    for spec in specs:
+        key = str(spec.agent_id)
+        info = infos[key]
+        if not isinstance(info, dict):
+            raise AgentBundleError(f"agent_info[{key!r}] must be an object")
+        if info.get("agent_id") != spec.agent_id:
+            raise AgentBundleError(
+                f"agent_info[{key!r}].agent_id does not match its key"
+            )
+        if info.get("is_main_agent") is not spec.is_main_agent:
+            raise AgentBundleError(
+                f"agent_info[{key!r}].is_main_agent does not match the spec"
+            )
+        if info.get("managed_agents") != list(spec.managed_agents):
+            raise AgentBundleError(
+                f"agent_info[{key!r}].managed_agents does not match the spec"
+            )
+        validate_bundle(
+            {"agent_info": {key: info}, "mcp_info": bundle.get("mcp_info")},
+            spec,
+        )
+    if bundle.get("agent_id") != specs[0].agent_id:
+        raise AgentBundleError("bundle.agent_id must identify the main Agent")

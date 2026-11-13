@@ -30,6 +30,7 @@ from pydantic import ValidationError
 from lightrag.fault_tree.governance.models import (
     ActiveOntologyPointer,
     OntologyChangeSet,
+    OntologyPublicationRecord,
     OntologyVersionManifest,
     ReviewEvent,
     StandardSourceManifest,
@@ -478,6 +479,40 @@ class OntologyChangeStore:
                 f"change source {change_id!r} size does not match its manifest"
             )
         return manifest, source_text
+
+    def write_publication_record(
+        self,
+        record: OntologyPublicationRecord,
+    ) -> None:
+        """Atomically persist publication state for retry and rollback."""
+
+        self.load_change_set(record.change_id)
+        path = self.changes_dir / record.change_id / "publication.json"
+        if path.is_symlink():
+            raise OntologyGovernanceError(
+                f"publication record must not be a symlink: {path}"
+            )
+        _atomic_write_bytes(path, _canonical_bytes(record))
+
+    def load_publication_record(
+        self,
+        change_id: str,
+    ) -> OntologyPublicationRecord | None:
+        """Load the publication record when one has been prepared."""
+
+        self.load_change_set(change_id)
+        path = self.changes_dir / change_id / "publication.json"
+        if not path.exists():
+            return None
+        if not path.is_file() or path.is_symlink():
+            raise OntologyGovernanceError(f"publication record is invalid: {path}")
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            return OntologyPublicationRecord.model_validate(payload)
+        except (OSError, json.JSONDecodeError, ValidationError) as exc:
+            raise OntologyGovernanceError(
+                f"cannot read publication record {change_id!r}: {exc}"
+            ) from exc
 
     def load_change_set(self, change_id: str) -> OntologyChangeSet:
         """Load one immutable change set by identifier."""

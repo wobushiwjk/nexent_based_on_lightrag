@@ -1,0 +1,126 @@
+{
+  "agents": [
+    {
+      "agent_id": 1001,
+      "name": "industrial_fault_agent",
+      "display_name": "工业设备故障诊断助手",
+      "description": "面向制造企业的工业设备认知主智能体，负责诊断、本体治理编排和最终答复。",
+      "author": "lightrag-domain-pack",
+      "max_steps": 18,
+      "prompt_file": "nexent/agent/system_prompt.md",
+      "is_main_agent": true,
+      "managed_agents": [1002, 1003],
+      "provide_run_summary": true,
+      "enabled": true,
+      "use_knowledge_base": true,
+      "mcp_server_name": "industrial-fault-domain",
+      "additional_mcp_servers": ["ontology-governance"],
+      "mcp_tools": [
+        "get_ontology",
+        "get_equipment",
+        "search_faults",
+        "get_fault_tree",
+        "trace_evidence",
+        "validate_fault_tree",
+        "get_ontology_governance_status",
+        "list_ontology_versions",
+        "get_ontology_version",
+        "list_ontology_changes",
+        "get_ontology_change",
+        "create_ontology_change_draft",
+        "submit_ontology_change_review",
+        "review_ontology_change",
+        "analyze_ontology_change_impact",
+        "publish_ontology_change",
+        "rollback_ontology_publication",
+        "list_tenant_snapshot_history"
+      ],
+      "skills": [
+        "fault-diagnosis",
+        "evidence-verification",
+        "ontology-change-draft"
+      ],
+      "greeting_message": "你好，我是工业设备故障诊断助手。我可以诊断设备故障、追溯逐字证据，并协助审核和发布本体变更。",
+      "example_questions": [
+        "P-101A 冷却水泵出口压力不足，可能的原因有哪些？请给出证据出处。",
+        "当前本体是哪个版本？有哪些历史版本？",
+        "根据这段标准节选生成本体 v0.2 的变更草案：条件监测系统应识别安装在旋转设备上的传感器。",
+        "分析 CHG-... 的影响，并告诉我需要审核哪些实例和故障树。"
+      ]
+    },
+    {
+      "agent_id": 1002,
+      "name": "evidence_review_agent",
+      "display_name": "证据复核 Agent",
+      "description": "复核故障诊断、故障树和本体草案中的逐字证据、引用方向、缺失中间事件和悬空对象。",
+      "author": "lightrag-domain-pack",
+      "max_steps": 10,
+      "prompt_file": "nexent/agent/evidence_review_prompt.md",
+      "is_main_agent": false,
+      "managed_agents": [],
+      "provide_run_summary": false,
+      "enabled": true,
+      "use_knowledge_base": false,
+      "mcp_server_name": "industrial-fault-domain",
+      "additional_mcp_servers": ["ontology-governance"],
+      "mcp_tools": [
+        "get_ontology",
+        "get_equipment",
+        "search_faults",
+        "get_fault_tree",
+        "trace_evidence",
+        "validate_fault_tree",
+        "get_ontology_governance_status",
+        "get_ontology_version",
+        "list_ontology_changes",
+        "get_ontology_change",
+        "analyze_ontology_change_impact"
+      ],
+      "skills": ["evidence-verification"],
+      "greeting_message": "",
+      "example_questions": []
+    },
+    {
+      "agent_id": 1003,
+      "name": "ontology_expert_agent",
+      "display_name": "本体专家 Agent",
+      "description": "解释本体 diff、检查标准候选、提出类和关系调整，并给出迁移和审核建议；不得批准或发布。",
+      "author": "lightrag-domain-pack",
+      "max_steps": 12,
+      "prompt_file": "nexent/agent/ontology_expert_prompt.md",
+      "is_main_agent": false,
+      "managed_agents": [],
+      "provide_run_summary": false,
+      "enabled": true,
+      "use_knowledge_base": false,
+      "mcp_server_name": "industrial-fault-domain",
+      "additional_mcp_servers": ["ontology-governance"],
+      "mcp_tools": [
+        "get_ontology",
+        "get_fault_tree",
+        "trace_evidence",
+        "validate_fault_tree",
+        "get_ontology_governance_status",
+        "list_ontology_versions",
+        "get_ontology_version",
+        "list_ontology_changes",
+        "get_ontology_change",
+        "create_ontology_change_draft",
+        "analyze_ontology_change_impact",
+        "list_tenant_snapshot_history"
+      ],
+      "skills": ["ontology-change-draft"],
+      "greeting_message": "",
+      "example_questions": []
+    }
+  ],
+  "knowledge_base_tool": {
+    "class_name": "KnowledgeBaseSearchTool",
+    "name": "knowledge_base_search",
+    "output_type": "string",
+    "params": {
+      "top_k": 5,
+      "search_mode": "hybrid"
+    }
+  }
+}

@@ -50,9 +50,11 @@ from nexent.scripts.agent_bundle import (
     AgentBundleError,
     AgentSpec,
     build_agent_bundle,
+    build_multi_agent_bundle,
     import_payload,
-    load_agent_spec,
+    load_agent_specs,
     validate_bundle,
+    validate_multi_agent_bundle,
 )
 from nexent.scripts.nexent_client import (
     DEFAULT_CONFIG_URL,
@@ -64,7 +66,7 @@ from nexent.scripts.nexent_client import (
 from governance_mcp_server.bootstrap import bootstrap_ontology_governance
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_AGENT_CONFIG = REPO_ROOT / "nexent" / "config" / "agent.json"
+DEFAULT_AGENT_CONFIG = REPO_ROOT / "nexent" / "config" / "agents.json"
 DEFAULT_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "mcp.json"
 DEFAULT_GOVERNANCE_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "governance_mcp.json"
 DEFAULT_KB_CONFIG = REPO_ROOT / "nexent" / "config" / "knowledge_base.json"
@@ -85,6 +87,12 @@ GOVERNANCE_TOOLS = frozenset(
         "list_ontology_changes",
         "get_ontology_change",
         "create_ontology_change_draft",
+        "submit_ontology_change_review",
+        "review_ontology_change",
+        "analyze_ontology_change_impact",
+        "publish_ontology_change",
+        "rollback_ontology_publication",
+        "list_tenant_snapshot_history",
     }
 )
 
@@ -100,6 +108,17 @@ FAILED_STATUSES = {"PROCESS_FAILED", "FORWARD_FAILED", "FAILED"}
 
 class ImportStepError(RuntimeError):
     """One import step cannot proceed; the report records it and stops."""
+
+
+def _as_specs(
+    specs: AgentSpec | Sequence[AgentSpec],
+) -> tuple[AgentSpec, ...]:
+    if isinstance(specs, AgentSpec):
+        return (specs,)
+    values = tuple(specs)
+    if not values:
+        raise ImportStepError("at least one Agent specification is required")
+    return values
 
 
 @dataclass(frozen=True)
@@ -320,21 +339,30 @@ def step_scan_tools(client: NexentClient, *, dry_run: bool) -> dict[str, Any]:
 
 def step_catalog(
     client: NexentClient,
-    spec: AgentSpec,
+    specs: AgentSpec | Sequence[AgentSpec],
     *,
     dry_run: bool,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Return the live catalog and a coverage report for the agent's tools."""
+    specs = _as_specs(specs)
     catalog = client.list_tools()
     present = {
         (tool.get("name"), tool.get("source"))
         for tool in catalog
         if isinstance(tool, dict)
     }
-    missing_mcp = [name for name in spec.mcp_tools if (name, "mcp") not in present]
-    missing_local = []
-    if spec.kb_tool is not None and (spec.kb_tool.name, "local") not in present:
-        missing_local.append(spec.kb_tool.name)
+    missing_mcp = [
+        name
+        for name in sorted({tool for spec in specs for tool in spec.mcp_tools})
+        if (name, "mcp") not in present
+    ]
+    missing_local = sorted(
+        {
+            spec.kb_tool.name
+            for spec in specs
+            if spec.kb_tool is not None and (spec.kb_tool.name, "local") not in present
+        }
+    )
     details: dict[str, Any] = {
         "tool_count": len(catalog),
         "missing_mcp_tools": missing_mcp,
@@ -595,7 +623,7 @@ def _wait_for_ingestion(
 
 def step_agent(
     client: NexentClient,
-    spec: AgentSpec,
+    specs: AgentSpec | Sequence[AgentSpec],
     catalog: Sequence[Mapping[str, Any]],
     *,
     kb_index_name: str | None,
@@ -606,49 +634,79 @@ def step_agent(
     replace: bool,
     dry_run: bool,
 ) -> dict[str, Any]:
-    """Import the agent bundle, replacing the previous agent of that name."""
-    llm = client.resolve_llm_model(spec.model_name)
-    resolved = dataclasses.replace(
-        spec,
-        model_id=int(llm["model_id"]),
-        model_name=str(llm.get("display_name") or llm.get("model_name") or ""),
-        business_logic_model_id=int(llm["model_id"]),
-        business_logic_model_name=str(
-            llm.get("display_name") or llm.get("model_name") or ""
-        ),
-    )
-
+    """Import the main Agent and all managed child Agents."""
+    specs = _as_specs(specs)
+    resolved_specs: list[AgentSpec] = []
+    for spec in specs:
+        llm = client.resolve_llm_model(spec.model_name)
+        resolved_specs.append(
+            dataclasses.replace(
+                spec,
+                model_id=int(llm["model_id"]),
+                model_name=str(llm.get("display_name") or llm.get("model_name") or ""),
+                business_logic_model_id=int(llm["model_id"]),
+                business_logic_model_name=str(
+                    llm.get("display_name") or llm.get("model_name") or ""
+                ),
+            )
+        )
+    primary = resolved_specs[0]
     details: dict[str, Any] = {
-        "name": spec.name,
-        "model": resolved.model_name,
-        "model_id": resolved.model_id,
+        "name": primary.name,
+        "model": primary.model_name,
+        "model_id": primary.model_id,
+        "agents": [
+            {
+                "name": spec.name,
+                "agent_id": spec.agent_id,
+                "is_main_agent": spec.is_main_agent,
+                "managed_agents": list(spec.managed_agents),
+                "model": spec.model_name,
+                "model_id": spec.model_id,
+            }
+            for spec in resolved_specs
+        ],
     }
-    existing = client.get_agent_by_name(spec.name)
-    if existing is not None:
-        details["existing_agent_id"] = existing.get("agent_id")
-        details["existing_version"] = existing.get("latest_version_no")
+    actions: list[str] = []
+    # Delete children before their manager so no dangling relation remains.
+    for spec in reversed(resolved_specs):
+        existing = client.get_agent_by_name(spec.name)
+        if existing is None:
+            actions.append(f"{spec.name}:{'would_create' if dry_run else 'created'}")
+            continue
         if not replace:
             raise ImportStepError(
-                f"agent {spec.name!r} already exists (id={existing.get('agent_id')}); "
-                "pass --replace-agent to delete and re-import it"
+                f"agent {spec.name!r} already exists "
+                f"(id={existing.get('agent_id')}); pass --replace-agent to "
+                "delete and re-import the Agent graph"
             )
-        details["action"] = "would_replace" if dry_run else "replaced"
+        actions.append(f"{spec.name}:{'would_replace' if dry_run else 'replaced'}")
         if not dry_run:
             client.delete_agent(int(existing["agent_id"]))
-    else:
-        details["action"] = "would_create" if dry_run else "created"
+    details["action"] = ",".join(actions)
 
     if dry_run:
         return details
 
-    bundle = build_agent_bundle(
-        resolved,
-        catalog,
-        kb_index_name=kb_index_name,
-        mcp_server_url=mcp_url,
-        additional_mcp_server_urls=additional_mcp_server_urls,
-    )
-    validate_bundle(bundle, resolved)
+    if len(resolved_specs) == 1:
+        bundle = build_agent_bundle(
+            primary,
+            catalog,
+            kb_index_name=kb_index_name,
+            mcp_server_url=mcp_url,
+            additional_mcp_server_urls=additional_mcp_server_urls,
+            agent_id=primary.agent_id,
+        )
+        validate_bundle(bundle, primary)
+    else:
+        bundle = build_multi_agent_bundle(
+            resolved_specs,
+            catalog,
+            kb_index_name=kb_index_name,
+            mcp_server_url=mcp_url,
+            additional_mcp_server_urls=additional_mcp_server_urls,
+        )
+        validate_multi_agent_bundle(bundle, resolved_specs)
     payload = import_payload(
         bundle,
         skills=skills_payload,
@@ -660,29 +718,66 @@ def step_agent(
     return details
 
 
-def step_verify(client: NexentClient, spec: AgentSpec) -> dict[str, Any]:
-    """Confirm the imported agent is published and its tools stay catalogued."""
-    found = client.get_agent_by_name(spec.name)
-    if found is None:
-        raise ImportStepError(f"agent {spec.name!r} is missing after import")
-    details: dict[str, Any] = {
-        "agent_id": found.get("agent_id"),
-        "latest_version_no": found.get("latest_version_no"),
-    }
-    if not found.get("latest_version_no"):
-        raise ImportStepError(
-            "agent was imported but has no published version; the northbound "
-            "chat API only sees published agents"
-        )
+def step_verify(
+    client: NexentClient,
+    specs: AgentSpec | Sequence[AgentSpec],
+) -> dict[str, Any]:
+    """Confirm every Agent is published, scoped, and linked to its manager."""
+    specs = _as_specs(specs)
+    found_agents: dict[str, dict[str, Any]] = {}
+    for spec in specs:
+        found = client.get_agent_by_name(spec.name)
+        if found is None:
+            raise ImportStepError(f"agent {spec.name!r} is missing after import")
+        if not found.get("latest_version_no"):
+            raise ImportStepError(f"agent {spec.name!r} has no published version")
+        found_agents[spec.name] = found
+
     present = {
         (tool.get("name"), tool.get("source"))
         for tool in client.list_tools()
         if isinstance(tool, dict)
     }
-    missing = [name for name in spec.mcp_tools if (name, "mcp") not in present]
+    missing = [
+        name
+        for name in sorted({tool for spec in specs for tool in spec.mcp_tools})
+        if (name, "mcp") not in present
+    ]
     if missing:
         raise ImportStepError(f"MCP tools disappeared after import: {missing}")
-    details["mcp_tools"] = list(spec.mcp_tools)
+    main = specs[0]
+    main_found = found_agents[main.name]
+    relation = client.get_agent_call_relationship(int(main_found["agent_id"]))
+    child_ids = {
+        str(found_agents[spec.name]["agent_id"])
+        for spec in specs
+        if not spec.is_main_agent
+    }
+    actual_child_ids = {
+        str(item.get("agent_id"))
+        for item in relation.get("sub_agents") or []
+        if isinstance(item, dict)
+    }
+    if actual_child_ids != child_ids:
+        raise ImportStepError(
+            "imported Agent graph does not match the declared relationships: "
+            f"expected {sorted(child_ids)}, got {sorted(actual_child_ids)}"
+        )
+    details: dict[str, Any] = {
+        "agent_id": main_found.get("agent_id"),
+        "latest_version_no": main_found.get("latest_version_no"),
+        "agents": [
+            {
+                "name": spec.name,
+                "agent_id": found_agents[spec.name].get("agent_id"),
+                "latest_version_no": found_agents[spec.name].get("latest_version_no"),
+                "is_main_agent": spec.is_main_agent,
+            }
+            for spec in specs
+        ],
+        "sub_agent_ids": sorted(child_ids),
+    }
+    details["mcp_tools"] = sorted({tool for spec in specs for tool in spec.mcp_tools})
     return details
 
 
@@ -767,16 +862,19 @@ def run_import(
 
         out("[4/8] tool catalog")
         report["steps"]["scan"] = step_scan_tools(active, dry_run=options.dry_run)
-        spec = load_agent_spec(DEFAULT_AGENT_CONFIG)
+        specs = load_agent_specs(DEFAULT_AGENT_CONFIG)
         if options.skip_governance_mcp:
-            spec = dataclasses.replace(
-                spec,
-                mcp_tools=tuple(
-                    name for name in spec.mcp_tools if name not in GOVERNANCE_TOOLS
-                ),
-                additional_mcp_server_names=(),
+            specs = tuple(
+                dataclasses.replace(
+                    spec,
+                    mcp_tools=tuple(
+                        name for name in spec.mcp_tools if name not in GOVERNANCE_TOOLS
+                    ),
+                    additional_mcp_server_names=(),
+                )
+                for spec in specs
             )
-        catalog, coverage = step_catalog(active, spec, dry_run=options.dry_run)
+        catalog, coverage = step_catalog(active, specs, dry_run=options.dry_run)
         report["steps"]["catalog"] = coverage
         out(f"      {coverage['action']} ({coverage['tool_count']} tools)")
 
@@ -813,7 +911,7 @@ def run_import(
         out("[7/8] agent import")
         report["steps"]["agent"] = step_agent(
             active,
-            spec,
+            specs,
             catalog,
             kb_index_name=kb_index_name,
             mcp_url=server_url,
@@ -832,7 +930,7 @@ def run_import(
             report["steps"]["verify"] = {"action": "skipped (dry run)"}
             out("      skipped")
         else:
-            report["steps"]["verify"] = step_verify(active, spec)
+            report["steps"]["verify"] = step_verify(active, specs)
             out(
                 "      agent "
                 f"{report['steps']['verify']['agent_id']} "

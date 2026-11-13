@@ -8,15 +8,19 @@ import dataclasses
 import pytest
 
 from nexent.scripts.agent_bundle import (
+    DEFAULT_CONFIG,
     SENTINEL_AGENT_ID,
     AgentBundleError,
     AgentSpec,
     KnowledgeBaseToolSpec,
     build_agent_bundle,
+    build_multi_agent_bundle,
     build_tool_configs,
     import_payload,
     load_agent_spec,
+    load_agent_specs,
     validate_bundle,
+    validate_multi_agent_bundle,
 )
 
 MCP_TOOLS = (
@@ -35,6 +39,12 @@ GOVERNANCE_TOOLS = (
     "list_ontology_changes",
     "get_ontology_change",
     "create_ontology_change_draft",
+    "submit_ontology_change_review",
+    "review_ontology_change",
+    "analyze_ontology_change_impact",
+    "publish_ontology_change",
+    "rollback_ontology_publication",
+    "list_tenant_snapshot_history",
 )
 
 KB_PARAMS = ["top_k", "index_names", "search_mode", "rerank"]
@@ -111,11 +121,14 @@ def test_real_config_is_valid():
     assert loaded.name == "industrial_fault_agent"
     assert loaded.mcp_tools == MCP_TOOLS + GOVERNANCE_TOOLS
     assert loaded.additional_mcp_server_names == ("ontology-governance",)
+    assert loaded.agent_id == 1001
+    assert loaded.is_main_agent is True
+    assert loaded.managed_agents == (1002, 1003)
     assert len(loaded.skill_names) == 3
     assert loaded.kb_tool is not None
     assert loaded.kb_tool.class_name == "KnowledgeBaseSearchTool"
     assert loaded.prompt.strip()
-    assert loaded.max_steps == 15
+    assert loaded.max_steps == 18
 
 
 def test_mcp_tools_get_empty_params_and_name_as_class_name():
@@ -250,6 +263,80 @@ def test_additional_mcp_server_requires_url():
         )
 
     assert "no URL" in str(info.value)
+
+
+def test_multi_agent_bundle_contains_main_and_two_managed_children():
+    main = dataclasses.replace(
+        spec(),
+        agent_id=1001,
+        managed_agents=(1002, 1003),
+    )
+    evidence = dataclasses.replace(
+        spec(),
+        agent_id=1002,
+        name="evidence_review_agent",
+        display_name="Evidence reviewer",
+        is_main_agent=False,
+        managed_agents=(),
+        kb_tool=None,
+        skill_names=("evidence-verification",),
+        mcp_tools=(
+            "get_equipment",
+            "get_fault_tree",
+            "trace_evidence",
+            "validate_fault_tree",
+        ),
+    )
+    expert = dataclasses.replace(
+        spec(),
+        agent_id=1003,
+        name="ontology_expert_agent",
+        display_name="Ontology expert",
+        is_main_agent=False,
+        managed_agents=(),
+        kb_tool=None,
+        skill_names=("ontology-change-draft",),
+        mcp_tools=(
+            "get_ontology",
+            "trace_evidence",
+            "validate_fault_tree",
+        ),
+    )
+    specs = (main, evidence, expert)
+
+    bundle = build_multi_agent_bundle(
+        specs,
+        catalog(),
+        kb_index_name="kb-index",
+        mcp_server_url="http://domain",
+    )
+
+    assert set(bundle["agent_info"]) == {"1001", "1002", "1003"}
+    assert bundle["agent_id"] == 1001
+    assert bundle["agent_info"]["1001"]["managed_agents"] == [1002, 1003]
+    assert bundle["agent_info"]["1002"]["is_main_agent"] is False
+    assert bundle["agent_info"]["1003"]["managed_agents"] == []
+    validate_multi_agent_bundle(bundle, specs)
+
+
+def test_real_multi_agent_config_has_expected_graph():
+    specs = load_agent_specs(DEFAULT_CONFIG)
+    assert [spec.agent_id for spec in specs] == [1001, 1002, 1003]
+    assert [spec.is_main_agent for spec in specs] == [True, False, False]
+    assert specs[0].managed_agents == (1002, 1003)
+    assert specs[1].managed_agents == ()
+    assert specs[2].managed_agents == ()
+
+    bundle = build_multi_agent_bundle(
+        specs,
+        catalog(),
+        kb_index_name="kb-index",
+        mcp_server_url="http://domain",
+        additional_mcp_server_urls={"ontology-governance": "http://governance"},
+    )
+    assert bundle["agent_info"]["1001"]["managed_agents"] == [1002, 1003]
+    assert bundle["agent_info"]["1002"]["is_main_agent"] is False
+    assert bundle["agent_info"]["1003"]["is_main_agent"] is False
 
 
 def test_validate_bundle_rejects_mcp_params():

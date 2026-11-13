@@ -1,4 +1,4 @@
-"""Command-line entry point for the read-only ontology governance MCP server."""
+"""Command-line entry point for the ontology governance MCP server."""
 
 from __future__ import annotations
 
@@ -24,6 +24,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--root", dest="governance_root")
     parser.add_argument("--ontology", dest="ontology_path")
+    parser.add_argument(
+        "--domain-storage",
+        help="Tenant runtime storage root used for impact and migration.",
+    )
     parser.add_argument(
         "--bootstrap-if-empty",
         action="store_true",
@@ -55,6 +59,10 @@ def main(argv: list[str] | None = None) -> None:
             )
         if args.ontology_path:
             overrides["ontology_path"] = Path(args.ontology_path).expanduser().resolve()
+        if args.domain_storage:
+            overrides["domain_storage_root"] = (
+                Path(args.domain_storage).expanduser().resolve()
+            )
         if args.host:
             overrides["host"] = args.host
         if args.port is not None:
@@ -79,7 +87,10 @@ def main(argv: list[str] | None = None) -> None:
                     "bootstrapped ontology version %s",
                     installed.ontology_version,
                 )
-        service = GovernanceService(config.governance_root)
+        service = GovernanceService(
+            config.governance_root,
+            domain_storage_root=config.domain_storage_root,
+        )
         server = build_server(
             service,
             name=config.server_name,

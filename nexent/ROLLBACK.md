@@ -23,7 +23,7 @@
 
 ### 1. 删除 Agent
 
-Web UI：智能体管理 → `industrial_fault_agent` → 删除。
+Web UI：智能体管理 → 删除 `industrial_fault_agent`、`evidence_review_agent` 和 `ontology_expert_agent`。先删除子 Agent 的绑定关系，或直接删除主 Agent 后再删除两个子 Agent。
 
 接口（需要登录后的 JWT）：
 

@@ -26,6 +26,7 @@ from lightrag.fault_tree.domain_validation import (
 )
 from lightrag.fault_tree.evidence_store import EvidenceStore
 from lightrag.fault_tree.ontology import OntologyRegistry
+from lightrag.fault_tree.governance import OntologyGovernanceError, OntologyVersionStore
 from mcp_server.errors import DomainError, DomainRepositoryError, NOT_FOUND
 from mcp_server.repository import TenantIndex, _build_index
 
@@ -65,9 +66,7 @@ class SqliteEvidenceMapping(Mapping[str, Evidence]):
         return default if item is None else item
 
 
-class SqliteTargetMapping(
-    Mapping[tuple[str, str], tuple[str, ...]]
-):
+class SqliteTargetMapping(Mapping[tuple[str, str], tuple[str, ...]]):
     """Read-only target index backed by the SQLite lookup index."""
 
     def __init__(self, store: EvidenceStore, tenant_id: str) -> None:
@@ -76,9 +75,7 @@ class SqliteTargetMapping(
 
     def __getitem__(self, key: tuple[str, str]) -> tuple[str, ...]:
         target_type, target_id = key
-        ids = self._store.ids_for_target(
-            self._tenant_id, target_type, target_id
-        )
+        ids = self._store.ids_for_target(self._tenant_id, target_type, target_id)
         if not ids:
             raise KeyError(key)
         return ids
@@ -109,19 +106,38 @@ class DomainStorageRepository:
         storage_dir: str | Path,
         *,
         default_tenant: str | None = None,
+        governance_root: str | Path | None = None,
     ) -> None:
         self.pack_dir = Path(pack_dir).resolve()
         self.storage_dir = Path(storage_dir).resolve()
+        governance_root = (
+            Path(governance_root).resolve()
+            if governance_root is not None
+            else self.storage_dir / "governance"
+        )
         ontology_path = self.pack_dir / "ontology.yml"
-        if not ontology_path.is_file():
-            raise DomainRepositoryError(
-                f"ontology profile not found at {ontology_path}"
-            )
         try:
-            self.ontology = OntologyRegistry.from_file(ontology_path)
-            raw_ontology = yaml.safe_load(
-                ontology_path.read_text(encoding="utf-8")
-            )
+            if (governance_root / "active.json").is_file():
+                governance = OntologyVersionStore(governance_root)
+                active = governance.load_active()
+                ontology_path = active.path.parent / "ontology.yml"
+                raw_ontology = active.document()
+                self.ontology = OntologyRegistry.from_file(ontology_path)
+                self.governance_root = governance_root
+                self.active_governance_version = active.manifest.ontology_version
+            else:
+                if not ontology_path.is_file():
+                    raise DomainRepositoryError(
+                        f"ontology profile not found at {ontology_path}"
+                    )
+                self.ontology = OntologyRegistry.from_file(ontology_path)
+                raw_ontology = yaml.safe_load(ontology_path.read_text(encoding="utf-8"))
+                self.governance_root = None
+                self.active_governance_version = None
+        except OntologyGovernanceError as exc:
+            raise DomainRepositoryError(
+                f"cannot load active governance ontology: {exc}"
+            ) from exc
         except (OSError, ValueError, yaml.YAMLError) as exc:
             raise DomainRepositoryError(
                 f"cannot load ontology profile {ontology_path}: {exc}"
@@ -154,8 +170,7 @@ class DomainStorageRepository:
                     )
                 if bundle.tenant_id in indexes:
                     raise DomainRepositoryError(
-                        f"duplicate runtime bundle for tenant "
-                        f"{bundle.tenant_id!r}"
+                        f"duplicate runtime bundle for tenant {bundle.tenant_id!r}"
                     )
                 db_path = bundle_path.parent / "evidence.sqlite3"
                 if not db_path.is_file():
@@ -168,9 +183,7 @@ class DomainStorageRepository:
                 indexes[bundle.tenant_id] = _build_index(
                     bundle,
                     evidence=SqliteEvidenceMapping(store, bundle.tenant_id),
-                    evidence_by_target=SqliteTargetMapping(
-                        store, bundle.tenant_id
-                    ),
+                    evidence_by_target=SqliteTargetMapping(store, bundle.tenant_id),
                 )
         except Exception:
             for store in stores.values():
@@ -188,6 +201,25 @@ class DomainStorageRepository:
         if default_tenant is None and len(indexes) == 1:
             default_tenant = next(iter(indexes))
         self.default_tenant = default_tenant
+
+    def refresh_active_ontology(self) -> bool:
+        """Refresh the served ontology from the active governance pointer."""
+
+        if self.governance_root is None:
+            return False
+        governance = OntologyVersionStore(self.governance_root)
+        if not governance.active_path.is_file():
+            return False
+        active = governance.load_active()
+        if active.manifest.ontology_version == self.active_governance_version:
+            return False
+        ontology_path = active.path.parent / "ontology.yml"
+        ontology = OntologyRegistry.from_file(ontology_path)
+        raw = active.document()
+        self.ontology = ontology
+        self.ontology_document = raw
+        self.active_governance_version = active.manifest.ontology_version
+        return True
 
     def _check_bundle(
         self,
@@ -209,8 +241,7 @@ class DomainStorageRepository:
             errors = errors_only(issues)
             if errors:
                 summary = "; ".join(
-                    f"{issue.code} [{issue.target_id or '-'}]: "
-                    f"{issue.message}"
+                    f"{issue.code} [{issue.target_id or '-'}]: {issue.message}"
                     for issue in errors[:5]
                 )
                 raise DomainRepositoryError(
@@ -218,10 +249,7 @@ class DomainStorageRepository:
                     f"validation: {summary}",
                     issues=issues,
                 )
-        if (
-            bundle.ontology_version
-            and bundle.ontology_version != self.ontology.version
-        ):
+        if bundle.ontology_version and bundle.ontology_version != self.ontology.version:
             logger.warning(
                 "runtime bundle %s uses ontology %s, server has %s",
                 bundle.tenant_id,
@@ -236,11 +264,13 @@ class DomainStorageRepository:
         storage_dir: str | Path,
         *,
         default_tenant: str | None = None,
+        governance_root: str | Path | None = None,
     ) -> "DomainStorageRepository":
         return cls(
             pack_dir,
             storage_dir,
             default_tenant=default_tenant,
+            governance_root=governance_root,
         )
 
     @property

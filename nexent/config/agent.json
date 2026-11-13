@@ -24,7 +24,13 @@
       "get_ontology_version",
       "list_ontology_changes",
       "get_ontology_change",
-      "create_ontology_change_draft"
+      "create_ontology_change_draft",
+      "submit_ontology_change_review",
+      "review_ontology_change",
+      "analyze_ontology_change_impact",
+      "publish_ontology_change",
+      "rollback_ontology_publication",
+      "list_tenant_snapshot_history"
     ],
     "skills": [
       "fault-diagnosis",
@@ -38,6 +44,8 @@
       "P-101A 的巡检记录和维修记录分别支撑了哪些结论？",
       "当前本体是哪个版本？有哪些历史版本？",
       "根据下面这段标准节选生成本体 v0.2 的变更草案：<粘贴标准节选>",
+      "分析 CHG-... 的影响，提交审核，并告诉我会影响哪些实例和故障树。",
+      "我确认批准 CHG-...，然后先做迁移 dry-run，不要直接发布。",
       "现场手册里没有记录的新故障模式，帮我起草一条本体变更建议。"
     ]
   },

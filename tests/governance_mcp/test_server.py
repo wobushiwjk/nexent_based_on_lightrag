@@ -27,6 +27,20 @@ TOOL_NAMES = {
     "list_ontology_changes",
     "get_ontology_change",
     "create_ontology_change_draft",
+    "submit_ontology_change_review",
+    "review_ontology_change",
+    "analyze_ontology_change_impact",
+    "publish_ontology_change",
+    "rollback_ontology_publication",
+    "list_tenant_snapshot_history",
+}
+
+MUTATING_TOOLS = {
+    "create_ontology_change_draft",
+    "submit_ontology_change_review",
+    "review_ontology_change",
+    "publish_ontology_change",
+    "rollback_ontology_publication",
 }
 
 
@@ -53,9 +67,7 @@ async def test_every_tool_is_registered_read_only(governance_root: Path) -> None
     assert {tool.name for tool in tools} == TOOL_NAMES
     for tool in tools:
         assert tool.annotations is not None
-        assert tool.annotations.readOnlyHint is (
-            tool.name != "create_ontology_change_draft"
-        )
+        assert tool.annotations.readOnlyHint is (tool.name not in MUTATING_TOOLS)
         assert tool.annotations.destructiveHint is False
         assert tool.annotations.idempotentHint is True
         assert tool.annotations.openWorldHint is False
@@ -197,6 +209,95 @@ async def test_invalid_draft_payload_is_invalid_argument(
     assert invalid["ok"] is False
     assert invalid["error"]["code"] == "invalid_argument"
     assert "evidence" in str(invalid["error"]["details"])
+
+
+async def test_review_publish_and_rollback_workflow(
+    governance_root: Path,
+    tmp_path: Path,
+) -> None:
+    service = GovernanceService(
+        governance_root,
+        domain_storage_root=tmp_path / "domain-storage",
+    )
+    server = build_server(service)
+    source = "Condition monitoring systems shall identify sensors."
+    created, _ = await _call(
+        server,
+        "create_ontology_change_draft",
+        {
+            "change_id": "CHG-LIFECYCLE",
+            "proposed_version": "industrial-fault-v0.2",
+            "author": "engineer",
+            "rationale": "Add Sensor.",
+            "source_name": "standard",
+            "source_text": source,
+            "operations": [
+                {
+                    "kind": "class",
+                    "action": "add",
+                    "code": "Sensor",
+                    "after": {"parent": "Asset"},
+                    "evidence": [{"quote": source, "source_name": "standard"}],
+                }
+            ],
+        },
+    )
+    assert created["ok"] is True
+
+    submitted, _ = await _call(
+        server,
+        "submit_ontology_change_review",
+        {"change_id": "CHG-LIFECYCLE", "actor": "engineer"},
+    )
+    approved, _ = await _call(
+        server,
+        "review_ontology_change",
+        {
+            "change_id": "CHG-LIFECYCLE",
+            "decision": "approve",
+            "actor": "reviewer",
+            "reason": "accepted",
+            "confirm": True,
+        },
+    )
+    impact, _ = await _call(
+        server,
+        "analyze_ontology_change_impact",
+        {"change_id": "CHG-LIFECYCLE"},
+    )
+    dry_run, _ = await _call(
+        server,
+        "publish_ontology_change",
+        {"change_id": "CHG-LIFECYCLE", "actor": "reviewer"},
+    )
+    published, _ = await _call(
+        server,
+        "publish_ontology_change",
+        {
+            "change_id": "CHG-LIFECYCLE",
+            "actor": "reviewer",
+            "dry_run": False,
+            "confirm": True,
+        },
+    )
+    rolled_back, _ = await _call(
+        server,
+        "rollback_ontology_publication",
+        {
+            "change_id": "CHG-LIFECYCLE",
+            "actor": "reviewer",
+            "reason": "verification",
+            "confirm": True,
+        },
+    )
+
+    assert submitted["data"]["status"] == "under_review"
+    assert approved["data"]["status"] == "approved"
+    assert impact["data"]["applied"] is False
+    assert dry_run["data"]["status"] == "dry_run"
+    assert published["data"]["status"] == "published"
+    assert rolled_back["data"]["status"] == "rolled_back"
+    assert service.versions.read_active().active_version == "industrial-fault-v0.1"
 
 
 async def test_uninitialized_store_is_explicit(tmp_path: Path) -> None:

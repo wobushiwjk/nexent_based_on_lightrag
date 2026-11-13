@@ -155,6 +155,18 @@ def test_get_agent_by_name_returns_none_on_404():
     }
 
 
+def test_get_agent_call_relationship_uses_agent_route():
+    payload = {
+        "agent_id": "7",
+        "sub_agents": [{"agent_id": "8"}, {"agent_id": "9"}],
+    }
+    transport = ScriptedTransport(json_response(payload))
+    client = NexentClient(transport=transport)
+
+    assert client.get_agent_call_relationship(7) == payload
+    assert transport.calls[0]["url"].endswith("/agent/call_relationship/7")
+
+
 def test_upload_files_propagates_http_errors(tmp_path):
     document = tmp_path / "policy.md"
     document.write_text("# policy\n", encoding="utf-8")
@@ -209,8 +221,16 @@ def test_resolve_embedding_model_prefers_display_name():
         json_response(
             {
                 "data": [
-                    {"model_id": 1, "display_name": "bge-m3", "model_type": "embedding"},
-                    {"model_id": 2, "display_name": "text-embedding-3", "model_type": "embedding"},
+                    {
+                        "model_id": 1,
+                        "display_name": "bge-m3",
+                        "model_type": "embedding",
+                    },
+                    {
+                        "model_id": 2,
+                        "display_name": "text-embedding-3",
+                        "model_type": "embedding",
+                    },
                     {"model_id": 3, "display_name": "qwen", "model_type": "llm"},
                 ]
             }
@@ -276,9 +296,7 @@ def test_stream_events_defaults_to_the_streaming_method(monkeypatch):
     client = NexentClient("http://nexent:5010")
     client.jwt = "jwt-token"
 
-    events = list(
-        client.stream_events("POST", "/nb/v1/chat/run", json_body={"q": 1})
-    )
+    events = list(client.stream_events("POST", "/nb/v1/chat/run", json_body={"q": 1}))
 
     assert events == [{"type": "final_answer", "content": "ok"}]
     assert captured["url"] == "http://nexent:5010/nb/v1/chat/run"
@@ -319,9 +337,7 @@ def test_redact_masks_secrets_recursively():
 
 
 def test_healthcheck_unwraps_health_status():
-    transport = ScriptedTransport(
-        json_response({"data": {"health_status": "healthy"}})
-    )
+    transport = ScriptedTransport(json_response({"data": {"health_status": "healthy"}}))
     client = NexentClient(transport=transport)
 
     assert client.healthcheck_mcp(4) == "healthy"

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
@@ -32,6 +32,13 @@ DRAFT_WRITE = ToolAnnotations(
     openWorldHint=False,
 )
 
+REVIEW_WRITE = ToolAnnotations(
+    readOnlyHint=False,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=False,
+)
+
 SERVER_INSTRUCTIONS = """
 Read-only ontology governance tools for the industrial fault domain.
 
@@ -48,6 +55,9 @@ These tools and the industrial-fault-domain tools are separate MCP services.
 
 `create_ontology_change_draft` saves a reviewable draft only. It never
 approves, migrates, activates, or publishes an ontology version.
+
+Review, publish, and rollback tools require explicit user confirmation. The
+Agent must never infer approval from a general request to "continue".
 """.strip()
 
 
@@ -184,6 +194,155 @@ def build_server(
             return service.create_standard_draft(request)
 
         return _invoke(service, action)
+
+    @mcp.tool(
+        name="submit_ontology_change_review",
+        title="Submit ontology change for review",
+        description=(
+            "Submit a draft or rejected change for explicit human review. "
+            "This changes review state only; it does not approve or publish."
+        ),
+        annotations=REVIEW_WRITE,
+    )
+    def submit_ontology_change_review(
+        change_id: str,
+        actor: str,
+        reason: str | None = None,
+    ) -> ToolResponse:
+        return _invoke(
+            service,
+            lambda: service.submit_change_review(
+                change_id,
+                actor=actor,
+                reason=reason,
+            ),
+        )
+
+    @mcp.tool(
+        name="review_ontology_change",
+        title="Review ontology change",
+        description=(
+            "Approve or reject a submitted ontology change. Use only after the "
+            "user explicitly confirms the decision for this change ID. "
+            "Rejections require a reason."
+        ),
+        annotations=REVIEW_WRITE,
+    )
+    def review_ontology_change(
+        change_id: str,
+        decision: Literal["approve", "reject"],
+        actor: str,
+        reason: str | None = None,
+        confirm: bool = False,
+    ) -> ToolResponse:
+        def action() -> dict[str, Any]:
+            if not confirm:
+                raise GovernanceServiceError(
+                    "invalid_argument",
+                    "explicit confirmation is required for a review decision",
+                    {"change_id": change_id, "decision": decision},
+                )
+            return service.review_ontology_change(
+                change_id,
+                decision=decision,
+                actor=actor,
+                reason=reason,
+            )
+
+        return _invoke(service, action)
+
+    @mcp.tool(
+        name="analyze_ontology_change_impact",
+        title="Analyze ontology change impact",
+        description=(
+            "Return a readable diff plus affected tenants, entities, facts, "
+            "rules, fault trees, schema files and test suites. Read-only."
+        ),
+        annotations=READ_ONLY,
+    )
+    def analyze_ontology_change_impact(change_id: str) -> ToolResponse:
+        return _invoke(
+            service,
+            lambda: service.analyze_change_impact(change_id),
+        )
+
+    @mcp.tool(
+        name="publish_ontology_change",
+        title="Publish approved ontology change",
+        description=(
+            "Build migrated tenant snapshots, atomically activate the ontology "
+            "version and new snapshots, and append a publication event. Run "
+            "with dry_run=true first. A real publication requires confirm=true. "
+            "Old snapshots are retained."
+        ),
+        annotations=REVIEW_WRITE,
+    )
+    def publish_ontology_change(
+        change_id: str,
+        actor: str,
+        dry_run: bool = True,
+        confirm: bool = False,
+    ) -> ToolResponse:
+        def action() -> dict[str, Any]:
+            if not dry_run and not confirm:
+                raise GovernanceServiceError(
+                    "invalid_argument",
+                    "explicit confirmation is required for publication",
+                    {"change_id": change_id},
+                )
+            return service.publish_change(
+                change_id,
+                actor=actor,
+                dry_run=dry_run,
+            )
+
+        return _invoke(service, action)
+
+    @mcp.tool(
+        name="rollback_ontology_publication",
+        title="Rollback ontology publication",
+        description=(
+            "Switch ontology and tenant pointers back to exact pre-publication "
+            "snapshots. Requires a reason and explicit confirmation. No snapshot "
+            "is deleted."
+        ),
+        annotations=REVIEW_WRITE,
+    )
+    def rollback_ontology_publication(
+        change_id: str,
+        actor: str,
+        reason: str,
+        confirm: bool = False,
+    ) -> ToolResponse:
+        def action() -> dict[str, Any]:
+            if not confirm:
+                raise GovernanceServiceError(
+                    "invalid_argument",
+                    "explicit confirmation is required for rollback",
+                    {"change_id": change_id},
+                )
+            return service.rollback_publication(
+                change_id,
+                actor=actor,
+                reason=reason,
+            )
+
+        return _invoke(service, action)
+
+    @mcp.tool(
+        name="list_tenant_snapshot_history",
+        title="List tenant snapshot history",
+        description=(
+            "List every preserved runtime snapshot for one tenant, including "
+            "ontology/schema versions and the active run. Read-only."
+        ),
+        annotations=READ_ONLY,
+    )
+    def list_tenant_snapshot_history(tenant_id: str) -> ToolResponse:
+        return _invoke(
+            service,
+            lambda: service.tenant_snapshot_history(tenant_id),
+        )
 
     return mcp
 
