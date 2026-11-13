@@ -3,7 +3,7 @@
 本目录把仓库里的领域与治理服务注册进一个已经运行的 Nexent 实例，形成可演示的问答、诊断和本体版本查询闭环：
 
 - **领域 MCP**：`mcp_server/` 暴露的 6 个只读领域工具；
-- **治理 MCP**：`governance_mcp_server/` 暴露的 5 个只读本体治理工具；
+- **治理 MCP**：`governance_mcp_server/` 暴露的 5 个只读版本/变更工具和 1 个草案写入工具；
 - **Skill**：`skills/` 下的 3 个确定性技能，由 `nexent/scripts/build_skills.py` 打包成 ZIP 上传；
 - **知识库**：`nexent/kb/` 下的 3 份写作规范/术语/证据政策文档；
 - **Agent**：`industrial_fault_agent`，提示词在 `nexent/agent/system_prompt.md`。
@@ -125,7 +125,7 @@ set -a; source nexent/.env; set +a
 这一遍第 2 步检测到 `storage/tenants/<tenant_id>/active.json` 存在会自动跳过，然后依次：
 
 1. 初始化空白治理库并注册两个 MCP（`add` 或 `update` + `enable`）；
-2. 扫描工具目录，确认 11 个 MCP 工具都在；
+2. 扫描工具目录，确认 12 个 MCP 工具都在；
 3. 打包并上传 3 个 Skill（首次创建）；
 4. 创建知识库、上传 3 份文档、等待切分完成；
 5. 导入 Agent（自动发布 V1）；
@@ -157,6 +157,16 @@ set -a; source nexent/.env; set +a
 脚本会登录、创建/复用 API Key、调用 `POST /nb/v1/chat/run`，把完整事件序列与最终回答写到 `nexent/build/demo-<UTC时间>.json`。
 
 `--query` 可重复传入多个问题；默认问题已按种子数据（P-101A / 出口压力不足 / 过滤器堵塞 / 汽蚀 / 法兰漏气）设计。
+
+验证标准驱动的本体草案：
+
+```bash
+.venv/Scripts/python.exe -m nexent.scripts.demo \
+  --query "根据下面标准节选生成本体 v0.2 的变更草案：条件监测系统应识别安装在旋转设备上的传感器。请把‘传感器’作为 Asset 的新增子类，并给出来源原文。"
+```
+
+预期 Agent 调用 `create_ontology_change_draft`，返回草案 ID、操作数和证据数，
+并明确说明草案尚未审核、未迁移、未发布。
 
 **注意**：北向 API 只能看到**已发布**的 Agent。导入流程会自动发布；如果你在 UI 里手动改过 Agent 但没有发布，演示会报 `Published agent not found`。
 

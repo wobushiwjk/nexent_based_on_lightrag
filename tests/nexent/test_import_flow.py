@@ -27,6 +27,7 @@ MCP_TOOLS = (
     "get_ontology_version",
     "list_ontology_changes",
     "get_ontology_change",
+    "create_ontology_change_draft",
 )
 
 GOVERNANCE_TOOLS = {
@@ -35,6 +36,7 @@ GOVERNANCE_TOOLS = {
     "get_ontology_version",
     "list_ontology_changes",
     "get_ontology_change",
+    "create_ontology_change_draft",
 }
 
 

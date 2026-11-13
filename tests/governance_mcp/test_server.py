@@ -26,6 +26,7 @@ TOOL_NAMES = {
     "get_ontology_version",
     "list_ontology_changes",
     "get_ontology_change",
+    "create_ontology_change_draft",
 }
 
 
@@ -52,7 +53,9 @@ async def test_every_tool_is_registered_read_only(governance_root: Path) -> None
     assert {tool.name for tool in tools} == TOOL_NAMES
     for tool in tools:
         assert tool.annotations is not None
-        assert tool.annotations.readOnlyHint is True
+        assert tool.annotations.readOnlyHint is (
+            tool.name != "create_ontology_change_draft"
+        )
         assert tool.annotations.destructiveHint is False
         assert tool.annotations.idempotentHint is True
         assert tool.annotations.openWorldHint is False
@@ -78,6 +81,59 @@ async def test_status_and_versions_are_visible(governance_root: Path) -> None:
     assert detail["data"]["active"] is True
     assert detail["data"]["counts"]["classes"] > 0
     assert detail["data"]["counts"]["relations"] > 0
+
+
+async def test_standard_excerpt_creates_a_visible_draft(
+    governance_root: Path,
+) -> None:
+    server = build_server(GovernanceService(governance_root))
+    source = (
+        "Condition monitoring systems shall identify sensors installed on "
+        "rotating equipment."
+    )
+    created, _ = await _call(
+        server,
+        "create_ontology_change_draft",
+        {
+            "change_id": "CHG-MCP-1",
+            "proposed_version": "industrial-fault-v0.2",
+            "author": "engineer",
+            "rationale": "Align condition monitoring concepts.",
+            "source_name": "ISO 13374 excerpt",
+            "source_text": source,
+            "operations": [
+                {
+                    "kind": "class",
+                    "action": "add",
+                    "code": "Sensor",
+                    "after": {"parent": "Asset"},
+                    "evidence": [
+                        {
+                            "quote": source,
+                            "source_name": "ISO 13374 excerpt",
+                            "page": 2,
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+    listed, _ = await _call(server, "list_ontology_changes", {})
+    loaded, _ = await _call(
+        server,
+        "get_ontology_change",
+        {"change_id": "CHG-MCP-1", "include_source": True},
+    )
+    status, _ = await _call(server, "get_ontology_governance_status", {})
+
+    assert created["ok"] is True
+    assert created["data"]["status"] == "draft"
+    assert created["data"]["applied"] is False
+    assert created["data"]["source"]["source_name"] == "ISO 13374 excerpt"
+    assert listed["data"]["changes"][0]["change_id"] == "CHG-MCP-1"
+    assert loaded["data"]["source_text"] == source
+    assert loaded["data"]["review_events"] == []
+    assert status["data"]["active_version"] == "industrial-fault-v0.1"
 
 
 async def test_uninitialized_store_is_explicit(tmp_path: Path) -> None:

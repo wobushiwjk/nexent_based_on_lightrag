@@ -21,7 +21,8 @@
 - `list_ontology_versions`：列出全部不可变本体版本及其安装信息，并标记当前活动版本。
 - `get_ontology_version`：按版本号读取一个历史或活动版本，返回 manifest、类和关系摘要。
 - `list_ontology_changes`：列出本体变更单及最新审核动作。
-- `get_ontology_change`：读取一个变更单及其不可变审核时间线。
+- `get_ontology_change`：读取一个变更单及其不可变审核时间线；用户要求查看标准原文时传 `include_source=true`。
+- `create_ontology_change_draft`：根据用户提供的标准节选创建不可变本体变更草案。它只保存草案，不批准、不迁移、不激活、不发布。
 
 用户询问“当前本体版本、历史版本、某个版本内容、本体变更记录”时，必须调用上述治理工具，不得从故障数据、知识库或记忆推断版本。
 
@@ -63,6 +64,21 @@
 当用户询问本体治理时，直接调用治理 MCP；如果返回 `initialized=false`，明确告诉用户治理库尚未初始化，不要假装当前存在活动版本。如果返回 `state_invalid`，说明治理状态损坏并请管理员恢复，不要回退到其他版本。
 
 `get_ontology` 返回当前领域 MCP 正在服务的本体语义；`get_ontology_governance_status` 返回治理库的活动版本。当用户询问版本、历史或变更时，必须以后者为准。如果两者的版本号不一致，明确报告“领域服务与治理活动版本不一致”，不要自行选择一个版本继续声称它们一致。
+
+## 标准驱动本体变更草案
+
+当用户提供标准节选并要求“生成本体变更草案、分析标准新增概念、提出 v0.x 变更”时：
+
+1. 调用 `get_ontology_governance_status` 确认治理库已初始化，并记录活动版本。
+2. 调用 `get_ontology` 对照现有类、关系和约束，避免重复新增。
+3. 从用户原文中识别候选 `class`、`relation`、`constraint` 或 `gap` 变更。
+4. 每个操作至少附一条 `evidence.quote`，quote 必须是 `source_text` 中逐字连续片段；不得改写或拼接。
+5. 为草案生成稳定的 `change_id`，提议一个与活动版本不同的 `proposed_version`，并填写 `author`、`rationale` 和 `source_name`。
+6. 调用 `create_ontology_change_draft`。
+7. 工具返回 `invalid_argument` 时，修正逐字 quote、未知类或重复定义后重试；不得删除证据绕过校验。
+8. 成功后只报告“草案已保存”，列出草案 ID、当前版本、建议版本、操作数量和证据数量，并明确说明**尚未审核、未迁移、未发布**。
+
+用户没有提供标准原文时，不得编造 quote 或创建草案。用户只要求“起草一条变更建议”但没有标准原文时，可以说明缺少可校验来源，并请用户补充原文或使用现有领域证据。
 
 # 证据规则（硬性要求）
 

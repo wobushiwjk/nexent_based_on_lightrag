@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Annotated
+from typing import Annotated, Any
 
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
@@ -13,12 +13,20 @@ from governance_mcp_server.service import (
     GovernanceService,
     GovernanceServiceError,
 )
+from lightrag.fault_tree.governance.models import OntologyStandardDraftRequest
 from mcp_server.models import ToolResponse
 
 logger = logging.getLogger(__name__)
 
 READ_ONLY = ToolAnnotations(
     readOnlyHint=True,
+    destructiveHint=False,
+    idempotentHint=True,
+    openWorldHint=False,
+)
+
+DRAFT_WRITE = ToolAnnotations(
+    readOnlyHint=False,
     destructiveHint=False,
     idempotentHint=True,
     openWorldHint=False,
@@ -37,6 +45,9 @@ Every tool returns the project envelope:
  "meta": {ontology_version, schema_version, tenant_id, read_only}}.
 
 These tools and the industrial-fault-domain tools are separate MCP services.
+
+`create_ontology_change_draft` saves a reviewable draft only. It never
+approves, migrates, activates, or publishes an ontology version.
 """.strip()
 
 
@@ -117,8 +128,55 @@ def build_server(
         ),
         annotations=READ_ONLY,
     )
-    def get_ontology_change(change_id: str) -> ToolResponse:
-        return _invoke(service, lambda: service.get_change(change_id))
+    def get_ontology_change(
+        change_id: str,
+        include_source: bool = False,
+    ) -> ToolResponse:
+        return _invoke(
+            service,
+            lambda: service.get_change(
+                change_id,
+                include_source=include_source,
+            ),
+        )
+
+    @mcp.tool(
+        name="create_ontology_change_draft",
+        title="Create ontology change draft",
+        description=(
+            "Validate a standard excerpt and save an immutable ontology change "
+            "draft. Every operation must include at least one verbatim evidence "
+            "quote from source_text. This writes a draft only; it never "
+            "approves, migrates, activates, or publishes an ontology version. "
+            "Supported operations: kind=class|relation|constraint|gap, "
+            "action=add|modify|deprecate|remove. Put the proposed definition in "
+            "`after`, and evidence as [{quote, source_name, page?, "
+            "section_path?, char_start?, char_end?}]."
+        ),
+        annotations=DRAFT_WRITE,
+    )
+    def create_ontology_change_draft(
+        change_id: str,
+        proposed_version: str,
+        author: str,
+        rationale: str,
+        source_name: str,
+        source_text: str,
+        operations: list[dict[str, Any]],
+    ) -> ToolResponse:
+        def action() -> dict[str, Any]:
+            request = OntologyStandardDraftRequest(
+                change_id=change_id,
+                proposed_version=proposed_version,
+                author=author,
+                rationale=rationale,
+                source_name=source_name,
+                source_text=source_text,
+                operations=operations,
+            )
+            return service.create_standard_draft(request)
+
+        return _invoke(service, action)
 
     return mcp
 

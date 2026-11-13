@@ -47,6 +47,27 @@ class ActiveOntologyPointer(GovernanceModel):
     previous_version: str | None = Field(default=None, pattern=SAFE_ID_PATTERN)
 
 
+class ChangeEvidence(GovernanceModel):
+    """A verbatim source fragment supporting one proposed change."""
+
+    quote: str = Field(min_length=1)
+    source_name: str = Field(min_length=1)
+    page: int | None = Field(default=None, ge=1)
+    section_path: str | None = None
+    char_start: int | None = Field(default=None, ge=0)
+    char_end: int | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def validate_span(self) -> "ChangeEvidence":
+        if (
+            self.char_start is not None
+            and self.char_end is not None
+            and self.char_end <= self.char_start
+        ):
+            raise ValueError("char_end must be greater than char_start")
+        return self
+
+
 class OntologyChangeOperation(GovernanceModel):
     """One proposed ontology or standard-gap change."""
 
@@ -56,6 +77,7 @@ class OntologyChangeOperation(GovernanceModel):
     before: dict[str, Any] = Field(default_factory=dict)
     after: dict[str, Any] = Field(default_factory=dict)
     evidence_ids: list[str] = Field(default_factory=list)
+    evidence: list[ChangeEvidence] = Field(default_factory=list)
 
 
 class OntologyChangeSet(GovernanceModel):
@@ -75,6 +97,46 @@ class OntologyChangeSet(GovernanceModel):
     def validate_version_transition(self) -> "OntologyChangeSet":
         if self.base_version == self.proposed_version:
             raise ValueError("proposed_version must differ from base_version")
+        return self
+
+
+class StandardSourceManifest(GovernanceModel):
+    """Immutable metadata for the standard excerpt attached to a draft."""
+
+    source_name: str = Field(min_length=1)
+    source_sha256: str = Field(pattern=SHA256_PATTERN)
+    source_size: int = Field(ge=1)
+    stored_at: datetime
+    stored_by: str = Field(min_length=1)
+
+
+class OntologyStandardDraftRequest(GovernanceModel):
+    """Input contract for extracting a draft from a standard excerpt."""
+
+    change_id: str = Field(pattern=SAFE_ID_PATTERN)
+    proposed_version: str = Field(pattern=SAFE_ID_PATTERN)
+    author: str = Field(min_length=1)
+    rationale: str = Field(min_length=1)
+    source_name: str = Field(min_length=1)
+    source_text: str = Field(min_length=1)
+    operations: list[OntologyChangeOperation] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_operation_evidence(self) -> "OntologyStandardDraftRequest":
+        seen: set[tuple[str, str, str]] = set()
+        for operation in self.operations:
+            key = (operation.kind, operation.action, operation.code)
+            if key in seen:
+                raise ValueError(
+                    "duplicate operation "
+                    f"{operation.action} {operation.kind} {operation.code}"
+                )
+            seen.add(key)
+            if not operation.evidence:
+                raise ValueError(
+                    f"operation {operation.action} {operation.kind} "
+                    f"{operation.code} needs at least one evidence quote"
+                )
         return self
 
 
@@ -108,10 +170,13 @@ class ReviewEvent(GovernanceModel):
 __all__ = [
     "GOVERNANCE_SCHEMA_VERSION",
     "ActiveOntologyPointer",
+    "ChangeEvidence",
     "GovernanceModel",
     "OntologyChangeOperation",
     "OntologyChangeSet",
+    "OntologyStandardDraftRequest",
     "OntologyVersionManifest",
     "ReviewAction",
     "ReviewEvent",
+    "StandardSourceManifest",
 ]

@@ -11,6 +11,11 @@ the three domain Skills are unchanged.
 - `get_ontology_version`
 - `list_ontology_changes`
 - `get_ontology_change`
+- `create_ontology_change_draft`
+
+`create_ontology_change_draft` writes an immutable draft and its source excerpt
+snapshot. It validates verbatim evidence quotes and conflicts with the active
+ontology, but never approves, migrates, activates, or publishes a version.
 
 ## Start locally for Nexent
 
@@ -39,3 +44,4 @@ import flow. Users then ask the main Agent questions such as:
 - “有哪些历史本体版本？”
 - “v0.1 包含哪些类和关系？”
 - “目前有没有本体变更记录？”
+- “根据这段标准节选生成 v0.2 本体变更草案：<粘贴原文>”

@@ -6,11 +6,19 @@ from pathlib import Path
 from typing import Any
 
 from lightrag.fault_tree.governance import (
+    ChangeSetConflictError,
     OntologyChangeStore,
     OntologyGovernanceError,
     OntologyVersionStore,
 )
-from lightrag.fault_tree.governance.models import ReviewEvent
+from lightrag.fault_tree.governance.drafting import (
+    OntologyDraftConflictError,
+    build_standard_change_set,
+)
+from lightrag.fault_tree.governance.models import (
+    OntologyStandardDraftRequest,
+    ReviewEvent,
+)
 from mcp_server.models import ToolErrorPayload, ToolMeta, ToolResponse
 
 
@@ -241,22 +249,99 @@ class GovernanceService:
                 )
         return {"count": len(items), "changes": items}
 
-    def get_change(self, change_id: str) -> dict[str, Any]:
+    def create_standard_draft(
+        self,
+        request: OntologyStandardDraftRequest,
+    ) -> dict[str, Any]:
+        """Create an immutable draft from a standard excerpt.
+
+        This never installs, activates, approves, or publishes an ontology
+        version. The active pointer is read only so the server can stamp the
+        correct base version.
+        """
+
+        if not self.versions.active_path.is_file():
+            raise GovernanceServiceError(
+                "state_invalid",
+                "Ontology governance is not initialized.",
+                {"root": str(self.root)},
+            )
+        try:
+            pointer = self.versions.read_active()
+            loaded = self.versions.load_version(pointer.active_version)
+            change = build_standard_change_set(
+                request,
+                active_version=pointer.active_version,
+                ontology_document=loaded.document(),
+            )
+            self.changes.create_change_set(
+                change,
+                source_text=request.source_text,
+                source_name=request.source_name,
+                stored_by=request.author,
+            )
+            source = self.changes.load_change_source(change.change_id)
+        except (OntologyDraftConflictError, ChangeSetConflictError) as exc:
+            raise GovernanceServiceError(
+                "invalid_argument",
+                str(exc),
+                {"change_id": request.change_id},
+            ) from exc
+        except OntologyGovernanceError as exc:
+            raise GovernanceServiceError(
+                "state_invalid",
+                "The ontology governance store cannot accept this draft.",
+                {"reason": str(exc)},
+            ) from exc
+        if source is None:
+            raise GovernanceServiceError(
+                "internal_error",
+                "The draft was stored without its source snapshot.",
+                {"change_id": change.change_id},
+            )
+        source_manifest, _ = source
+        return {
+            "change": change.model_dump(mode="json"),
+            "source": source_manifest.model_dump(mode="json"),
+            "status": "draft",
+            "applied": False,
+            "message": (
+                "Ontology change draft saved. It has not been approved or published."
+            ),
+            "operation_count": len(change.operations),
+            "evidence_quote_count": sum(
+                len(operation.evidence) for operation in change.operations
+            ),
+        }
+
+    def get_change(
+        self,
+        change_id: str,
+        *,
+        include_source: bool = False,
+    ) -> dict[str, Any]:
         """Return one change set and its immutable review timeline."""
 
         try:
             change = self.changes.load_change_set(change_id)
             events = self.changes.list_review_events(change_id)
+            source = self.changes.load_change_source(change_id)
         except OntologyGovernanceError as exc:
             raise GovernanceServiceError(
                 "not_found",
                 f"Ontology change {change_id!r} is not available.",
                 {"change_id": change_id, "reason": str(exc)},
             ) from exc
-        return {
+        data: dict[str, Any] = {
             "change": change.model_dump(mode="json"),
             "review_events": [_review_event(event) for event in events],
+            "source": (
+                source[0].model_dump(mode="json") if source is not None else None
+            ),
         }
+        if include_source and source is not None:
+            data["source_text"] = source[1]
+        return data
 
     def _change_count(self) -> int:
         if not self.changes.changes_dir.is_dir():

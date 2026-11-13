@@ -32,6 +32,7 @@ from lightrag.fault_tree.governance.models import (
     OntologyChangeSet,
     OntologyVersionManifest,
     ReviewEvent,
+    StandardSourceManifest,
 )
 from lightrag.fault_tree.ontology import OntologyRegistry
 from lightrag.file_atomic import atomic_write
@@ -353,10 +354,35 @@ class OntologyChangeStore:
     def create_change_set(
         self,
         change: OntologyChangeSet,
+        *,
+        source_text: str | None = None,
+        source_name: str | None = None,
+        stored_by: str | None = None,
     ) -> OntologyChangeSet:
         """Create an immutable change set, or return the identical existing one."""
 
         data = _canonical_bytes(change)
+        source_manifest: StandardSourceManifest | None = None
+        source_bytes: bytes | None = None
+        source_manifest_bytes: bytes | None = None
+        if source_text is not None:
+            if not source_name or not source_name.strip():
+                raise OntologyGovernanceError(
+                    "source_name is required when source_text is stored"
+                )
+            if not stored_by or not stored_by.strip():
+                raise OntologyGovernanceError(
+                    "stored_by is required when source_text is stored"
+                )
+            source_bytes = source_text.encode("utf-8")
+            source_manifest = StandardSourceManifest(
+                source_name=source_name.strip(),
+                source_sha256=_sha256(source_bytes),
+                source_size=len(source_bytes),
+                stored_at=_utc_now(),
+                stored_by=stored_by.strip(),
+            )
+            source_manifest_bytes = _canonical_bytes(source_manifest)
         change_dir = self.changes_dir / change.change_id
         record_path = change_dir / "change.json"
         if change_dir.is_symlink():
@@ -373,12 +399,23 @@ class OntologyChangeStore:
                     f"change set {change.change_id!r} already exists with "
                     "different content"
                 )
+            self._verify_existing_source(
+                change_dir,
+                source_bytes=source_bytes,
+                source_manifest_bytes=source_manifest_bytes,
+            )
             return change
 
         self.changes_dir.mkdir(parents=True, exist_ok=True)
         staging = Path(tempfile.mkdtemp(prefix=".staging-", dir=self.changes_dir))
         try:
             _atomic_write_bytes(staging / "change.json", data)
+            if source_bytes is not None and source_manifest_bytes is not None:
+                (staging / "source.txt").write_bytes(source_bytes)
+                _atomic_write_bytes(
+                    staging / "source.json",
+                    source_manifest_bytes,
+                )
             try:
                 os.rename(staging, change_dir)
             except FileExistsError:
@@ -391,10 +428,56 @@ class OntologyChangeStore:
                         f"change set {change.change_id!r} already exists "
                         "with different content"
                     )
+                self._verify_existing_source(
+                    change_dir,
+                    source_bytes=source_bytes,
+                    source_manifest_bytes=source_manifest_bytes,
+                )
         finally:
             if staging.exists():
                 shutil.rmtree(staging, ignore_errors=True)
         return change
+
+    def load_change_source(
+        self,
+        change_id: str,
+    ) -> tuple[StandardSourceManifest, str] | None:
+        """Return the immutable standard excerpt attached to a change."""
+
+        change_id = _validate_identifier(change_id, "change_id")
+        change_dir = self.changes_dir / change_id
+        text_path = change_dir / "source.txt"
+        manifest_path = change_dir / "source.json"
+        if not text_path.exists() and not manifest_path.exists():
+            return None
+        if text_path.is_symlink() or manifest_path.is_symlink():
+            raise OntologyGovernanceError(
+                f"change source {change_id!r} must not contain symlinks"
+            )
+        try:
+            source_bytes = text_path.read_bytes()
+            manifest_bytes = manifest_path.read_bytes()
+            payload = json.loads(manifest_bytes.decode("utf-8"))
+            manifest = StandardSourceManifest.model_validate(payload)
+            source_text = source_bytes.decode("utf-8")
+        except (
+            OSError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+            ValidationError,
+        ) as exc:
+            raise OntologyGovernanceError(
+                f"cannot read change source {change_id!r}: {exc}"
+            ) from exc
+        if _sha256(source_bytes) != manifest.source_sha256:
+            raise OntologyGovernanceError(
+                f"change source {change_id!r} does not match its manifest"
+            )
+        if len(source_bytes) != manifest.source_size:
+            raise OntologyGovernanceError(
+                f"change source {change_id!r} size does not match its manifest"
+            )
+        return manifest, source_text
 
     def load_change_set(self, change_id: str) -> OntologyChangeSet:
         """Load one immutable change set by identifier."""
@@ -487,6 +570,48 @@ class OntologyChangeStore:
                 ),
             )
         )
+
+    def _verify_existing_source(
+        self,
+        change_dir: Path,
+        *,
+        source_bytes: bytes | None,
+        source_manifest_bytes: bytes | None,
+    ) -> None:
+        if source_bytes is None or source_manifest_bytes is None:
+            return
+        text_path = change_dir / "source.txt"
+        manifest_path = change_dir / "source.json"
+        if (
+            not text_path.is_file()
+            or not manifest_path.is_file()
+            or text_path.is_symlink()
+            or manifest_path.is_symlink()
+        ):
+            raise ChangeSetConflictError(
+                f"change set {change_dir.name!r} has no compatible source snapshot"
+            )
+        if text_path.read_bytes() != source_bytes:
+            raise ChangeSetConflictError(
+                f"change set {change_dir.name!r} has a different source snapshot"
+            )
+        try:
+            expected = json.loads(source_manifest_bytes.decode("utf-8"))
+            actual = json.loads(manifest_path.read_bytes().decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ChangeSetConflictError(
+                f"change set {change_dir.name!r} has an invalid source manifest"
+            ) from exc
+        stable_fields = (
+            "source_name",
+            "source_sha256",
+            "source_size",
+            "stored_by",
+        )
+        if any(expected.get(key) != actual.get(key) for key in stable_fields):
+            raise ChangeSetConflictError(
+                f"change set {change_dir.name!r} has a different source manifest"
+            )
 
 
 class OntologyGovernanceStore:

@@ -84,6 +84,7 @@ GOVERNANCE_TOOLS = frozenset(
         "get_ontology_version",
         "list_ontology_changes",
         "get_ontology_change",
+        "create_ontology_change_draft",
     }
 )
 

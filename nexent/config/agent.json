@@ -23,7 +23,8 @@
       "list_ontology_versions",
       "get_ontology_version",
       "list_ontology_changes",
-      "get_ontology_change"
+      "get_ontology_change",
+      "create_ontology_change_draft"
     ],
     "skills": [
       "fault-diagnosis",
@@ -36,6 +37,7 @@
       "把出口压力不足的故障树调出来，并说明每个分支的证据出处。",
       "P-101A 的巡检记录和维修记录分别支撑了哪些结论？",
       "当前本体是哪个版本？有哪些历史版本？",
+      "根据下面这段标准节选生成本体 v0.2 的变更草案：<粘贴标准节选>",
       "现场手册里没有记录的新故障模式，帮我起草一条本体变更建议。"
     ]
   },
