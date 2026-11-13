@@ -114,7 +114,37 @@ async def test_standard_excerpt_creates_a_visible_draft(
                             "page": 2,
                         }
                     ],
-                }
+                },
+                {
+                    "kind": "relation",
+                    "action": "add",
+                    "code": "HAS_SENSOR",
+                    "after": {
+                        "source_types": ["Equipment"],
+                        "target_types": ["Sensor"],
+                    },
+                    "evidence": [
+                        {
+                            "quote": source,
+                            "source_name": "ISO 13374 excerpt",
+                        }
+                    ],
+                },
+                {
+                    "kind": "constraint",
+                    "action": "add",
+                    "code": "sensor-mounted-on-rotating-equipment",
+                    "after": {
+                        "applies_to": ["Sensor"],
+                        "rule": "Sensor is mounted on rotating Equipment",
+                    },
+                    "evidence": [
+                        {
+                            "quote": source,
+                            "source_name": "ISO 13374 excerpt",
+                        }
+                    ],
+                },
             ],
         },
     )
@@ -129,11 +159,44 @@ async def test_standard_excerpt_creates_a_visible_draft(
     assert created["ok"] is True
     assert created["data"]["status"] == "draft"
     assert created["data"]["applied"] is False
+    assert created["data"]["operation_count"] == 3
+    assert created["data"]["evidence_quote_count"] == 3
     assert created["data"]["source"]["source_name"] == "ISO 13374 excerpt"
     assert listed["data"]["changes"][0]["change_id"] == "CHG-MCP-1"
     assert loaded["data"]["source_text"] == source
     assert loaded["data"]["review_events"] == []
     assert status["data"]["active_version"] == "industrial-fault-v0.1"
+
+
+async def test_invalid_draft_payload_is_invalid_argument(
+    governance_root: Path,
+) -> None:
+    server = build_server(GovernanceService(governance_root))
+
+    invalid, _ = await _call(
+        server,
+        "create_ontology_change_draft",
+        {
+            "change_id": "CHG-INVALID",
+            "proposed_version": "industrial-fault-v0.2",
+            "author": "engineer",
+            "rationale": "invalid",
+            "source_name": "source",
+            "source_text": "source text",
+            "operations": [
+                {
+                    "kind": "class",
+                    "action": "add",
+                    "code": "Sensor",
+                    "after": {"parent": "Asset"},
+                }
+            ],
+        },
+    )
+
+    assert invalid["ok"] is False
+    assert invalid["error"]["code"] == "invalid_argument"
+    assert "evidence" in str(invalid["error"]["details"])
 
 
 async def test_uninitialized_store_is_explicit(tmp_path: Path) -> None:

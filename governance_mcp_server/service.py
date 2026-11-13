@@ -1,9 +1,11 @@
-"""Read-only service methods behind the ontology governance MCP tools."""
+"""Service methods behind the ontology governance MCP tools."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+
+from pydantic import ValidationError
 
 from lightrag.fault_tree.governance import (
     ChangeSetConflictError,
@@ -287,6 +289,12 @@ class GovernanceService:
                 str(exc),
                 {"change_id": request.change_id},
             ) from exc
+        except ValidationError as exc:
+            raise GovernanceServiceError(
+                "invalid_argument",
+                "ontology change draft does not match the storage contract",
+                {"errors": _validation_errors(exc)},
+            ) from exc
         except OntologyGovernanceError as exc:
             raise GovernanceServiceError(
                 "state_invalid",
@@ -363,6 +371,17 @@ def _review_event(event: ReviewEvent) -> dict[str, Any]:
         "occurred_at": event.occurred_at.isoformat(),
         "reason": event.reason,
     }
+
+
+def _validation_errors(exc: ValidationError) -> list[dict[str, str]]:
+    return [
+        {
+            "loc": ".".join(str(part) for part in error.get("loc", ())),
+            "msg": str(error.get("msg", "")),
+            "type": str(error.get("type", "")),
+        }
+        for error in exc.errors()[:20]
+    ]
 
 
 __all__ = [

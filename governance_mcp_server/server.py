@@ -7,7 +7,7 @@ from typing import Annotated, Any
 
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
-from pydantic import Field
+from pydantic import Field, ValidationError
 
 from governance_mcp_server.service import (
     GovernanceService,
@@ -165,15 +165,22 @@ def build_server(
         operations: list[dict[str, Any]],
     ) -> ToolResponse:
         def action() -> dict[str, Any]:
-            request = OntologyStandardDraftRequest(
-                change_id=change_id,
-                proposed_version=proposed_version,
-                author=author,
-                rationale=rationale,
-                source_name=source_name,
-                source_text=source_text,
-                operations=operations,
-            )
+            try:
+                request = OntologyStandardDraftRequest(
+                    change_id=change_id,
+                    proposed_version=proposed_version,
+                    author=author,
+                    rationale=rationale,
+                    source_name=source_name,
+                    source_text=source_text,
+                    operations=operations,
+                )
+            except ValidationError as exc:
+                raise GovernanceServiceError(
+                    "invalid_argument",
+                    "operations do not match the ontology draft contract",
+                    {"errors": _validation_errors(exc)},
+                ) from exc
             return service.create_standard_draft(request)
 
         return _invoke(service, action)
@@ -195,6 +202,17 @@ def _invoke(service: GovernanceService, action) -> ToolResponse:
                 {},
             )
         )
+
+
+def _validation_errors(exc: ValidationError) -> list[dict[str, str]]:
+    return [
+        {
+            "loc": ".".join(str(part) for part in error.get("loc", ())),
+            "msg": str(error.get("msg", "")),
+            "type": str(error.get("type", "")),
+        }
+        for error in exc.errors()[:20]
+    ]
 
 
 __all__ = ["SERVER_INSTRUCTIONS", "build_server"]
