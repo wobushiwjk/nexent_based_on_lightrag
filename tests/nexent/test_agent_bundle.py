@@ -28,6 +28,14 @@ MCP_TOOLS = (
     "validate_fault_tree",
 )
 
+GOVERNANCE_TOOLS = (
+    "get_ontology_governance_status",
+    "list_ontology_versions",
+    "get_ontology_version",
+    "list_ontology_changes",
+    "get_ontology_change",
+)
+
 KB_PARAMS = ["top_k", "index_names", "search_mode", "rerank"]
 
 
@@ -44,6 +52,18 @@ def catalog() -> list[dict]:
         }
         for name in MCP_TOOLS
     ]
+    entries.extend(
+        {
+            "name": name,
+            "source": "mcp",
+            "description": f"{name} description",
+            "description_zh": f"{name} 描述",
+            "inputs": '{"type": "object"}',
+            "labels": ["governance"],
+            "usage": "ontology-governance",
+        }
+        for name in GOVERNANCE_TOOLS
+    )
     entries.append(
         {
             "name": "knowledge_base_search",
@@ -88,7 +108,8 @@ def test_real_config_is_valid():
     loaded = load_agent_spec()
 
     assert loaded.name == "industrial_fault_agent"
-    assert loaded.mcp_tools == MCP_TOOLS
+    assert loaded.mcp_tools == MCP_TOOLS + GOVERNANCE_TOOLS
+    assert loaded.additional_mcp_server_names == ("ontology-governance",)
     assert len(loaded.skill_names) == 3
     assert loaded.kb_tool is not None
     assert loaded.kb_tool.class_name == "KnowledgeBaseSearchTool"
@@ -184,6 +205,52 @@ def test_bundle_shape_matches_import_contract():
     validate_bundle(bundle, spec())
 
 
+def test_bundle_carries_multiple_mcp_servers():
+    configured = dataclasses.replace(
+        spec(),
+        mcp_tools=MCP_TOOLS + GOVERNANCE_TOOLS,
+        additional_mcp_server_names=("ontology-governance",),
+    )
+    bundle = build_agent_bundle(
+        configured,
+        catalog(),
+        kb_index_name="kb-index",
+        mcp_server_url="http://host.docker.internal:8765/mcp",
+        additional_mcp_server_urls={
+            "ontology-governance": "http://host.docker.internal:8766/mcp"
+        },
+    )
+
+    assert bundle["mcp_info"] == [
+        {
+            "mcp_server_name": "industrial-fault-domain",
+            "mcp_url": "http://host.docker.internal:8765/mcp",
+        },
+        {
+            "mcp_server_name": "ontology-governance",
+            "mcp_url": "http://host.docker.internal:8766/mcp",
+        },
+    ]
+    validate_bundle(bundle, configured)
+
+
+def test_additional_mcp_server_requires_url():
+    configured = dataclasses.replace(
+        spec(),
+        additional_mcp_server_names=("ontology-governance",),
+    )
+
+    with pytest.raises(AgentBundleError) as info:
+        build_agent_bundle(
+            configured,
+            catalog(),
+            kb_index_name="kb-index",
+            mcp_server_url="http://mcp",
+        )
+
+    assert "no URL" in str(info.value)
+
+
 def test_validate_bundle_rejects_mcp_params():
     bundle = build_agent_bundle(
         spec(), catalog(), kb_index_name="kb-index", mcp_server_url="http://mcp"
@@ -210,6 +277,26 @@ def test_validate_bundle_rejects_duplicate_tools():
     assert "duplicate tool" in str(error.value)
 
 
+def test_validate_bundle_rejects_missing_mcp_server():
+    configured = dataclasses.replace(
+        spec(),
+        additional_mcp_server_names=("ontology-governance",),
+    )
+    bundle = build_agent_bundle(
+        configured,
+        catalog(),
+        kb_index_name="kb-index",
+        mcp_server_url="http://mcp",
+        additional_mcp_server_urls={"ontology-governance": "http://governance"},
+    )
+    bundle["mcp_info"] = bundle["mcp_info"][:1]
+
+    with pytest.raises(AgentBundleError) as error:
+        validate_bundle(bundle, configured)
+
+    assert "MCP servers" in str(error.value)
+
+
 def test_validate_bundle_rejects_skill_mismatch():
     bundle = build_agent_bundle(
         spec(), catalog(), kb_index_name="kb-index", mcp_server_url="http://mcp"
@@ -232,9 +319,7 @@ def test_import_payload_carries_skills_and_resolutions():
     payload = import_payload(
         bundle,
         skills=skills,
-        skill_resolutions=[
-            {"skill_name": "fault-diagnosis", "action": "use_existing"}
-        ],
+        skill_resolutions=[{"skill_name": "fault-diagnosis", "action": "use_existing"}],
         force_import=True,
     )
 

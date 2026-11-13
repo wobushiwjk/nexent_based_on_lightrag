@@ -1,0 +1,13 @@
+{
+  "name": "ontology-governance",
+  "description": "LightRAG ontology governance service: active and historical ontology versions, immutable manifests, change sets and review audit events, all read-only.",
+  "tags": ["ontology", "governance", "versioning", "lightrag"],
+  "server_url": "http://host.docker.internal:8766/mcp",
+  "alternate_server_urls": {
+    "docker_desktop": "http://host.docker.internal:8766/mcp",
+    "native": "http://localhost:8766/mcp"
+  },
+  "transport": "streamable-http",
+  "host_port": 8766,
+  "healthcheck_path": "/mcp"
+}

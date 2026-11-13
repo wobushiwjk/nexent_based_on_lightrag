@@ -68,6 +68,7 @@ class AgentSpec:
     kb_tool: KnowledgeBaseToolSpec | None
     greeting_message: str
     example_questions: tuple[str, ...]
+    additional_mcp_server_names: tuple[str, ...] = ()
     provide_run_summary: bool = True
     enabled: bool = True
     model_id: int | None = None
@@ -138,6 +139,10 @@ def load_agent_spec(config_path: Path = DEFAULT_CONFIG) -> AgentSpec:
         example_questions=_string_tuple(
             agent.get("example_questions"), "agent.example_questions"
         ),
+        additional_mcp_server_names=_string_tuple(
+            agent.get("additional_mcp_servers"),
+            "agent.additional_mcp_servers",
+        ),
         provide_run_summary=bool(agent.get("provide_run_summary", True)),
         enabled=bool(agent.get("enabled", True)),
         model_id=agent.get("model_id"),
@@ -194,15 +199,13 @@ def build_tool_configs(
     tools: list[dict[str, Any]] = []
 
     missing = [
-        tool_name
-        for tool_name in spec.mcp_tools
-        if (tool_name, "mcp") not in by_key
+        tool_name for tool_name in spec.mcp_tools if (tool_name, "mcp") not in by_key
     ]
     if missing:
         raise AgentBundleError(
             "MCP tools are missing from the Nexent catalog: "
-            f"{missing}. Is MCP server {spec.mcp_server_name!r} registered, "
-            "enabled and scanned?"
+            f"{missing}. Are all declared MCP servers registered, enabled and "
+            "scanned?"
         )
 
     for tool_name in spec.mcp_tools:
@@ -272,10 +275,25 @@ def build_agent_bundle(
     *,
     kb_index_name: str | None,
     mcp_server_url: str,
+    additional_mcp_server_urls: Mapping[str, str] | None = None,
     agent_id: int = SENTINEL_AGENT_ID,
 ) -> dict[str, Any]:
     """Build the ``ExportAndImportDataFormat`` body for ``POST /agent/import``."""
     tools = build_tool_configs(spec, catalog, kb_index_name=kb_index_name)
+    additional_urls = dict(additional_mcp_server_urls or {})
+    missing_urls = sorted(set(spec.additional_mcp_server_names) - set(additional_urls))
+    if missing_urls:
+        raise AgentBundleError(
+            "additional MCP servers have no URL: " + ", ".join(missing_urls)
+        )
+    unexpected_urls = sorted(
+        set(additional_urls) - set(spec.additional_mcp_server_names)
+    )
+    if unexpected_urls:
+        raise AgentBundleError(
+            "URLs were supplied for undeclared MCP servers: "
+            + ", ".join(unexpected_urls)
+        )
     info = {
         "agent_id": agent_id,
         "tenant_id": None,
@@ -311,7 +329,14 @@ def build_agent_bundle(
             {
                 "mcp_server_name": spec.mcp_server_name,
                 "mcp_url": mcp_server_url,
-            }
+            },
+            *[
+                {
+                    "mcp_server_name": name,
+                    "mcp_url": additional_urls[name],
+                }
+                for name in spec.additional_mcp_server_names
+            ],
         ],
     }
 
@@ -369,9 +394,7 @@ def validate_bundle(bundle: Mapping[str, Any], spec: AgentSpec) -> None:
                 raise AgentBundleError(f"duplicate tool in bundle: {tool_name!r}")
             tool_names.add(tool_name)
             if tool.get("source") == "mcp" and tool.get("params"):
-                raise AgentBundleError(
-                    f"MCP tool {tool_name!r} must have empty params"
-                )
+                raise AgentBundleError(f"MCP tool {tool_name!r} must have empty params")
             if not tool.get("class_name"):
                 raise AgentBundleError(f"tool {tool_name!r} has no class_name")
         declared = set(info.get("skill_names") or [])
@@ -380,5 +403,21 @@ def validate_bundle(bundle: Mapping[str, Any], spec: AgentSpec) -> None:
             raise AgentBundleError(
                 f"bundle skill_names {sorted(declared)} != spec {sorted(expected)}"
             )
-    if not isinstance(bundle.get("mcp_info"), list):
+    mcp_info = bundle.get("mcp_info")
+    if not isinstance(mcp_info, list):
         raise AgentBundleError("bundle.mcp_info must be a list")
+    names = [item.get("mcp_server_name") for item in mcp_info if isinstance(item, dict)]
+    if len(names) != len(mcp_info) or any(
+        not isinstance(name, str) or not name for name in names
+    ):
+        raise AgentBundleError("every bundle.mcp_info entry needs mcp_server_name")
+    if len(set(names)) != len(names):
+        raise AgentBundleError("bundle.mcp_info contains duplicate servers")
+    expected_servers = {
+        spec.mcp_server_name,
+        *spec.additional_mcp_server_names,
+    }
+    if set(names) != expected_servers:
+        raise AgentBundleError(
+            f"bundle MCP servers {sorted(names)} != spec {sorted(expected_servers)}"
+        )

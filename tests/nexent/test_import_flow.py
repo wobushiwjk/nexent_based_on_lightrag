@@ -22,7 +22,20 @@ MCP_TOOLS = (
     "get_fault_tree",
     "trace_evidence",
     "validate_fault_tree",
+    "get_ontology_governance_status",
+    "list_ontology_versions",
+    "get_ontology_version",
+    "list_ontology_changes",
+    "get_ontology_change",
 )
+
+GOVERNANCE_TOOLS = {
+    "get_ontology_governance_status",
+    "list_ontology_versions",
+    "get_ontology_version",
+    "list_ontology_changes",
+    "get_ontology_change",
+}
 
 
 def catalog() -> list[dict]:
@@ -34,7 +47,11 @@ def catalog() -> list[dict]:
             "description_zh": name,
             "inputs": "{}",
             "labels": None,
-            "usage": "industrial-fault-domain",
+            "usage": (
+                "ontology-governance"
+                if name in GOVERNANCE_TOOLS
+                else "industrial-fault-domain"
+            ),
         }
         for name in MCP_TOOLS
     ]
@@ -63,6 +80,7 @@ class StubClient:
 
     def __init__(self) -> None:
         self.mcp: dict | None = None
+        self.governance_mcp: dict | None = None
         self.skills = [{"name": "fault-diagnosis"}]
         self.processed = False
         self.uploaded: list[Path] = []
@@ -82,31 +100,53 @@ class StubClient:
 
     # MCP
     def test_mcp_connection(self, url):
-        return {"success": self.connection_ok, "error": None if self.connection_ok else "refused"}
+        return {
+            "success": self.connection_ok,
+            "error": None if self.connection_ok else "refused",
+        }
 
     def find_mcp(self, name):
         if self.mcp and self.mcp["remote_mcp_server_name"] == name:
             return dict(self.mcp)
+        if (
+            self.governance_mcp
+            and self.governance_mcp["remote_mcp_server_name"] == name
+        ):
+            return dict(self.governance_mcp)
         return None
 
     def add_mcp(self, name, url, *, description="", tags=(), enabled=True):
         self.calls.append("add_mcp")
-        self.mcp = {
+        record = {
             "remote_mcp_server_name": name,
             "remote_mcp_server": url,
-            "mcp_id": 11,
+            "mcp_id": 12 if name == "ontology-governance" else 11,
             "enabled": enabled,
         }
+        if name == "ontology-governance":
+            self.governance_mcp = record
+        else:
+            self.mcp = record
 
     def update_mcp(self, mcp_id, name, url, *, description="", tags=()):
         self.calls.append("update_mcp")
-        assert self.mcp is not None
-        self.mcp["remote_mcp_server"] = url
+        record = (
+            self.governance_mcp
+            if self.governance_mcp and self.governance_mcp["mcp_id"] == mcp_id
+            else self.mcp
+        )
+        assert record is not None
+        record["remote_mcp_server"] = url
 
     def enable_mcp(self, mcp_id):
         self.calls.append("enable_mcp")
-        assert self.mcp is not None
-        self.mcp["enabled"] = True
+        record = (
+            self.governance_mcp
+            if self.governance_mcp and self.governance_mcp["mcp_id"] == mcp_id
+            else self.mcp
+        )
+        assert record is not None
+        record["enabled"] = True
 
     # tools
     def scan_tools(self):
@@ -203,9 +243,7 @@ def test_step_seed_passes_storage_and_tenant(tmp_path, monkeypatch):
 
     monkeypatch.setattr(flow.subprocess, "run", fake_run)
 
-    result = flow.step_seed(
-        options(seed="always", seed_storage=tmp_path), "tenant-1"
-    )
+    result = flow.step_seed(options(seed="always", seed_storage=tmp_path), "tenant-1")
 
     assert result["action"] == "imported"
     command = recorded["command"]
@@ -344,9 +382,7 @@ def test_skills_without_refresh_reuses_existing(tmp_path):
         dry_run=False,
     )
 
-    assert resolutions == [
-        {"skill_name": "fault-diagnosis", "action": "use_existing"}
-    ]
+    assert resolutions == [{"skill_name": "fault-diagnosis", "action": "use_existing"}]
     assert details["reused"] == ["fault-diagnosis"]
 
 
@@ -460,6 +496,7 @@ def test_step_agent_refuses_to_replace_by_default():
             catalog(),
             kb_index_name="kb-index",
             mcp_url="http://mcp",
+            additional_mcp_server_urls={"ontology-governance": "http://governance"},
             skills_payload=(),
             skill_resolutions=(),
             replace=False,
@@ -479,6 +516,9 @@ def test_step_agent_replaces_and_imports_bundle():
         catalog(),
         kb_index_name="kb-index",
         mcp_url="http://host.docker.internal:8765/mcp",
+        additional_mcp_server_urls={
+            "ontology-governance": "http://host.docker.internal:8766/mcp"
+        },
         skills_payload=(),
         skill_resolutions=(),
         replace=True,
@@ -502,7 +542,10 @@ def test_run_import_end_to_end(tmp_path, monkeypatch):
     report_path = tmp_path / "report.json"
 
     report = flow.run_import(
-        options(report_path=report_path),
+        options(
+            report_path=report_path,
+            governance_root=tmp_path / "governance",
+        ),
         client=client,
         out=lambda line: None,
     )
@@ -513,6 +556,8 @@ def test_run_import_end_to_end(tmp_path, monkeypatch):
         "identity",
         "seed",
         "mcp",
+        "governance_store",
+        "governance_mcp",
         "scan",
         "catalog",
         "skills",

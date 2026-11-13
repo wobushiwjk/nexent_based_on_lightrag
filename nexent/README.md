@@ -1,8 +1,9 @@
 # Nexent 集成（W5）
 
-本目录把仓库里的三个领域服务注册进一个已经运行的 Nexent 实例，形成可演示的问答/诊断闭环：
+本目录把仓库里的领域与治理服务注册进一个已经运行的 Nexent 实例，形成可演示的问答、诊断和本体版本查询闭环：
 
-- **MCP**：`mcp_server/` 暴露的 6 个只读领域工具；
+- **领域 MCP**：`mcp_server/` 暴露的 6 个只读领域工具；
+- **治理 MCP**：`governance_mcp_server/` 暴露的 5 个只读本体治理工具；
 - **Skill**：`skills/` 下的 3 个确定性技能，由 `nexent/scripts/build_skills.py` 打包成 ZIP 上传；
 - **知识库**：`nexent/kb/` 下的 3 份写作规范/术语/证据政策文档；
 - **Agent**：`industrial_fault_agent`，提示词在 `nexent/agent/system_prompt.md`。
@@ -16,6 +17,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | 从零导入 Nexent | `nexent/build/import-report.json` 中 `ok: true`，8 个步骤全部有记录 |
 | Agent 能调用 W2 工具 | 演示 transcript 的 `events` 中 `tool` / `tool_result` 类事件计数 > 0；导入报告第 4 步列出 6 个 MCP 工具 |
 | Agent 能调用 W4 Skill | 导入报告第 5 步列出 3 个 Skill；Agent 绑定 `skill_names`；对话中 `read_skill_md` / `run_skill_script` 出现在事件里 |
+| Agent 能查询本体治理 | 用户询问当前本体版本时，Agent 调用 `get_ontology_governance_status`，答复包含活动版本和安装信息 |
 | 完成一次「设备故障诊断 + 证据展示」 | `nexent/build/demo-*.json` 中的 `final_answer`，含 `[evidence:...]` 与逐字引文 |
 | 配置在重启后仍在 | 重启 Nexent 容器后重跑演示脚本，回答不变；Agent 仍在列表中 |
 | 录屏或截图 | Web UI 对话截图 + `demo-*.json` + `import-report.json` 三件套 |
@@ -33,7 +35,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | `nexent-mcp` | 5011 | Nexent 自带的 MCP 管理服务，**不是**本仓库的 MCP Server |
 | `nexent-postgres` / `kong` 等 | — | 基础设施 |
 
-本仓库的 MCP Server 默认监听 **8765**，独立于上表。
+本仓库的领域 MCP 默认监听 **8765**，本体治理 MCP 默认监听 **8766**，均独立于上表。
 
 ## 文件清单
 
@@ -41,6 +43,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | --- | --- |
 | `versions.lock.json` | 锁定的 Nexent 版本与接口约定 |
 | `config/mcp.json` | MCP 服务注册名、容器内可达 URL、传输方式 |
+| `config/governance_mcp.json` | 本体治理 MCP 注册名、容器内可达 URL、传输方式 |
 | `config/agent.json` | Agent 名称、工具清单、Skill 清单、知识库工具与示例问题 |
 | `config/knowledge_base.json` | 知识库显示名、待导入文档、切分策略 |
 | `agent/system_prompt.md` | Agent 系统提示词（证据规则、诊断流程、输出模板） |
@@ -60,7 +63,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 1. Nexent 已部署并运行，版本 **v2.8.0**；Web UI 能登录。
 2. Nexent 里已配置**一个对话模型**和**一个 embedding 模型**。导入第 6 步建知识库要 embedding 模型，第 7 步导入 Agent 要对话模型；没有就先在「模型管理」里添加。
 3. 本仓库的 Python 环境可用（`.venv/Scripts/python.exe`），且已安装 `mcp` 依赖（`uv sync --extra api` 或按 `mcp_server/README.md`）。
-4. 端口 **8765** 可从 Docker 容器访问到宿主机。Docker Desktop 用 `host.docker.internal`；首次启动 MCP Server 时 Windows 防火墙弹窗要允许专用网络。
+4. 端口 **8765、8766** 可从 Docker 容器访问到宿主机。Docker Desktop 用 `host.docker.internal`；首次启动两个 MCP Server 时 Windows 防火墙弹窗要允许专用网络。
 5. 确认管理员账号。默认是 `suadmin@nexent.com` / `Nexent@123`；如果你在首次部署前设置过 `NEXENT_SUPER_ADMIN_PASSWORD`，用你设置的那个。
 
 ## 配置
@@ -88,7 +91,9 @@ set -a; source nexent/.env; set +a
 
 预期：第 1 步拿到 tenant_id；第 2 步导入种子并输出 `imported`；第 3 步报 MCP 不可达并停下。这是**预期行为**，不是失败。报告里会记录 tenant_id，后面回滚要用。
 
-### 启动 MCP Server
+### 启动两个 MCP Server
+
+领域 MCP：
 
 ```bash
 .venv/Scripts/python.exe -m mcp_server \
@@ -98,7 +103,17 @@ set -a; source nexent/.env; set +a
   --storage-dir domain_packs/industrial_fault/storage
 ```
 
-保持这个终端开着。第二遍导入的第 3 步会做同样的连通性检查（`POST /mcp/test-connection`），失败时会直接给出原因；若失败，见「故障排查」。
+治理 MCP（另一个终端）：
+
+```bash
+.venv/Scripts/python.exe -m governance_mcp_server \
+  --bootstrap-if-empty \
+  --transport streamable-http \
+  --host 0.0.0.0 \
+  --port 8766
+```
+
+保持两个终端开着。第二遍导入的第 3 步会分别做连通性检查，失败时会直接给出原因；若失败，见「故障排查」。
 
 ### 第二遍：注册全部组件
 
@@ -109,12 +124,12 @@ set -a; source nexent/.env; set +a
 
 这一遍第 2 步检测到 `storage/tenants/<tenant_id>/active.json` 存在会自动跳过，然后依次：
 
-1. 注册 MCP（`add` 或 `update` + `enable`）；
-2. 扫描工具目录，确认 6 个 MCP 工具都在；
+1. 初始化空白治理库并注册两个 MCP（`add` 或 `update` + `enable`）；
+2. 扫描工具目录，确认 11 个 MCP 工具都在；
 3. 打包并上传 3 个 Skill（首次创建）；
 4. 创建知识库、上传 3 份文档、等待切分完成；
 5. 导入 Agent（自动发布 V1）；
-6. 校验 Agent 已发布、MCP 工具仍在目录中。
+6. 校验 Agent 已发布、两个 MCP 的工具仍在目录中。
 
 成功时终端打印 `{"ok": true, "report": ".../nexent/build/import-report.json"}`。
 
@@ -135,7 +150,8 @@ set -a; source nexent/.env; set +a
 
 ```bash
 .venv/Scripts/python.exe -m nexent.scripts.demo \
-  --query "P-101A 冷却水泵出口压力不足，可能的原因有哪些？请逐条给出证据出处，并说明故障树中的位置。"
+  --query "P-101A 冷却水泵出口压力不足，可能的原因有哪些？请逐条给出证据出处，并说明故障树中的位置。" \
+  --query "当前本体是哪个版本？安装时间和类、关系数量是什么？"
 ```
 
 脚本会登录、创建/复用 API Key、调用 `POST /nb/v1/chat/run`，把完整事件序列与最终回答写到 `nexent/build/demo-<UTC时间>.json`。
@@ -157,7 +173,8 @@ docker compose restart
 
 | 现象 | 原因与处理 |
 | --- | --- |
-| 第 3 步 `not reachable from Nexent` | 容器里解析不到 `host.docker.internal`，或 8765 没放行。先用容器内测试：`docker exec -it nexent-config curl -s http://host.docker.internal:8765/mcp`；不通就改用宿主机局域网 IP（`ipconfig` 的 IPv4），`--mcp-url http://<IP>:8765/mcp` |
+| 第 3 步领域 MCP `not reachable from Nexent` | 容器里解析不到 `host.docker.internal`，或 8765 没放行。先用容器内测试：`docker exec -it nexent-config curl -s http://host.docker.internal:8765/mcp`；不通就改用宿主机局域网 IP（`ipconfig` 的 IPv4），`--mcp-url http://<IP>:8765/mcp` |
+| 第 3 步治理 MCP `not reachable from Nexent` | 8766 没启动或没放行。先确认 `governance_mcp_server` 正在运行，再用容器内 `curl http://host.docker.internal:8766/mcp` 检查；也可传 `--governance-mcp-url` |
 | MCP 启动报 `no runtime domain bundles found` | 种子还没导入。先跑第一遍导入 |
 | 种子导入报文件被占用 | MCP Server 还开着。停掉它再导入 |
 | `tools are missing from the Nexent catalog` | MCP 已注册但未启用或扫描失败。`GET /mcp/healthcheck?mcp_id=...` 看状态，必要时 `POST /mcp/enable` 后重跑 |
@@ -170,7 +187,7 @@ docker compose restart
 ## 更新与回滚
 
 - 更新：改仓库里的配置/提示词/Skill → 重跑导入（Skill 变更加 `--refresh-skills`）。
-- 回滚：见 [ROLLBACK.md](ROLLBACK.md)。删除顺序是 Agent → Skill → 知识库 → MCP 注册 → 种子存储。
+- 回滚：见 [ROLLBACK.md](ROLLBACK.md)。删除顺序是 Agent → Skill → 知识库 → 两个 MCP 注册 → 种子与治理存储。
 
 ## 版本锁定
 

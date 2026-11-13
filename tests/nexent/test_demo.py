@@ -7,7 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from nexent.scripts.demo import DemoError, DemoOptions, run_chat, run_demo
+from nexent.scripts.demo import (
+    DEFAULT_GOVERNANCE_QUERY,
+    DemoError,
+    DemoOptions,
+    run_chat,
+    run_demo,
+)
 
 
 class FakeManagement:
@@ -67,6 +73,10 @@ def test_run_chat_collects_events_and_answer():
     assert request["token"] == "ak-demo"
     assert request["json_body"]["final_answer_mode"] == "complete"
     assert request["json_body"]["agent_name"] == "industrial_fault_agent"
+
+
+def test_default_demo_includes_a_governance_question():
+    assert DEFAULT_GOVERNANCE_QUERY in DemoOptions().queries
 
 
 def test_run_chat_joins_delta_answers():

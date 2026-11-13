@@ -28,18 +28,36 @@
     "skill_runtime_version": "0.1.0"
   },
   "mcp": {
-    "server_name": "industrial-fault-domain",
-    "transport": "streamable-http",
-    "container_url": "http://host.docker.internal:8765/mcp",
-    "native_url": "http://localhost:8765/mcp",
-    "initialize_path": "/mcp",
-    "tools": [
-      "get_ontology",
-      "get_equipment",
-      "search_faults",
-      "get_fault_tree",
-      "trace_evidence",
-      "validate_fault_tree"
+    "servers": [
+      {
+        "server_name": "industrial-fault-domain",
+        "transport": "streamable-http",
+        "container_url": "http://host.docker.internal:8765/mcp",
+        "native_url": "http://localhost:8765/mcp",
+        "initialize_path": "/mcp",
+        "tools": [
+          "get_ontology",
+          "get_equipment",
+          "search_faults",
+          "get_fault_tree",
+          "trace_evidence",
+          "validate_fault_tree"
+        ]
+      },
+      {
+        "server_name": "ontology-governance",
+        "transport": "streamable-http",
+        "container_url": "http://host.docker.internal:8766/mcp",
+        "native_url": "http://localhost:8766/mcp",
+        "initialize_path": "/mcp",
+        "tools": [
+          "get_ontology_governance_status",
+          "list_ontology_versions",
+          "get_ontology_version",
+          "list_ontology_changes",
+          "get_ontology_change"
+        ]
+      }
     ]
   },
   "agent": {
@@ -59,6 +77,6 @@
   },
   "python": {
     "tested": "3.13.5",
-    "scripts_are_stdlib_only": true
+    "scripts_need_repository_runtime": true
   }
 }

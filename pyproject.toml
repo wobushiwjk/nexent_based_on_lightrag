@@ -207,6 +207,7 @@ lightrag-download-cache = "lightrag.tools.download_cache:main"
 lightrag-clean-llmqc = "lightrag.tools.clean_llm_query_cache:main"
 lightrag-rebuild-vdb = "lightrag.tools.rebuild_vdb:main"
 lightrag-domain-mcp = "mcp_server.__main__:main"
+lightrag-ontology-governance-mcp = "governance_mcp_server.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/HKUDS/LightRAG"
@@ -224,7 +225,7 @@ Repository = "https://github.com/HKUDS/LightRAG"
 override-dependencies = ["pyjwt>=2.10.1,<3.0.0"]
 
 [tool.setuptools.packages.find]
-include = ["lightrag*", "mcp_server*", "skills*"]
+include = ["lightrag*", "mcp_server*", "governance_mcp_server*", "skills*"]
 exclude = ["data*", "tests*", "scripts*", "examples*", "dickens*", "reproduce*", "output_complete*", "rag_storage*", "inputs*"]
 
 [tool.setuptools]

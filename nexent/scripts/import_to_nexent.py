@@ -61,16 +61,31 @@ from nexent.scripts.nexent_client import (
     NexentError,
     redact,
 )
+from governance_mcp_server.bootstrap import bootstrap_ontology_governance
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_AGENT_CONFIG = REPO_ROOT / "nexent" / "config" / "agent.json"
 DEFAULT_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "mcp.json"
+DEFAULT_GOVERNANCE_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "governance_mcp.json"
 DEFAULT_KB_CONFIG = REPO_ROOT / "nexent" / "config" / "knowledge_base.json"
 DEFAULT_SKILLS_CONFIG = REPO_ROOT / "nexent" / "config" / "skills.json"
 DEFAULT_SKILLS_OUT = REPO_ROOT / "nexent" / "build" / "skills"
 DEFAULT_REPORT = REPO_ROOT / "nexent" / "build" / "import-report.json"
 DEFAULT_SEED_STORAGE = REPO_ROOT / "domain_packs" / "industrial_fault" / "storage"
+DEFAULT_GOVERNANCE_ROOT = DEFAULT_SEED_STORAGE / "governance"
+DEFAULT_GOVERNANCE_ONTOLOGY = (
+    REPO_ROOT / "domain_packs" / "industrial_fault" / "ontology.yml"
+)
 SEED_SCRIPT = REPO_ROOT / "scripts" / "import_seed_domain.py"
+GOVERNANCE_TOOLS = frozenset(
+    {
+        "get_ontology_governance_status",
+        "list_ontology_versions",
+        "get_ontology_version",
+        "list_ontology_changes",
+        "get_ontology_change",
+    }
+)
 
 DEFAULT_EMAIL = "suadmin@nexent.com"
 DEFAULT_PASSWORD = "Nexent@123"
@@ -94,6 +109,10 @@ class ImportOptions:
     email: str = DEFAULT_EMAIL
     password: str = DEFAULT_PASSWORD
     mcp_url: str | None = None
+    governance_mcp_url: str | None = None
+    governance_root: Path = DEFAULT_GOVERNANCE_ROOT
+    governance_ontology: Path = DEFAULT_GOVERNANCE_ONTOLOGY
+    skip_governance_mcp: bool = False
     seed: str = "auto"
     seed_storage: Path = DEFAULT_SEED_STORAGE
     seed_timeout: int = 600
@@ -184,6 +203,11 @@ def step_mcp(
     server_url: str,
     *,
     dry_run: bool,
+    startup_help: str = (
+        "Start it with `python -m mcp_server --transport streamable-http "
+        "--host 0.0.0.0 --port 8765 --storage-dir "
+        "domain_packs/industrial_fault/storage`"
+    ),
 ) -> dict[str, Any]:
     """Converge the MCP service registration to ``server_url``."""
     name = str(mcp_config["name"])
@@ -192,8 +216,7 @@ def step_mcp(
         raise ImportStepError(
             f"MCP server {server_url} is not reachable from Nexent: "
             f"{probe.get('error') or 'no detail'}. Start it with "
-            "`python -m mcp_server --transport streamable-http --host 0.0.0.0 "
-            "--port 8765 --storage-dir domain_packs/industrial_fault/storage`, "
+            f"{startup_help}, "
             "use host.docker.internal when Nexent runs in Docker Desktop, and "
             "allow the port through the firewall. Then rerun this import; the "
             "seed step skips itself on the second pass."
@@ -242,6 +265,50 @@ def step_mcp(
     return details
 
 
+def step_governance_store(options: ImportOptions) -> dict[str, Any]:
+    """Bootstrap the canonical ontology only when governance is empty."""
+
+    if options.skip_governance_mcp:
+        return {"action": "skipped", "reason": "--skip-governance-mcp"}
+    active = options.governance_root / "active.json"
+    if active.is_file():
+        return {"action": "skipped", "reason": f"{active} already exists"}
+    if options.dry_run:
+        installed = bool(
+            any(
+                path.is_dir()
+                for path in (options.governance_root / "versions").glob("*")
+            )
+        )
+        if installed:
+            return {
+                "action": "would_validate",
+                "reason": "installed versions require an explicit active pointer",
+            }
+        return {
+            "action": "would_bootstrap",
+            "ontology": str(options.governance_ontology),
+            "root": str(options.governance_root),
+        }
+    try:
+        installed = bootstrap_ontology_governance(
+            governance_root=options.governance_root,
+            ontology_path=options.governance_ontology,
+        )
+    except Exception as exc:
+        raise ImportStepError(f"ontology governance bootstrap failed: {exc}") from exc
+    if installed is None:
+        return {
+            "action": "skipped",
+            "reason": "active ontology already exists",
+        }
+    return {
+        "action": "bootstrapped",
+        "version": installed.ontology_version,
+        "root": str(options.governance_root),
+    }
+
+
 def step_scan_tools(client: NexentClient, *, dry_run: bool) -> dict[str, Any]:
     """Refresh the tool catalog so the MCP tools become importable."""
     if dry_run:
@@ -263,9 +330,7 @@ def step_catalog(
         for tool in catalog
         if isinstance(tool, dict)
     }
-    missing_mcp = [
-        name for name in spec.mcp_tools if (name, "mcp") not in present
-    ]
+    missing_mcp = [name for name in spec.mcp_tools if (name, "mcp") not in present]
     missing_local = []
     if spec.kb_tool is not None and (spec.kb_tool.name, "local") not in present:
         missing_local.append(spec.kb_tool.name)
@@ -284,8 +349,7 @@ def step_catalog(
             details["warning"] = message
         else:
             raise ImportStepError(
-                message
-                + "; check `GET /mcp/healthcheck` for the service and the MCP "
+                message + "; check `GET /mcp/healthcheck` for the service and the MCP "
                 "server log, then rerun"
             )
     else:
@@ -370,9 +434,7 @@ def resolve_kb(
         raise ImportStepError("knowledge_base.json has no display_name")
     display_name = display_name.strip()
 
-    files = [
-        _repo_path(str(relative)) for relative in kb_config.get("files") or ()
-    ]
+    files = [_repo_path(str(relative)) for relative in kb_config.get("files") or ()]
     if not files:
         raise ImportStepError("knowledge_base.json lists no files")
     for path in files:
@@ -391,7 +453,9 @@ def resolve_kb(
         model = client.resolve_embedding_model(
             kb_config.get("embedding_model_display_name")
         )
-        details["embedding_model"] = model.get("display_name") or model.get("model_name")
+        details["embedding_model"] = model.get("display_name") or model.get(
+            "model_name"
+        )
         if dry_run:
             details.update(
                 {
@@ -436,9 +500,7 @@ def resolve_kb(
     if pending:
         upload = client.upload_files(index_name, pending)
         if upload.get("errors"):
-            raise ImportStepError(
-                f"knowledge base upload failed: {upload['errors']}"
-            )
+            raise ImportStepError(f"knowledge base upload failed: {upload['errors']}")
         records = {
             str(record.get("object_name")): record
             for record in upload.get("file_records") or []
@@ -521,9 +583,7 @@ def _wait_for_ingestion(
         if done:
             return {name: statuses[name] for name in expected}
         if time.monotonic() >= deadline:
-            pending = {
-                name: statuses.get(name, "MISSING") for name in expected
-            }
+            pending = {name: statuses.get(name, "MISSING") for name in expected}
             raise ImportStepError(
                 "knowledge base ingestion did not finish within "
                 f"{wait_seconds}s: {pending}. It continues in the background; "
@@ -539,6 +599,7 @@ def step_agent(
     *,
     kb_index_name: str | None,
     mcp_url: str,
+    additional_mcp_server_urls: Mapping[str, str] | None = None,
     skills_payload: Sequence[Mapping[str, str]],
     skill_resolutions: Sequence[Mapping[str, str]],
     replace: bool,
@@ -584,6 +645,7 @@ def step_agent(
         catalog,
         kb_index_name=kb_index_name,
         mcp_server_url=mcp_url,
+        additional_mcp_server_urls=additional_mcp_server_urls,
     )
     validate_bundle(bundle, resolved)
     payload = import_payload(
@@ -663,16 +725,56 @@ def run_import(
         if not server_url:
             raise ImportStepError("no MCP url: set --mcp-url or config/mcp.json")
         mcp_name = str(mcp_config["name"])
+        governance_config = _load_json(DEFAULT_GOVERNANCE_MCP_CONFIG)
+        governance_url = options.governance_mcp_url or str(
+            governance_config.get("server_url") or ""
+        )
+        governance_name = str(governance_config["name"])
 
         out("[3/8] MCP registration")
         report["steps"]["mcp"] = step_mcp(
             active, mcp_config, server_url, dry_run=options.dry_run
         )
         out(f"      {report['steps']['mcp']['action']}")
+        if options.skip_governance_mcp:
+            report["steps"]["governance_store"] = {
+                "action": "skipped",
+                "reason": "--skip-governance-mcp",
+            }
+            report["steps"]["governance_mcp"] = {"action": "skipped"}
+            out("      governance MCP skipped")
+        else:
+            if not governance_url:
+                raise ImportStepError(
+                    "no governance MCP url: set --governance-mcp-url or "
+                    "config/governance_mcp.json"
+                )
+            report["steps"]["governance_store"] = step_governance_store(options)
+            out(f"      {report['steps']['governance_store']['action']}")
+            report["steps"]["governance_mcp"] = step_mcp(
+                active,
+                governance_config,
+                governance_url,
+                dry_run=options.dry_run,
+                startup_help=(
+                    "Start it with `python -m governance_mcp_server "
+                    "--bootstrap-if-empty --transport streamable-http "
+                    "--host 0.0.0.0 --port 8766`"
+                ),
+            )
+            out(f"      {report['steps']['governance_mcp']['action']}")
 
         out("[4/8] tool catalog")
         report["steps"]["scan"] = step_scan_tools(active, dry_run=options.dry_run)
         spec = load_agent_spec(DEFAULT_AGENT_CONFIG)
+        if options.skip_governance_mcp:
+            spec = dataclasses.replace(
+                spec,
+                mcp_tools=tuple(
+                    name for name in spec.mcp_tools if name not in GOVERNANCE_TOOLS
+                ),
+                additional_mcp_server_names=(),
+            )
         catalog, coverage = step_catalog(active, spec, dry_run=options.dry_run)
         report["steps"]["catalog"] = coverage
         out(f"      {coverage['action']} ({coverage['tool_count']} tools)")
@@ -714,6 +816,9 @@ def run_import(
             catalog,
             kb_index_name=kb_index_name,
             mcp_url=server_url,
+            additional_mcp_server_urls=(
+                {} if options.skip_governance_mcp else {governance_name: governance_url}
+            ),
             skills_payload=skills_payload,
             skill_resolutions=resolutions,
             replace=options.replace_agent,
@@ -764,10 +869,33 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Register the LightRAG industrial fault domain in Nexent.",
     )
-    parser.add_argument("--config-url", default=os.environ.get("NEXENT_CONFIG_URL", DEFAULT_CONFIG_URL))
-    parser.add_argument("--email", default=os.environ.get("NEXENT_EMAIL", DEFAULT_EMAIL))
-    parser.add_argument("--password", default=os.environ.get("NEXENT_PASSWORD", DEFAULT_PASSWORD))
+    parser.add_argument(
+        "--config-url", default=os.environ.get("NEXENT_CONFIG_URL", DEFAULT_CONFIG_URL)
+    )
+    parser.add_argument(
+        "--email", default=os.environ.get("NEXENT_EMAIL", DEFAULT_EMAIL)
+    )
+    parser.add_argument(
+        "--password", default=os.environ.get("NEXENT_PASSWORD", DEFAULT_PASSWORD)
+    )
     parser.add_argument("--mcp-url", default=os.environ.get("NEXENT_MCP_URL"))
+    parser.add_argument(
+        "--governance-mcp-url",
+        default=os.environ.get("NEXENT_GOVERNANCE_MCP_URL"),
+    )
+    parser.add_argument(
+        "--skip-governance-mcp",
+        action="store_true",
+        help="Import only the original industrial domain MCP.",
+    )
+    parser.add_argument(
+        "--governance-root",
+        default=str(DEFAULT_GOVERNANCE_ROOT),
+    )
+    parser.add_argument(
+        "--governance-ontology",
+        default=str(DEFAULT_GOVERNANCE_ONTOLOGY),
+    )
     parser.add_argument(
         "--seed",
         choices=("auto", "always", "never"),
@@ -806,6 +934,10 @@ def main(argv: list[str] | None = None) -> int:
         email=args.email,
         password=args.password,
         mcp_url=args.mcp_url,
+        governance_mcp_url=args.governance_mcp_url,
+        governance_root=Path(args.governance_root).expanduser().resolve(),
+        governance_ontology=Path(args.governance_ontology).expanduser().resolve(),
+        skip_governance_mcp=args.skip_governance_mcp,
         seed=args.seed,
         seed_storage=Path(args.seed_storage).expanduser().resolve(),
         seed_timeout=args.seed_timeout,

@@ -41,6 +41,7 @@ DEFAULT_QUERY = (
     "P-101A 冷却水泵出口压力不足，可能的原因有哪些？"
     "请逐条给出证据出处，并说明故障树中的位置。"
 )
+DEFAULT_GOVERNANCE_QUERY = "当前工业故障本体是哪个版本？请说明安装时间和类、关系数量。"
 DEFAULT_OUT_DIR = REPO_ROOT / "nexent" / "build"
 DEFAULT_EMAIL = "suadmin@nexent.com"
 DEFAULT_PASSWORD = "Nexent@123"
@@ -108,7 +109,7 @@ class DemoOptions:
     email: str = DEFAULT_EMAIL
     password: str = DEFAULT_PASSWORD
     agent_name: str = DEFAULT_AGENT_NAME
-    queries: tuple[str, ...] = (DEFAULT_QUERY,)
+    queries: tuple[str, ...] = (DEFAULT_QUERY, DEFAULT_GOVERNANCE_QUERY)
     timeout: float = 600.0
     out_dir: Path = DEFAULT_OUT_DIR
 
@@ -183,9 +184,7 @@ def run_demo(
         raise DemoError("current_user_info returned no user_id")
     access_key = management.ensure_api_key(str(user_id))
 
-    north = northbound or NexentClient(
-        options.northbound_url, timeout=options.timeout
-    )
+    north = northbound or NexentClient(options.northbound_url, timeout=options.timeout)
     transcript: dict[str, Any] = {
         "generated_by": "nexent/scripts/demo.py",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -227,7 +226,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--northbound-url",
         default=os.environ.get("NEXENT_NORTHBOUND_URL", DEFAULT_NORTHBOUND_URL),
     )
-    parser.add_argument("--email", default=os.environ.get("NEXENT_EMAIL", DEFAULT_EMAIL))
+    parser.add_argument(
+        "--email", default=os.environ.get("NEXENT_EMAIL", DEFAULT_EMAIL)
+    )
     parser.add_argument(
         "--password", default=os.environ.get("NEXENT_PASSWORD", DEFAULT_PASSWORD)
     )
@@ -255,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
         email=args.email,
         password=args.password,
         agent_name=args.agent_name,
-        queries=tuple(args.queries or (DEFAULT_QUERY,)),
+        queries=tuple(args.queries or (DEFAULT_QUERY, DEFAULT_GOVERNANCE_QUERY)),
         timeout=args.timeout,
         out_dir=Path(args.out_dir).expanduser().resolve(),
     )

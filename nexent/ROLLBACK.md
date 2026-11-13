@@ -9,7 +9,8 @@
 | 对象 | 报告字段 |
 | --- | --- |
 | 租户 | `steps.identity.tenant_id` |
-| MCP 服务 | `steps.mcp.name`、`steps.mcp.mcp_id` |
+| 领域 MCP 服务 | `steps.mcp.name`、`steps.mcp.mcp_id` |
+| 治理 MCP 服务 | `steps.governance_mcp.name`、`steps.governance_mcp.mcp_id` |
 | Skill | `steps.skills.skills`（三个名字） |
 | 知识库 | `steps.knowledge_base.display_name`、`steps.knowledge_base.index_name` |
 | Agent | `steps.agent.name`、`steps.agent.agent_id` |
@@ -18,7 +19,7 @@
 
 ## 删除顺序
 
-必须按 **Agent → Skill → 知识库 → MCP → 种子存储** 的顺序。先删被引用的对象会让中间状态更难收拾（例如 Agent 还绑着已删除的 Skill）；反过来删则每一步都自洽。
+必须按 **Agent → Skill → 知识库 → 两个 MCP → 种子与治理存储** 的顺序。先删被引用的对象会让中间状态更难收拾（例如 Agent 还绑着已删除的 Skill）；反过来删则每一步都自洽。
 
 ### 1. 删除 Agent
 
@@ -65,26 +66,31 @@ curl -X DELETE "http://localhost:5010/indices/<index_name>" \
 
 ### 4. 删除 MCP 注册
 
-Web UI：MCP 服务 → `industrial-fault-domain` → 删除。
+Web UI：MCP 服务 → `industrial-fault-domain` 和 `ontology-governance` → 删除。
 
 接口：
 
 ```bash
-curl -X DELETE "http://localhost:5010/mcp/<mcp_id>" \
+curl -X DELETE "http://localhost:5010/mcp/<domain_mcp_id>" \
+  -H "Authorization: Bearer <JWT>"
+curl -X DELETE "http://localhost:5010/mcp/<governance_mcp_id>" \
   -H "Authorization: Bearer <JWT>"
 ```
 
-边界：只删除 Nexent 里的注册记录和工具目录，**不会**停止本仓库的 MCP Server 进程。要停服务，回到运行它的终端按 `Ctrl+C`。
+边界：只删除 Nexent 里的注册记录和工具目录，**不会**停止本仓库的两个 MCP Server 进程。要停服务，回到运行它们的终端按 `Ctrl+C`。
 
 ### 5. 删除种子存储（可选）
 
-只有在要连本地数据一起清掉时才做。先停 MCP Server，再删对应租户目录：
+只有在要连本地数据一起清掉时才做。先停两个 MCP Server，再删对应租户目录：
 
 ```bash
 rm -rf "domain_packs/industrial_fault/storage/tenants/<tenant_id>"
 ```
 
 边界：`storage/` 是生成物，已列入 `.gitignore`，可随时用 `scripts/import_seed_domain.py` 重建；目录下可能还有别的租户，**不要**直接删整个 `storage/`。删除后 MCP Server 会因为找不到 bundle 而拒绝启动，直到重新导入种子。
+
+治理库位于 `storage/governance/`。它保存不可变本体版本、变更单和审核事件，
+默认**不要**随演示清理删除；只有确认无需保留治理审计时才单独删除该目录。
 
 ### 6. 清理生成物（可选）
 
@@ -96,7 +102,7 @@ rm -rf nexent/build
 
 ## 回滚后恢复
 
-按 [README.md](README.md) 的「从零导入」重跑即可。第二遍导入会重新创建 Skill、知识库、Agent 和 MCP 注册；种子步骤在 `active.json` 仍存在时自动跳过。
+按 [README.md](README.md) 的「从零导入」重跑即可。第二遍导入会重新创建 Skill、知识库、Agent 和两个 MCP 注册；种子步骤在 `active.json` 仍存在时自动跳过，治理库已初始化时也会跳过 bootstrap。
 
 ## 不要做的事
 

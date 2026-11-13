@@ -9,13 +9,21 @@
     "provide_run_summary": true,
     "enabled": true,
     "mcp_server_name": "industrial-fault-domain",
+    "additional_mcp_servers": [
+      "ontology-governance"
+    ],
     "mcp_tools": [
       "get_ontology",
       "get_equipment",
       "search_faults",
       "get_fault_tree",
       "trace_evidence",
-      "validate_fault_tree"
+      "validate_fault_tree",
+      "get_ontology_governance_status",
+      "list_ontology_versions",
+      "get_ontology_version",
+      "list_ontology_changes",
+      "get_ontology_change"
     ],
     "skills": [
       "fault-diagnosis",
@@ -27,6 +35,7 @@
       "P-101A 冷却水泵出口压力不足，可能的原因有哪些？请给出证据出处。",
       "把出口压力不足的故障树调出来，并说明每个分支的证据出处。",
       "P-101A 的巡检记录和维修记录分别支撑了哪些结论？",
+      "当前本体是哪个版本？有哪些历史版本？",
       "现场手册里没有记录的新故障模式，帮我起草一条本体变更建议。"
     ]
   },

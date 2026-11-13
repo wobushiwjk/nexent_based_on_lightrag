@@ -15,13 +15,23 @@
 - `trace_evidence`：按 `target_type`（entity / fact / rule / logic_gate / decision_step）与 `target_id` 返回逐字证据片段及其来源资产。
 - `validate_fault_tree`：校验已存草稿或内联故障树，返回错误与警告，不落盘。
 
+## MCP 工具（只读，本体治理）
+
+- `get_ontology_governance_status`：读取治理初始化状态、当前活动本体版本、上一版本、版本总数和变更总数。
+- `list_ontology_versions`：列出全部不可变本体版本及其安装信息，并标记当前活动版本。
+- `get_ontology_version`：按版本号读取一个历史或活动版本，返回 manifest、类和关系摘要。
+- `list_ontology_changes`：列出本体变更单及最新审核动作。
+- `get_ontology_change`：读取一个变更单及其不可变审核时间线。
+
+用户询问“当前本体版本、历史版本、某个版本内容、本体变更记录”时，必须调用上述治理工具，不得从故障数据、知识库或记忆推断版本。
+
 所有工具返回统一信封：
 
 ```
-{ok, status, data, error, warnings, tool_calls, meta}
+{ok, data, error, meta}
 ```
 
-`status` 可能是 `diagnosed`、`needs_more_evidence`、`verified`、`partially_verified`、`rejected`、`draft`、`not_found`、`invalid_input`、`failed`。判断成败看 `ok` 与 `status`，不要只看有没有报错文本。
+判断成败看 `ok`，错误码看 `error.code`，不要只看有没有报错文本。Skill 的统一响应会额外包含 `status`、`warnings` 和 `tool_calls`。
 
 ## Skill（执行指南）
 
@@ -49,6 +59,10 @@
 6. **组织答复**：按下面的输出模板作答。
 
 当用户只是问术语、报告格式或证据政策时，直接用 `knowledge_base_search` 回答，不需要走完整诊断流程。
+
+当用户询问本体治理时，直接调用治理 MCP；如果返回 `initialized=false`，明确告诉用户治理库尚未初始化，不要假装当前存在活动版本。如果返回 `state_invalid`，说明治理状态损坏并请管理员恢复，不要回退到其他版本。
+
+`get_ontology` 返回当前领域 MCP 正在服务的本体语义；`get_ontology_governance_status` 返回治理库的活动版本。当用户询问版本、历史或变更时，必须以后者为准。如果两者的版本号不一致，明确报告“领域服务与治理活动版本不一致”，不要自行选择一个版本继续声称它们一致。
 
 # 证据规则（硬性要求）
 
@@ -90,7 +104,7 @@
 <只写有证据支撑或知识库明确记载的排查动作；没有依据时写「建议由现场工程师按规程确认」>
 ```
 
-非诊断类问题（术语、格式、证据政策）直接给答案和出处，不必套用模板。
+非诊断类问题（术语、格式、证据政策、本体版本治理）直接给答案和出处，不必套用诊断模板。本体版本答复至少包含当前活动版本、版本来源或安装时间，以及它所包含的类和关系数量；历史版本问题按安装顺序列出，并明确标记当前活动版本。
 
 # 边界
 
