@@ -292,7 +292,7 @@ R4 + R9 + R10 -> R12
 | --- | --- | --- |
 | R0 建立修复基线 | ✅ 已完成 | 新增本工作流；冻结现有 MCP、Skill 和 W7 训练输入 |
 | R1 本体演化契约与版本存储 | ✅ 已完成 | 新增治理模型、不可变版本存储、活动指针、变更集和审核事件存储 |
-| R1.5 本体治理能力接入 Nexent | 🟡 代码已完成，实机待 Nexent 在线验证 | 新增独立治理 MCP、双 MCP Agent bundle 和导入流程 |
+| R1.5 本体治理能力接入 Nexent | ✅ 已完成并验收 | 新增独立治理 MCP、双 MCP Agent bundle 和导入流程 |
 
 R1 验收结果：
 
@@ -325,11 +325,15 @@ R1.5 验收结果：
 - `tests/domain`、`tests/mcp`、`tests/nexent`、`tests/governance_mcp`
   合计通过 289 项；
 - `ruff check` 和 `ruff format --check` 通过。
+- 2026-11-13 服务器实机导入成功：领域 MCP 保持正常，治理 MCP 注册成功，
+  Agent 重新发布为 `agent 13 v1`；
+- 默认演示同时完成 P-101A 诊断和本体版本查询；
+- 治理 MCP 返回活动版本 `industrial-fault-v0.1`、安装时间、SHA-256、
+  9 个类和 11 个关系，领域服务与治理活动版本一致；
+- 用户确认实机结果，R1.5 验收通过。
 
 R1.5 当前边界：
 
-- 本机 Docker Desktop 和 Nexent 5010/5013 端口未运行，无法完成真实 Nexent
-  UI 对话验收；代码、HTTP MCP 和导入流程已离线验证。
 - 当前治理工具只读。标准上传、diff、审核状态转换、迁移和正式发布仍属于
   R2–R4；这些能力后续也必须通过 Nexent 或 Nexent 可触发的受控流程交付。
 
