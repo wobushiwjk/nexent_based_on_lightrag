@@ -20,7 +20,7 @@ import re
 import sys
 from typing import Any
 
-COMPAT_VERSION = "2.0.0"
+COMPAT_VERSION = "2.1.0"
 
 _BAR = r"[|｜]"
 _OPEN = rf"<\s*{_BAR}\s*DSML\s*{_BAR}"
@@ -159,7 +159,11 @@ def _decode_json_value(raw_value: str, *, parameter: str) -> Any:
     raise ValueError(f"unsupported DSML parameter value for {parameter!r}")
 
 
-install()
+# When imported from ``output_protocol`` itself, the host module is only
+# partially initialized. The Docker build injects a direct call there instead,
+# so installing the site hook in that situation would create a circular patch.
+if "nexent.core.agents.output_protocol" not in sys.modules:
+    install()
 
 
 __all__ = ["COMPAT_VERSION", "install", "normalize_dsml_tool_calls"]

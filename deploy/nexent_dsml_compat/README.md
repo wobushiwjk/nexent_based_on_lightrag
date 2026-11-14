@@ -18,9 +18,10 @@ read_skill_md(skill_name='ontology-change-draft')
 </code>
 ```
 
-The patch is installed through a `.pth` import, wraps
-`nexent.core.agents.output_protocol.classify_model_output`, and applies to the
-main Agent and both managed Agents because they share the runtime.
+The derived image injects a direct call at the start of
+`nexent.core.agents.output_protocol.classify_model_output`. This removes the
+startup-order dependency of the earlier `.pth` proof of concept and applies to
+the main Agent and both managed Agents because they share the runtime.
 
 ## Build a durable runtime image
 
@@ -39,13 +40,13 @@ Verify the image contains the patch:
 ```bash
 docker run --rm \
   nexent-dsml-compat:v2.8.0 \
-  python -c "import nexent_dsml_compat; print(nexent_dsml_compat.install())"
+  python -c "import nexent_dsml_compat as c; print(c.COMPAT_VERSION)"
 ```
 
 Expected output:
 
 ```text
-True
+2.1.0
 ```
 
 ## Start the runtime with the patched image
