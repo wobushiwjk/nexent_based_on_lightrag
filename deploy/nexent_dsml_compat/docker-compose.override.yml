@@ -1,0 +1,3 @@
+services:
+  nexent-runtime:
+    image: nexent-dsml-compat:v2.8.0
