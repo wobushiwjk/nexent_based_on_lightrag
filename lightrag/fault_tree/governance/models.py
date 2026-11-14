@@ -50,6 +50,10 @@ class ActiveOntologyPointer(GovernanceModel):
 class ChangeEvidence(GovernanceModel):
     """A verbatim source fragment supporting one proposed change."""
 
+    evidence_id: str | None = Field(
+        default=None,
+        pattern=SAFE_ID_PATTERN,
+    )
     quote: str = Field(min_length=1)
     source_name: str = Field(min_length=1)
     page: int | None = Field(default=None, ge=1)

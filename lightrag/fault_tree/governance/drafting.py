@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
@@ -64,15 +65,38 @@ def build_standard_change_set(
                 relations.discard(operation.code)
             elif operation.kind == "constraint":
                 constraints.discard(operation.code)
-        evidence = [
-            _normalize_evidence(
-                item,
+        evidence = []
+        for item in operation.evidence:
+            evidence_id = item.evidence_id or _change_evidence_id(
+                change_id=request.change_id,
                 source_name=request.source_name,
-                source_text=request.source_text,
+                quote=item.quote,
             )
-            for item in operation.evidence
-        ]
-        operations.append(operation.model_copy(update={"evidence": evidence}))
+            evidence.append(
+                _normalize_evidence(
+                    item,
+                    evidence_id=evidence_id,
+                    source_name=request.source_name,
+                    source_text=request.source_text,
+                )
+            )
+        operations.append(
+            operation.model_copy(
+                update={
+                    "evidence": evidence,
+                    "evidence_ids": sorted(
+                        {
+                            *operation.evidence_ids,
+                            *(
+                                item.evidence_id
+                                for item in evidence
+                                if item.evidence_id
+                            ),
+                        }
+                    ),
+                }
+            )
+        )
 
     return OntologyChangeSet(
         change_id=request.change_id,
@@ -196,6 +220,7 @@ def _validate_constraint_operation(
 def _normalize_evidence(
     evidence: ChangeEvidence,
     *,
+    evidence_id: str,
     source_name: str,
     source_text: str,
 ) -> ChangeEvidence:
@@ -217,13 +242,26 @@ def _normalize_evidence(
             raise OntologyDraftConflictError(
                 "evidence character span does not match quote"
             )
-        return evidence
+        return evidence.model_copy(update={"evidence_id": evidence_id})
     return evidence.model_copy(
         update={
+            "evidence_id": evidence_id,
             "char_start": position,
             "char_end": position + len(evidence.quote),
         }
     )
+
+
+def _change_evidence_id(
+    *,
+    change_id: str,
+    source_name: str,
+    quote: str,
+) -> str:
+    digest = hashlib.sha256(
+        f"{change_id}|{source_name}|{quote}".encode("utf-8")
+    ).hexdigest()[:16]
+    return f"CEV-{digest}"
 
 
 def _mapping(value: Any) -> Mapping[str, Any]:
@@ -237,8 +275,6 @@ def _string_list(value: Any) -> list[str]:
 
 
 def _sha256_text(value: str) -> str:
-    import hashlib
-
     return "sha256:" + hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 

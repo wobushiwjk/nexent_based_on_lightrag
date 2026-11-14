@@ -87,6 +87,8 @@ def test_standard_draft_resolves_quotes_and_batch_dependencies() -> None:
     ]
     for operation in change.operations:
         evidence = operation.evidence[0]
+        assert evidence.evidence_id is not None
+        assert evidence.evidence_id in operation.evidence_ids
         assert evidence.char_start == 0
         assert evidence.char_end == len(SOURCE)
 
