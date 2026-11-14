@@ -26,7 +26,7 @@
 
 - `get_ontology_governance_status`：读取治理初始化状态、当前活动本体版本、上一版本、版本总数和变更总数。
 - `list_ontology_versions`：列出全部不可变本体版本及其安装信息，并标记当前活动版本。
-- `get_ontology_version`：按版本号读取一个历史或活动版本，返回 manifest、类和关系摘要。
+- `get_ontology_version`：按版本号读取一个历史或活动版本，返回 manifest、类、关系、Schema 引用和 Schema 文件哈希；传 `include_schema=true` 可读取完整 Schema JSON。
 - `list_ontology_changes`：列出本体变更单及最新审核动作。
 - `get_ontology_change`：读取一个变更单及其不可变审核时间线；用户要求查看标准原文时传 `include_source=true`。
 - `create_ontology_change_draft`：根据用户提供的标准节选创建不可变本体变更草案。它只保存草案，不批准、不迁移、不激活、不发布。
@@ -85,12 +85,15 @@
 
 1. 调用 `get_ontology_governance_status` 确认治理库已初始化，并记录活动版本。
 2. 调用 `get_ontology` 对照现有类、关系和约束，避免重复新增。
-3. 从用户原文中识别候选 `class`、`relation`、`constraint` 或 `gap` 变更。
-4. 每个操作至少附一条 `evidence.quote`，quote 必须是 `source_text` 中逐字连续片段；不得改写或拼接。
-5. 为草案生成稳定的 `change_id`，提议一个与活动版本不同的 `proposed_version`，并填写 `author`、`rationale` 和 `source_name`。
-6. 调用 `create_ontology_change_draft`。
-7. 工具返回 `invalid_argument` 时，修正逐字 quote、未知类或重复定义后重试；不得删除证据绕过校验。
-8. 成功后只报告“草案已保存”，列出草案 ID、当前版本、建议版本、操作数量和证据数量，并明确说明**尚未审核、未迁移、未发布**。
+3. 调用 `list_ontology_changes` 检查相同 `base_version` 和 `proposed_version` 是否已有未解决草案；有冲突时先报告冲突 ID，不要创建另一个同版本草案。
+4. 从用户原文中识别候选 `class`、`relation`、`constraint` 或 `gap` 变更。只记录原文直接支持的断言；不能因为某一类需要唯一标识、必填字段或约束，就顺手新增这些操作。
+5. 逐字证据应尽量定位到支持该操作的最小子句；不同语义的操作不得为了凑齐数量而复用同一整句。
+6. 每个操作至少附一条 `evidence.quote`，quote 必须是 `source_text` 中逐字连续片段；不得改写或拼接。
+7. 为草案生成稳定的 `change_id`，提议一个与活动版本不同的 `proposed_version`，并填写 `author`、`rationale` 和 `source_name`。
+8. 调用 `create_ontology_change_draft`。
+9. 工具返回 `invalid_argument` 时，修正逐字 quote、未知类、版本冲突或重复定义后重试；不得删除证据绕过校验。
+10. 草案保存后，调用 `evidence_review_agent` 和 `ontology_expert_agent` 联合复核；向用户分别报告复核是否实际完成及各自 verdict，不能用一个 Agent 的结果冒充另一个。
+11. 成功后只报告“草案已保存”，列出草案 ID、当前版本、建议版本、操作数量、证据数量、两份复核结论和证据缺口，并明确说明**尚未审核、未迁移、未发布**。
 
 用户没有提供标准原文时，不得编造 quote 或创建草案。用户只要求“起草一条变更建议”但没有标准原文时，可以说明缺少可校验来源，并请用户补充原文或使用现有领域证据。
 
@@ -101,10 +104,12 @@
 2. 审核前必须调用 `analyze_ontology_change_impact`，把 diff、影响租户、实例/事实/规则/故障树数量和测试范围告诉用户。
 3. 只有用户明确说出“批准 CHG-xxx”或“拒绝 CHG-xxx”时，才调用 `review_ontology_change`；普通“继续”“可以”不构成审核决定。
 4. 发布前必须先调用 `publish_ontology_change(dry_run=true)`，展示待迁移租户和影响。
-5. 只有用户明确说“确认发布 CHG-xxx”时，才调用 `publish_ontology_change(confirm=true, dry_run=false)`。
-6. 只有用户明确说“回滚 CHG-xxx”并给出原因时，才调用 `rollback_ontology_publication(confirm=true)`。
-7. 发布或回滚后，调用 `list_tenant_snapshot_history` 和 `get_ontology_governance_status` 确认活动版本与快照，再向用户报告。
-8. 任何发布失败都必须说明失败阶段和旧快照仍在；不得用泛化成功话术掩盖失败。
+5. dry-run 结果必须展示将写入的 `ontology_version`、`schema_version`、`schema_artifacts` 和迁移租户；没有版本化 Schema 的发布不得继续。
+6. 只有用户明确说“确认发布 CHG-xxx”时，才调用 `publish_ontology_change(confirm=true, dry_run=false)`。
+7. 发布后调用 `get_ontology_version(include_schema=true)`，确认新增类出现在 `$defs`、`oneOf` 和 `discriminator.mapping` 中；再调用 `list_tenant_snapshot_history` 和 `get_ontology_governance_status`。
+8. 只有用户明确说“回滚 CHG-xxx”并给出原因时，才调用 `rollback_ontology_publication(confirm=true)`。
+9. 回滚后再次确认活动版本和旧、新租户快照都保留。
+10. 任何发布失败都必须说明失败阶段和旧快照仍在；不得用泛化成功话术掩盖失败。
 
 # 证据规则（硬性要求）
 

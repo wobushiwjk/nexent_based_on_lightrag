@@ -211,6 +211,44 @@ async def test_invalid_draft_payload_is_invalid_argument(
     assert "evidence" in str(invalid["error"]["details"])
 
 
+async def test_unresolved_change_blocks_another_draft_for_same_version(
+    governance_root: Path,
+) -> None:
+    server = build_server(GovernanceService(governance_root))
+    source = "Condition monitoring systems shall identify sensors."
+    payload = {
+        "proposed_version": "industrial-fault-v0.2",
+        "author": "engineer",
+        "rationale": "Add Sensor.",
+        "source_name": "standard",
+        "source_text": source,
+        "operations": [
+            {
+                "kind": "class",
+                "action": "add",
+                "code": "Sensor",
+                "after": {"parent": "Asset"},
+                "evidence": [{"quote": source, "source_name": "standard"}],
+            }
+        ],
+    }
+    first, _ = await _call(
+        server,
+        "create_ontology_change_draft",
+        {"change_id": "CHG-CONFLICT-1", **payload},
+    )
+    second, _ = await _call(
+        server,
+        "create_ontology_change_draft",
+        {"change_id": "CHG-CONFLICT-2", **payload},
+    )
+
+    assert first["ok"] is True
+    assert second["ok"] is False
+    assert second["error"]["code"] == "invalid_argument"
+    assert second["error"]["details"]["conflicting_change_ids"] == ["CHG-CONFLICT-1"]
+
+
 async def test_review_publish_and_rollback_workflow(
     governance_root: Path,
     tmp_path: Path,
@@ -280,6 +318,14 @@ async def test_review_publish_and_rollback_workflow(
             "confirm": True,
         },
     )
+    version_detail, _ = await _call(
+        server,
+        "get_ontology_version",
+        {
+            "version": "industrial-fault-v0.2",
+            "include_schema": True,
+        },
+    )
     rolled_back, _ = await _call(
         server,
         "rollback_ontology_publication",
@@ -296,6 +342,10 @@ async def test_review_publish_and_rollback_workflow(
     assert impact["data"]["applied"] is False
     assert dry_run["data"]["status"] == "dry_run"
     assert published["data"]["status"] == "published"
+    assert (
+        "Sensor"
+        in version_detail["data"]["schema_artifacts"]["entity.schema.json"]["$defs"]
+    )
     assert rolled_back["data"]["status"] == "rolled_back"
     assert service.versions.read_active().active_version == "industrial-fault-v0.1"
 

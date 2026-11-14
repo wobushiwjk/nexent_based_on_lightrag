@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Any, Literal
 
@@ -31,6 +32,22 @@ class OntologyVersionManifest(GovernanceModel):
     installed_at: datetime
     installed_by: str = Field(min_length=1)
     notes: str | None = None
+    schema_files: dict[str, str] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def validate_schema_files(self) -> "OntologyVersionManifest":
+        for name, digest in self.schema_files.items():
+            if (
+                not name
+                or "/" in name
+                or "\\" in name
+                or name in {".", ".."}
+                or not name.endswith(".json")
+            ):
+                raise ValueError(f"unsafe schema artifact name: {name!r}")
+            if not re.fullmatch(SHA256_PATTERN, digest):
+                raise ValueError(f"invalid schema artifact digest for {name!r}")
+        return self
 
 
 class ActiveOntologyPointer(GovernanceModel):

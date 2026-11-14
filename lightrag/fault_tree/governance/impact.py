@@ -56,8 +56,10 @@ def analyze_ontology_impact(
             "constraints": constraints,
             "schemas": [
                 "entity.schema.json",
+                "domain_bundle.schema.json",
                 "fact.schema.json",
                 "fault_rule.schema.json",
+                "manifest.json",
             ],
         },
         "tenants": tenant_reports,

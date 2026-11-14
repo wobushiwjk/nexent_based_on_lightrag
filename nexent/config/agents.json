@@ -45,6 +45,8 @@
         "P-101A 冷却水泵出口压力不足，可能的原因有哪些？请给出证据出处。",
         "当前本体是哪个版本？有哪些历史版本？",
         "根据这段标准节选生成本体 v0.2 的变更草案：条件监测系统应识别安装在旋转设备上的传感器。",
+        "根据「条件监测系统应识别安装在旋转设备上的传感器。」创建 CHG-0003，只新增 Sensor、RotatingEquipment 和 INSTALLED_ON，并让两个辅助 Agent 联合复核。",
+        "读取 industrial-fault-v0.2 的 entity Schema，确认 Sensor 和 RotatingEquipment 已进入 $defs 与 oneOf。",
         "分析 CHG-... 的影响，并告诉我需要审核哪些实例和故障树。"
       ]
     },

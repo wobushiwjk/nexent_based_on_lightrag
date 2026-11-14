@@ -109,12 +109,22 @@ def build_server(
         title="Get ontology version",
         description=(
             "Return one historical or active ontology version, including its "
-            "manifest, classes, and relations."
+            "manifest, classes, relations, schema references, and schema "
+            "artifact hashes. Set include_schema=true to return Schema JSON."
         ),
         annotations=READ_ONLY,
     )
-    def get_ontology_version(version: str) -> ToolResponse:
-        return _invoke(service, lambda: service.get_version(version))
+    def get_ontology_version(
+        version: str,
+        include_schema: bool = False,
+    ) -> ToolResponse:
+        return _invoke(
+            service,
+            lambda: service.get_version(
+                version,
+                include_schema=include_schema,
+            ),
+        )
 
     @mcp.tool(
         name="list_ontology_changes",

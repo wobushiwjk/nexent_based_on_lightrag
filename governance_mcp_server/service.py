@@ -10,6 +10,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from governance_mcp_server.config import DEFAULT_PACK
 from lightrag.fault_tree.governance import (
     ChangeSetConflictError,
     OntologyChangeStore,
@@ -40,6 +41,10 @@ from lightrag.fault_tree.governance.review import (
     review_change,
     submit_for_review,
 )
+from lightrag.fault_tree.governance.schema_generation import (
+    OntologySchemaGenerationError,
+    build_versioned_schema_artifacts,
+)
 from mcp_server.models import ToolErrorPayload, ToolMeta, ToolResponse
 
 
@@ -66,12 +71,18 @@ class GovernanceService:
         governance_root: str | Path,
         *,
         domain_storage_root: str | Path | None = None,
+        domain_pack_root: str | Path | None = None,
     ) -> None:
         self.root = Path(governance_root).resolve()
         self.domain_storage_root = (
             Path(domain_storage_root).resolve()
             if domain_storage_root is not None
             else self.root.parent
+        )
+        self.domain_pack_root = (
+            Path(domain_pack_root).resolve()
+            if domain_pack_root is not None
+            else DEFAULT_PACK
         )
         self.versions = OntologyVersionStore(self.root)
         self.changes = OntologyChangeStore(self.root)
@@ -139,18 +150,20 @@ class GovernanceService:
                 "The active ontology governance pointer is invalid.",
                 {"reason": str(exc)},
             ) from exc
-        return {
+        data: dict[str, Any] = {
             "initialized": True,
             "active_version": pointer.active_version,
             "previous_version": pointer.previous_version,
             "ontology_sha256": pointer.ontology_sha256,
             "schema_version": loaded.manifest.schema_version,
+            "schema_artifact_count": len(loaded.manifest.schema_files),
             "installed_at": loaded.manifest.installed_at.isoformat(),
             "installed_by": loaded.manifest.installed_by,
             "installed_versions": list(versions),
             "version_count": len(versions),
             "change_count": self._change_count(),
         }
+        return data
 
     def list_versions(self) -> dict[str, Any]:
         """Return installed versions with manifest metadata."""
@@ -181,6 +194,7 @@ class GovernanceService:
                 {
                     "version": manifest.ontology_version,
                     "schema_version": manifest.schema_version,
+                    "schema_artifact_count": len(manifest.schema_files),
                     "ontology_sha256": manifest.ontology_sha256,
                     "installed_at": manifest.installed_at.isoformat(),
                     "installed_by": manifest.installed_by,
@@ -194,12 +208,19 @@ class GovernanceService:
             "versions": items,
         }
 
-    def get_version(self, version: str) -> dict[str, Any]:
+    def get_version(
+        self,
+        version: str,
+        *,
+        include_schema: bool = False,
+    ) -> dict[str, Any]:
         """Return one immutable version and a small ontology summary."""
 
         try:
             loaded = self.versions.load_version(version)
             registry = loaded.registry()
+            schema_artifacts = loaded.schema_artifacts()
+            document = loaded.document()
         except OntologyGovernanceError as exc:
             raise GovernanceServiceError(
                 "not_found",
@@ -212,7 +233,7 @@ class GovernanceService:
             if self.versions.active_path.is_file()
             else None
         )
-        return {
+        data: dict[str, Any] = {
             "version": manifest.ontology_version,
             "schema_version": manifest.schema_version,
             "ontology_sha256": manifest.ontology_sha256,
@@ -225,11 +246,28 @@ class GovernanceService:
                 "classes": len(registry.classes),
                 "relations": len(registry.relations),
             },
+            "schema_refs": {
+                str(code): str(value.get("schema_ref"))
+                for code, value in sorted((document.get("classes") or {}).items())
+                if isinstance(value, dict) and value.get("schema_ref")
+            },
+            "schemas": [
+                {
+                    "name": name,
+                    "sha256": loaded.manifest.schema_files[name],
+                }
+                for name in sorted(loaded.manifest.schema_files)
+            ],
             "classes": [
                 {
                     "code": definition.code,
                     "label": definition.label,
                     "parent": definition.parent,
+                    "schema_ref": (
+                        document.get("classes", {})
+                        .get(definition.code, {})
+                        .get("schema_ref")
+                    ),
                 }
                 for definition in sorted(
                     registry.classes.values(),
@@ -248,6 +286,12 @@ class GovernanceService:
                 )
             ],
         }
+        if include_schema:
+            data["schema_artifacts"] = {
+                name: json.loads(raw.decode("utf-8"))
+                for name, raw in sorted(schema_artifacts.items())
+            }
+        return data
 
     def list_changes(self, limit: int = 20) -> dict[str, Any]:
         """Return recent immutable change sets and their latest review action."""
@@ -307,6 +351,21 @@ class GovernanceService:
                 active_version=pointer.active_version,
                 ontology_document=loaded.document(),
             )
+            conflicts = self._conflicting_change_ids(
+                change_id=change.change_id,
+                base_version=change.base_version,
+                proposed_version=change.proposed_version,
+            )
+            if conflicts:
+                raise GovernanceServiceError(
+                    "invalid_argument",
+                    "another unresolved change already targets this proposed version",
+                    {
+                        "change_id": change.change_id,
+                        "proposed_version": change.proposed_version,
+                        "conflicting_change_ids": conflicts,
+                    },
+                )
             self.changes.create_change_set(
                 change,
                 source_text=request.source_text,
@@ -423,6 +482,22 @@ class GovernanceService:
         """Record an explicit approve or reject decision."""
 
         change = self._load_change(change_id)[0]
+        if decision == "approve":
+            conflicts = self._conflicting_change_ids(
+                change_id=change.change_id,
+                base_version=change.base_version,
+                proposed_version=change.proposed_version,
+            )
+            if conflicts:
+                raise GovernanceServiceError(
+                    "invalid_argument",
+                    "cannot approve a change while another unresolved change "
+                    "targets the same version",
+                    {
+                        "change_id": change_id,
+                        "conflicting_change_ids": conflicts,
+                    },
+                )
         try:
             event = review_change(
                 self.changes,
@@ -506,7 +581,7 @@ class GovernanceService:
                         },
                     )
                 try:
-                    _, content, schema_version = apply_change_to_ontology(
+                    document, content, schema_version = apply_change_to_ontology(
                         change,
                         active_document=active.document(),
                     )
@@ -516,6 +591,18 @@ class GovernanceService:
                         "reviewed change does not apply to the active ontology",
                         {"change_id": change_id, "reason": str(exc)},
                     ) from exc
+                try:
+                    schema_artifacts = build_versioned_schema_artifacts(
+                        base_schemas=self._base_schema_artifacts(active),
+                        ontology_document=document,
+                        schema_version=schema_version,
+                    )
+                except OntologySchemaGenerationError as exc:
+                    raise GovernanceServiceError(
+                        "invalid_argument",
+                        "reviewed ontology cannot be projected to versioned Schema",
+                        {"change_id": change_id, "reason": str(exc)},
+                    ) from exc
                 if dry_run:
                     tenant_ids = self._tenant_ids()
                     return {
@@ -523,6 +610,8 @@ class GovernanceService:
                         "change_id": change_id,
                         "ontology_version": change.proposed_version,
                         "schema_version": schema_version,
+                        "schema_artifacts": sorted(schema_artifacts),
+                        "schema_artifact_count": len(schema_artifacts),
                         "tenants_to_migrate": tenant_ids,
                         "tenant_count": len(tenant_ids),
                         "impact": self.analyze_change_impact(change_id),
@@ -532,6 +621,7 @@ class GovernanceService:
                         self._write_ontology_candidate(change, content),
                         actor=actor,
                         notes=f"Prepared by change {change_id}",
+                        schema_files=schema_artifacts,
                     )
                     migrations = prepare_tenant_migrations(
                         self.domain_storage_root,
@@ -772,11 +862,64 @@ class GovernanceService:
             if path.is_dir() and (path / "active.json").is_file()
         )
 
+    def _conflicting_change_ids(
+        self,
+        *,
+        change_id: str,
+        base_version: str,
+        proposed_version: str,
+    ) -> list[str]:
+        if not self.changes.changes_dir.is_dir():
+            return []
+        conflicts: list[str] = []
+        for path in sorted(self.changes.changes_dir.iterdir()):
+            if (
+                path.name == change_id
+                or path.name.startswith(".")
+                or not path.is_dir()
+                or not (path / "change.json").is_file()
+            ):
+                continue
+            try:
+                existing = self.changes.load_change_set(path.name)
+                events = self.changes.list_review_events(path.name)
+            except OntologyGovernanceError:
+                conflicts.append(path.name)
+                continue
+            if (
+                existing.base_version == base_version
+                and existing.proposed_version == proposed_version
+                and change_status(events)
+                not in {"rejected", "published", "rolled_back"}
+            ):
+                conflicts.append(existing.change_id)
+        return conflicts
+
     def _write_ontology_candidate(self, change, content: bytes) -> Path:
         path = self.root / "staging" / f"{change.change_id}.yml"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
         return path
+
+    def _base_schema_artifacts(self, active) -> dict[str, bytes]:
+        artifacts = active.schema_artifacts()
+        if artifacts:
+            return artifacts
+        schema_dir = self.domain_pack_root / "schemas"
+        if not schema_dir.is_dir():
+            raise OntologySchemaGenerationError(
+                f"base schema directory is unavailable: {schema_dir}"
+            )
+        artifacts = {
+            path.name: path.read_bytes()
+            for path in sorted(schema_dir.glob("*.json"))
+            if path.is_file()
+        }
+        if "entity.schema.json" not in artifacts:
+            raise OntologySchemaGenerationError(
+                "base schema directory has no entity.schema.json"
+            )
+        return artifacts
 
     def _change_count(self) -> int:
         if not self.changes.changes_dir.is_dir():

@@ -22,7 +22,7 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 import yaml
 from pydantic import ValidationError
@@ -108,6 +108,21 @@ class LoadedOntology:
 
         return self.path
 
+    def schema_artifacts(self) -> dict[str, bytes]:
+        """Return verified versioned Schema artifacts keyed by filename."""
+
+        result: dict[str, bytes] = {}
+        schema_dir = self.path.parent / "schemas"
+        for name, expected in self.manifest.schema_files.items():
+            path = schema_dir / name
+            raw = _read_bytes_or_error(path, f"schema artifact {name!r}")
+            if _sha256(raw) != expected:
+                raise OntologyGovernanceError(
+                    f"schema artifact {name!r} does not match its manifest"
+                )
+            result[name] = raw
+        return result
+
 
 class OntologyVersionStore:
     """Store immutable ontology versions and a single active pointer."""
@@ -124,6 +139,7 @@ class OntologyVersionStore:
         actor: str,
         notes: str | None = None,
         activate: bool = False,
+        schema_files: Mapping[str, bytes] | None = None,
     ) -> OntologyVersionManifest:
         """Install one validated ontology version without mutating old versions.
 
@@ -138,11 +154,12 @@ class OntologyVersionStore:
         version = _version_from_yaml_bytes(raw, source)
         _validate_identifier(version, "ontology_version")
         actor = _required_text(actor, "actor")
+        normalized_schemas = _normalize_schema_files(schema_files)
 
         self.versions_dir.mkdir(parents=True, exist_ok=True)
         version_dir = self.versions_dir / version
         if version_dir.exists():
-            return self._existing_install(version, raw)
+            return self._existing_install(version, raw, normalized_schemas)
         if version_dir.is_symlink():
             raise OntologyGovernanceError(
                 f"ontology version path must not be a symlink: {version_dir}"
@@ -157,6 +174,13 @@ class OntologyVersionStore:
                 raise OntologyGovernanceError(
                     "ontology_version changed during version installation"
                 )
+            schema_digests: dict[str, str] = {}
+            if normalized_schemas:
+                schema_dir = staging / "schemas"
+                schema_dir.mkdir()
+                for name, schema_raw in normalized_schemas.items():
+                    (schema_dir / name).write_bytes(schema_raw)
+                    schema_digests[name] = _sha256(schema_raw)
             manifest = OntologyVersionManifest(
                 ontology_version=version,
                 schema_version=registry.schema_version,
@@ -165,6 +189,7 @@ class OntologyVersionStore:
                 installed_at=_utc_now(),
                 installed_by=actor,
                 notes=_optional_text(notes),
+                schema_files=schema_digests,
             )
             _atomic_write_bytes(
                 staging / "manifest.json",
@@ -173,7 +198,7 @@ class OntologyVersionStore:
             try:
                 os.rename(staging, version_dir)
             except FileExistsError:
-                return self._existing_install(version, raw)
+                return self._existing_install(version, raw, normalized_schemas)
         finally:
             if staging.exists():
                 shutil.rmtree(staging, ignore_errors=True)
@@ -287,6 +312,39 @@ class OntologyVersionStore:
             raise OntologyGovernanceError(
                 f"ontology {version!r} size does not match its manifest"
             )
+        if manifest.schema_files:
+            schema_dir = version_dir / "schemas"
+            if schema_dir.is_symlink() or not schema_dir.is_dir():
+                raise OntologyGovernanceError(
+                    f"ontology {version!r} has no schema artifact directory"
+                )
+            actual_names = {
+                path.name
+                for path in schema_dir.iterdir()
+                if path.is_file() and not path.is_symlink()
+            }
+            if actual_names != set(manifest.schema_files):
+                raise OntologyGovernanceError(
+                    f"ontology {version!r} schema artifact set does not match "
+                    "its manifest"
+                )
+            for name, expected in manifest.schema_files.items():
+                path = schema_dir / name
+                artifact = _read_bytes_or_error(path, f"schema artifact {name!r}")
+                if _sha256(artifact) != expected:
+                    raise OntologyGovernanceError(
+                        f"schema artifact {name!r} does not match its manifest"
+                    )
+                try:
+                    document = json.loads(artifact.decode("utf-8"))
+                except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                    raise OntologyGovernanceError(
+                        f"schema artifact {name!r} is not valid JSON"
+                    ) from exc
+                if not isinstance(document, dict):
+                    raise OntologyGovernanceError(
+                        f"schema artifact {name!r} must contain a JSON object"
+                    )
         return LoadedOntology(
             manifest=manifest,
             ontology_yaml=raw,
@@ -312,12 +370,21 @@ class OntologyVersionStore:
         self,
         version: str,
         raw: bytes,
+        schema_files: Mapping[str, bytes],
     ) -> OntologyVersionManifest:
         loaded = self.load_version(version)
         if loaded.ontology_yaml != raw:
             raise OntologyVersionConflictError(
                 f"ontology version {version!r} is already installed with "
                 "different content"
+            )
+        expected_schemas = {
+            name: _sha256(value) for name, value in schema_files.items()
+        }
+        if expected_schemas and loaded.manifest.schema_files != expected_schemas:
+            raise OntologyVersionConflictError(
+                f"ontology version {version!r} is already installed with a "
+                "different schema artifact set"
             )
         return loaded.manifest
 
@@ -675,6 +742,43 @@ def _version_from_yaml_bytes(raw: bytes, source: Path) -> str:
             f"ontology source {source} must define ontology_version"
         )
     return version
+
+
+def _normalize_schema_files(
+    schema_files: Mapping[str, bytes] | None,
+) -> dict[str, bytes]:
+    if schema_files is None:
+        return {}
+    normalized: dict[str, bytes] = {}
+    for raw_name, raw in schema_files.items():
+        name = str(raw_name).strip()
+        if (
+            not name
+            or Path(name).name != name
+            or "/" in name
+            or "\\" in name
+            or name in {".", ".."}
+            or not name.endswith(".json")
+        ):
+            raise OntologyGovernanceError(
+                f"schema artifact name must be a safe JSON filename: {name!r}"
+            )
+        if not isinstance(raw, bytes):
+            raise OntologyGovernanceError(
+                f"schema artifact {name!r} must be supplied as bytes"
+            )
+        try:
+            document = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise OntologyGovernanceError(
+                f"schema artifact {name!r} is not valid JSON"
+            ) from exc
+        if not isinstance(document, dict):
+            raise OntologyGovernanceError(
+                f"schema artifact {name!r} must contain a JSON object"
+            )
+        normalized[name] = raw
+    return normalized
 
 
 def _validate_identifier(value: str, field: str) -> str:

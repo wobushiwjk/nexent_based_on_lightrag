@@ -32,11 +32,23 @@ def bootstrap_ontology_governance(
             "governance store has installed ontology versions but no active "
             "pointer; recover the active pointer explicitly"
         )
+    ontology = Path(ontology_path).resolve()
+    schema_dir = ontology.parent / "schemas"
+    schema_files = (
+        {
+            path.name: path.read_bytes()
+            for path in sorted(schema_dir.glob("*.json"))
+            if path.is_file()
+        }
+        if schema_dir.is_dir()
+        else {}
+    )
     return store.install(
-        ontology_path,
+        ontology,
         actor=actor,
         notes="Bootstrap the canonical domain ontology.",
         activate=True,
+        schema_files=schema_files,
     )
 
 

@@ -70,9 +70,12 @@ def test_version_install_activate_and_historical_read(tmp_path: Path) -> None:
     store = OntologyVersionStore(tmp_path / "governance")
     v1 = _write_ontology(tmp_path, "industrial-fault-v0.1")
     v2 = _write_ontology(tmp_path, "industrial-fault-v0.2", "Asset v2")
+    schemas = {
+        "entity.schema.json": b'{"$defs": {}, "type": "object"}\n',
+    }
 
-    first = store.install(v1, actor="alice", activate=True)
-    second = store.install(v2, actor="bob")
+    first = store.install(v1, actor="alice", activate=True, schema_files=schemas)
+    second = store.install(v2, actor="bob", schema_files=schemas)
 
     assert store.read_active().active_version == "industrial-fault-v0.1"
     assert store.list_versions() == (
@@ -81,6 +84,7 @@ def test_version_install_activate_and_historical_read(tmp_path: Path) -> None:
     )
     assert store.load_version("industrial-fault-v0.1").manifest == first
     assert store.load_version("industrial-fault-v0.2").manifest == second
+    assert store.load_version("industrial-fault-v0.1").schema_artifacts() == schemas
 
     old_path = (
         tmp_path / "governance" / "versions" / "industrial-fault-v0.1" / "ontology.yml"
@@ -172,6 +176,31 @@ def test_tampered_ontology_content_is_rejected(tmp_path: Path) -> None:
         tmp_path / "governance" / "versions" / "industrial-fault-v0.1" / "ontology.yml"
     )
     target.write_text(_ontology("industrial-fault-v0.1", "Tampered"))
+
+    with pytest.raises(OntologyGovernanceError):
+        store.load_version("industrial-fault-v0.1")
+
+
+def test_tampered_schema_artifact_is_rejected(tmp_path: Path) -> None:
+    store = OntologyVersionStore(tmp_path / "governance")
+    source = _write_ontology(tmp_path, "industrial-fault-v0.1")
+    store.install(
+        source,
+        actor="alice",
+        activate=True,
+        schema_files={
+            "entity.schema.json": b'{"$defs": {}, "type": "object"}\n',
+        },
+    )
+    target = (
+        tmp_path
+        / "governance"
+        / "versions"
+        / "industrial-fault-v0.1"
+        / "schemas"
+        / "entity.schema.json"
+    )
+    target.write_text('{"$defs": {}, "type": "null"}\n', encoding="utf-8")
 
     with pytest.raises(OntologyGovernanceError):
         store.load_version("industrial-fault-v0.1")

@@ -30,6 +30,10 @@ from lightrag.fault_tree.governance.store import (
     OntologyVersionStore,
     ReviewEventConflictError,
 )
+from lightrag.fault_tree.governance.schema_generation import (
+    OntologySchemaGenerationError,
+    build_versioned_schema_artifacts,
+)
 
 __all__ = [
     "ActiveOntologyPointer",
@@ -42,6 +46,7 @@ __all__ = [
     "OntologyGovernanceError",
     "OntologyGovernanceStore",
     "OntologyPointerError",
+    "OntologySchemaGenerationError",
     "OntologyStandardDraftRequest",
     "OntologyVersionConflictError",
     "OntologyVersionManifest",
@@ -50,5 +55,6 @@ __all__ = [
     "ReviewEvent",
     "ReviewEventConflictError",
     "StandardSourceManifest",
+    "build_versioned_schema_artifacts",
     "build_standard_change_set",
 ]

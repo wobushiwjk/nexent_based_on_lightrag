@@ -123,6 +123,28 @@ def test_publish_migrates_snapshots_and_keeps_history(tmp_path: Path) -> None:
     assert after["run_id"] != before["run_id"]
     assert after["ontology_version"] == "industrial-fault-v0.2"
     assert (storage / "tenants" / tenant_id / "runs" / before["run_id"]).is_dir()
+    loaded = service.versions.load_version("industrial-fault-v0.2")
+    artifacts = loaded.schema_artifacts()
+    entity_schema = json.loads(artifacts["entity.schema.json"])
+    bundle_schema = json.loads(artifacts["domain_bundle.schema.json"])
+    assert "Sensor" in entity_schema["$defs"]
+    assert entity_schema["discriminator"]["mapping"]["Sensor"] == "#/$defs/Sensor"
+    assert "#/$defs/Sensor" in {item["$ref"] for item in entity_schema["oneOf"]}
+    assert (
+        bundle_schema["properties"]["entities"]["items"]["discriminator"]["mapping"][
+            "Sensor"
+        ]
+        == "#/$defs/Sensor"
+    )
+    detail = service.get_version(
+        "industrial-fault-v0.2",
+        include_schema=True,
+    )
+    assert detail["schemas"]
+    assert detail["schema_artifacts"]["entity.schema.json"]["$defs"]["Sensor"]
+    assert loaded.document()["classes"]["Sensor"]["schema_ref"].endswith(
+        "#/$defs/Sensor"
+    )
 
     repository = DomainStorageRepository.from_storage_dir(
         PACK,

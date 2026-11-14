@@ -327,6 +327,13 @@ def _apply_class(
     if action == "add":
         definition = dict(after)
         definition.setdefault("label", code)
+        parent = definition.get("parent")
+        if (
+            not definition.get("schema_ref")
+            and isinstance(parent, str)
+            and _inherits_from(classes, parent, "Asset")
+        ):
+            definition["schema_ref"] = f"schemas/entity.schema.json#/$defs/{code}"
         classes[code] = definition
     elif action == "modify":
         current = classes.get(code)
@@ -338,6 +345,25 @@ def _apply_class(
         classes[code] = {**current, **dict(after), "deprecated": True}
     elif action == "remove":
         classes.pop(code, None)
+
+
+def _inherits_from(
+    classes: Mapping[str, Any],
+    parent: str,
+    ancestor: str,
+) -> bool:
+    current: str | None = parent
+    seen: set[str] = set()
+    while current is not None and current not in seen:
+        if current == ancestor:
+            return True
+        seen.add(current)
+        definition = classes.get(current)
+        if not isinstance(definition, Mapping):
+            return False
+        inherited = definition.get("parent")
+        current = str(inherited) if isinstance(inherited, str) else None
+    return False
 
 
 def _apply_relation(

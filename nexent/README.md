@@ -28,6 +28,22 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | Agent 能查询本体治理 | 用户询问当前本体版本时，Agent 调用 `get_ontology_governance_status`，答复包含活动版本和安装信息 |
 | 三个 Agent 正确绑定 | 导入报告列出 3 个 Agent；`/agent/call_relationship/<main_id>` 的主 Agent 下有两个子 Agent |
 | 完成一次「设备故障诊断 + 证据展示」 | `nexent/build/demo-*.json` 中的 `final_answer`，含 `[evidence:...]` 与逐字引文 |
+
+## W8 在本体中验收
+
+重新导入 Agent 后，可以直接在 Nexent 对话里完成以下可见链路：
+
+1. 询问当前版本和未解决变更，确认 CHG-0001、CHG-0002 不会与 CHG-0003 同时占用 v0.2。
+2. 粘贴标准原文，要求创建 CHG-0003；主 Agent 必须实际调用两个子 Agent，并分别报告 `evidence_review_agent` 与 `ontology_expert_agent` 的 verdict。
+3. 要求执行影响分析和 `publish_ontology_change` dry-run；答复必须列出 `schema_artifacts`。
+4. 在明确批准和确认发布后，询问 `industrial-fault-v0.2` 的 Schema；主 Agent 调用 `get_ontology_version(include_schema=true)`，答复应显示 `Sensor`、`RotatingEquipment` 位于 `$defs`、`oneOf` 和 `discriminator.mapping`。
+5. 明确回滚后，询问活动版本和快照历史；应恢复 v0.1，同时保留 v0.2 本体、Schema 和新租户 run。
+
+不启动 Nexent 时，可先用下列命令验证同一套治理控制面：
+
+```bash
+.venv/Scripts/python.exe scripts/w8_acceptance.py
+```
 | 配置在重启后仍在 | 重启 Nexent 容器后重跑演示脚本，回答不变；Agent 仍在列表中 |
 | 录屏或截图 | Web UI 对话截图 + `demo-*.json` + `import-report.json` 三件套 |
 
