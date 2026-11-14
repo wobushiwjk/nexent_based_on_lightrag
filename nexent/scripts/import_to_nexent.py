@@ -479,13 +479,46 @@ def resolve_kb(
         )
 
     if status == "available":
-        model = client.resolve_embedding_model(
-            kb_config.get("embedding_model_display_name")
-        )
-        details["embedding_model"] = model.get("display_name") or model.get(
-            "model_name"
+        # ``check_exist`` and ``GET /indices`` have disagreed on Nexent 2.8
+        # after a configuration-service restart. Prefer an index that is
+        # actually visible to the signed-in tenant before requiring a model.
+        existing_info = client.find_index_by_display_name(display_name)
+        if existing_info is not None:
+            details["action"] = "reused"
+            details["index_name"] = existing_info.get("name")
+            details["check_reconciled_from"] = "available"
+            model = None
+        else:
+            try:
+                model = client.resolve_embedding_model(
+                    kb_config.get("embedding_model_display_name")
+                )
+            except NexentConfigError as exc:
+                user = client.current_user()
+                models = client.list_models()
+                visible = [
+                    {
+                        "model_id": item.get("model_id"),
+                        "name": item.get("display_name") or item.get("model_name"),
+                        "model_type": item.get("model_type"),
+                    }
+                    for item in models[:20]
+                ]
+                raise ImportStepError(
+                    f"knowledge base {display_name!r} does not exist for tenant "
+                    f"{user.get('tenant_id')!r} and Nexent exposes no embedding "
+                    f"model; visible models: {visible}. Confirm the same tenant "
+                    "is selected, or configure an embedding model in Nexent."
+                ) from exc
+        details["embedding_model"] = (
+            model.get("display_name") or model.get("model_name")
+            if model is not None
+            else None
         )
         if dry_run:
+            if model is None:
+                details["files"] = [path.name for path in files]
+                return details
             details.update(
                 {
                     "action": "would_create",
@@ -494,9 +527,10 @@ def resolve_kb(
                 }
             )
             return details
-        created = client.create_index(display_name, int(model["model_id"]))
-        details["action"] = "created"
-        details["index_name"] = created["id"]
+        if model is not None:
+            created = client.create_index(display_name, int(model["model_id"]))
+            details["action"] = "created"
+            details["index_name"] = created["id"]
     elif status == "exists_in_tenant":
         info = client.find_index_by_display_name(display_name)
         if info is None:

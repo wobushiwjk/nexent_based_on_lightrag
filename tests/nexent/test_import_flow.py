@@ -14,6 +14,7 @@ import pytest
 
 from nexent.scripts import import_to_nexent as flow
 from nexent.scripts.agent_bundle import load_agent_specs
+from nexent.scripts.nexent_client import NexentConfigError
 
 MCP_TOOLS = (
     "get_ontology",
@@ -104,6 +105,15 @@ class StubClient:
         self.calls: list[str] = []
         self.imported_payload: dict | None = None
         self.index_status = "available"
+        self.reconciled_index: dict | None = None
+        self.embedding_available = True
+        self.visible_models = [
+            {
+                "model_id": 3,
+                "display_name": "bge-m3",
+                "model_type": "embedding",
+            }
+        ]
         self.connection_ok = True
 
     # identity
@@ -184,14 +194,23 @@ class StubClient:
         return self.index_status
 
     def resolve_embedding_model(self, preferred=None):
+        if not self.embedding_available:
+            raise NexentConfigError("Nexent has no embedding model configured")
         return {"model_id": 3, "display_name": "bge-m3"}
+
+    def list_models(self):
+        return [dict(item) for item in self.visible_models]
 
     def create_index(self, name, embedding_model_id):
         self.calls.append("create_index")
         return {"id": "kb-index", "name": name}
 
     def find_index_by_display_name(self, name):
-        return {"name": "kb-index", "display_name": name}
+        if self.reconciled_index is not None:
+            return dict(self.reconciled_index)
+        if self.index_status == "exists_in_tenant":
+            return {"name": "kb-index", "display_name": name}
+        return None
 
     def list_index_files(self, index_name):
         if not self.processed:
@@ -510,6 +529,58 @@ def test_resolve_kb_dry_run_does_not_create():
 
     assert details["action"] == "would_create"
     assert "create_index" not in client.calls
+
+
+def test_resolve_kb_reuses_index_when_check_exist_disagrees():
+    client = StubClient()
+    client.reconciled_index = {
+        "name": "kb-index",
+        "display_name": "industrial-fault-kb",
+    }
+    client.embedding_available = False
+    config = {
+        "display_name": "industrial-fault-kb",
+        "files": ["nexent/kb/01-diagnosis-report-guide.md"],
+    }
+
+    details = flow.resolve_kb(
+        client,
+        config,
+        dry_run=True,
+        poll_interval=0.0,
+        wait_seconds=1,
+    )
+
+    assert details["action"] == "reused"
+    assert details["index_name"] == "kb-index"
+    assert details["check_reconciled_from"] == "available"
+    assert "create_index" not in client.calls
+
+
+def test_resolve_kb_reports_tenant_and_visible_models_when_embedding_is_absent():
+    client = StubClient()
+    client.embedding_available = False
+    client.visible_models = [
+        {"model_id": 9, "display_name": "qwen", "model_type": "llm"}
+    ]
+    config = {
+        "display_name": "industrial-fault-kb",
+        "files": ["nexent/kb/01-diagnosis-report-guide.md"],
+    }
+
+    with pytest.raises(flow.ImportStepError) as info:
+        flow.resolve_kb(
+            client,
+            config,
+            dry_run=True,
+            poll_interval=0.0,
+            wait_seconds=1,
+        )
+
+    message = str(info.value)
+    assert "tenant-1" in message
+    assert "qwen" in message
+    assert "embedding" in message
 
 
 def test_resolve_kb_rejects_name_taken_by_another_tenant():
