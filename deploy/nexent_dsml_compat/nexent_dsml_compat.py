@@ -21,20 +21,22 @@ import sys
 from typing import Any
 
 _BAR = r"[|｜]"
+_OPEN = rf"<\s*{_BAR}\s*DSML\s*{_BAR}"
+_CLOSE = rf"</\s*{_BAR}\s*DSML\s*{_BAR}"
 _INVOKE_RE = re.compile(
-    rf"<{_BAR}\s*DSML\s*{_BAR}\s*invoke\s+name=\"(?P<name>[A-Za-z_]\w*)\"\s*>"
+    rf"{_OPEN}\s*invoke\s+name=\"(?P<name>[A-Za-z_]\w*)\"\s*>"
     rf"(?P<body>[\s\S]*?)"
-    rf"</{_BAR}\s*DSML\s*{_BAR}\s*invoke\s*>",
+    rf"{_CLOSE}\s*invoke\s*>",
     re.IGNORECASE,
 )
 _PARAMETER_RE = re.compile(
-    rf"<{_BAR}\s*DSML\s*{_BAR}\s*parameter\s+name=\"(?P<name>[A-Za-z_]\w*)\""
+    rf"{_OPEN}\s*parameter\s+name=\"(?P<name>[A-Za-z_]\w*)\""
     rf"(?:\s+string=\"(?P<string>true|false)\")?\s*>"
     rf"(?P<value>[\s\S]*?)"
-    rf"</{_BAR}\s*DSML\s*{_BAR}\s*parameter\s*>",
+    rf"{_CLOSE}\s*parameter\s*>",
     re.IGNORECASE,
 )
-_DSML_MARKER_RE = re.compile(rf"<{_BAR}\s*DSML\s*{_BAR}", re.IGNORECASE)
+_DSML_MARKER_RE = re.compile(_OPEN, re.IGNORECASE)
 _HOOK_INSTALLED = False
 _PATCHED = False
 _ORIGINAL_IMPORT = builtins.__import__

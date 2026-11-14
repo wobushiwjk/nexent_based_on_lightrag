@@ -36,6 +36,15 @@ def test_normalizes_ascii_dsml_and_multiple_invocations() -> None:
     )
 
 
+def test_normalizes_dsml_with_whitespace_between_control_characters() -> None:
+    output = """< | DSML | calls >
+< | DSML | invoke name="get_ontology">
+</ | DSML | invoke >
+</ | DSML | calls >"""
+
+    assert normalize_dsml_tool_calls(output) == ("<code>\nget_ontology()\n</code>")
+
+
 def test_string_parameter_is_preserved_without_reinterpreting_json() -> None:
     output = """<|DSML| calls>
 <|DSML| invoke name="review_ontology_change">
