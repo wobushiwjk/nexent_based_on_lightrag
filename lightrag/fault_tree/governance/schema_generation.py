@@ -257,7 +257,8 @@ def _schema_ref(value: Any) -> str:
 def _entity_definition_name(code: str, schema_ref: str) -> str | None:
     marker = "#/$defs/"
     if marker in schema_ref:
-        if not schema_ref.startswith("schemas/entity.schema.json"):
+        path = schema_ref.split(marker, 1)[0]
+        if path not in {"entity.schema.json", "schemas/entity.schema.json"}:
             return None
         return schema_ref.split(marker, 1)[1] or None
     if code in {"Asset", "KnowledgeEntity"}:

@@ -39,6 +39,7 @@ def test_versioned_schema_extends_entity_and_bundle_unions() -> None:
                     "label": "传感器",
                     "parent": "Asset",
                     "prompt_visible": True,
+                    "schema_ref": "entity.schema.json#/$defs/Sensor",
                     "required": ["uid", "name", "sensor_tag"],
                     "extract_properties": {
                         "name": {"type": "string"},
@@ -61,6 +62,9 @@ def test_versioned_schema_extends_entity_and_bundle_unions() -> None:
                     "label": "旋转设备",
                     "parent": "Equipment",
                     "prompt_visible": True,
+                    "schema_ref": (
+                        "schemas/entity.schema.json#/$defs/RotatingEquipment"
+                    ),
                 },
             ),
             OntologyChangeOperation(
