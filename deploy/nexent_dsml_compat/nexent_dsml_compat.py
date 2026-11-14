@@ -20,6 +20,8 @@ import re
 import sys
 from typing import Any
 
+COMPAT_VERSION = "2.0.0"
+
 _BAR = r"[|｜]"
 _OPEN = rf"<\s*{_BAR}\s*DSML\s*{_BAR}"
 _CLOSE = rf"</\s*{_BAR}\s*DSML\s*{_BAR}"
@@ -160,4 +162,4 @@ def _decode_json_value(raw_value: str, *, parameter: str) -> Any:
 install()
 
 
-__all__ = ["install", "normalize_dsml_tool_calls"]
+__all__ = ["COMPAT_VERSION", "install", "normalize_dsml_tool_calls"]
