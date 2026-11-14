@@ -323,6 +323,12 @@ def test_real_multi_agent_config_has_expected_graph():
     specs = load_agent_specs(DEFAULT_CONFIG)
     assert [spec.agent_id for spec in specs] == [1001, 1002, 1003]
     assert [spec.is_main_agent for spec in specs] == [True, False, False]
+    assert [spec.is_a2a for spec in specs] == [False, False, False]
+    assert [spec.enable_protocol_repair_retry for spec in specs] == [
+        True,
+        True,
+        True,
+    ]
     assert specs[0].managed_agents == (1002, 1003)
     assert specs[1].managed_agents == ()
     assert specs[2].managed_agents == ()
@@ -335,6 +341,8 @@ def test_real_multi_agent_config_has_expected_graph():
         additional_mcp_server_urls={"ontology-governance": "http://governance"},
     )
     assert bundle["agent_info"]["1001"]["managed_agents"] == [1002, 1003]
+    assert bundle["agent_info"]["1001"]["is_a2a"] is False
+    assert bundle["agent_info"]["1001"]["enable_protocol_repair_retry"] is True
     assert bundle["agent_info"]["1002"]["is_main_agent"] is False
     assert bundle["agent_info"]["1003"]["is_main_agent"] is False
 

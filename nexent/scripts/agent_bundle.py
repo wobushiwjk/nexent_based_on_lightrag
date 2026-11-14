@@ -71,6 +71,8 @@ class AgentSpec:
     additional_mcp_server_names: tuple[str, ...] = ()
     agent_id: int = SENTINEL_AGENT_ID
     is_main_agent: bool = True
+    is_a2a: bool = False
+    enable_protocol_repair_retry: bool = True
     managed_agents: tuple[int, ...] = ()
     provide_run_summary: bool = True
     enabled: bool = True
@@ -187,6 +189,10 @@ def _agent_spec_from_data(
         ),
         agent_id=int(agent.get("agent_id") or SENTINEL_AGENT_ID),
         is_main_agent=bool(agent.get("is_main_agent", True)),
+        is_a2a=bool(agent.get("is_a2a", False)),
+        enable_protocol_repair_retry=bool(
+            agent.get("enable_protocol_repair_retry", True)
+        ),
         managed_agents=_int_tuple(
             agent.get("managed_agents"),
             "agent.managed_agents",
@@ -378,7 +384,8 @@ def build_agent_info(
         "is_main_agent": spec.is_main_agent,
         "provide_run_summary": spec.provide_run_summary,
         "allow_chat_metadata": False,
-        "enable_protocol_repair_retry": False,
+        "is_a2a": spec.is_a2a,
+        "enable_protocol_repair_retry": spec.enable_protocol_repair_retry,
         "verification_config": None,
         "context_policy": None,
         "prompt": spec.prompt,
