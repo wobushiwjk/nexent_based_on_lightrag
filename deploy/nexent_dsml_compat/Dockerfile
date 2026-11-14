@@ -41,4 +41,34 @@ if "output = normalize_dsml_tool_calls(output)" not in source:
     )
 module_path.write_text(source, encoding="utf-8")
 print(f"patched {module_path}")
+
+core_agent_path = target / "nexent" / "core" / "agents" / "core_agent.py"
+if not core_agent_path.is_file():
+    raise RuntimeError(f"Nexent core_agent module not found: {core_agent_path}")
+core_source = core_agent_path.read_text(encoding="utf-8")
+core_import_anchor = "from .output_protocol import extract_clarification_form\n"
+core_call_anchor = (
+    "        self.logger.log(\n"
+    '            "Model output received "\n'
+)
+if "from nexent_dsml_compat import normalize_dsml_tool_calls" not in core_source:
+    if core_import_anchor not in core_source:
+        raise RuntimeError("Nexent core_agent import anchor not found")
+    core_source = core_source.replace(
+        core_import_anchor,
+        core_import_anchor
+        + "from nexent_dsml_compat import normalize_dsml_tool_calls\n",
+        1,
+    )
+if "model_output = normalize_dsml_tool_calls(model_output)" not in core_source:
+    if core_call_anchor not in core_source:
+        raise RuntimeError("Nexent core_agent model-output anchor not found")
+    core_source = core_source.replace(
+        core_call_anchor,
+        "        model_output = normalize_dsml_tool_calls(model_output)\n"
+        + core_call_anchor,
+        1,
+    )
+core_agent_path.write_text(core_source, encoding="utf-8")
+print(f"patched {core_agent_path}")
 PY

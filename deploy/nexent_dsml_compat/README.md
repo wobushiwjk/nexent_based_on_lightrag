@@ -18,10 +18,12 @@ read_skill_md(skill_name='ontology-change-draft')
 </code>
 ```
 
-The derived image injects a direct call at the start of
-`nexent.core.agents.output_protocol.classify_model_output`. This removes the
-startup-order dependency of the earlier `.pth` proof of concept and applies to
-the main Agent and both managed Agents because they share the runtime.
+The derived image injects normalization into both
+`nexent.core.agents.core_agent.CoreAgent` and
+`nexent.core.agents.output_protocol.classify_model_output`. The CoreAgent hook
+covers legacy and structured parsing paths that bypass the classifier; the
+classifier hook remains as a second safety boundary. The patch applies to the
+main Agent and both managed Agents because they share the runtime.
 
 ## Build a durable runtime image
 
@@ -46,7 +48,7 @@ docker run --rm \
 Expected output:
 
 ```text
-2.1.0
+2.2.0
 ```
 
 ## Start the runtime with the patched image

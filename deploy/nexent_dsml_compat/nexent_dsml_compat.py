@@ -20,7 +20,7 @@ import re
 import sys
 from typing import Any
 
-COMPAT_VERSION = "2.1.0"
+COMPAT_VERSION = "2.2.0"
 
 _BAR = r"[|｜]"
 _OPEN = rf"<\s*{_BAR}\s*DSML\s*{_BAR}"
