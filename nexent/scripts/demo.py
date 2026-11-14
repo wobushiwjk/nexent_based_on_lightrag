@@ -28,6 +28,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping
 
+from nexent.scripts.env_file import load_nexent_env
 from nexent.scripts.nexent_client import (
     DEFAULT_CONFIG_URL,
     DEFAULT_NORTHBOUND_URL,
@@ -249,6 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         reconfigure = getattr(stream, "reconfigure", None)
         if reconfigure is not None:
             reconfigure(encoding="utf-8")
+    load_nexent_env()
     args = build_parser().parse_args(argv)
     options = DemoOptions(
         config_url=args.config_url,

@@ -56,6 +56,7 @@ from nexent.scripts.agent_bundle import (
     validate_bundle,
     validate_multi_agent_bundle,
 )
+from nexent.scripts.env_file import load_nexent_env
 from nexent.scripts.nexent_client import (
     DEFAULT_CONFIG_URL,
     NexentClient,
@@ -1105,6 +1106,7 @@ def main(argv: list[str] | None = None) -> int:
         reconfigure = getattr(stream, "reconfigure", None)
         if reconfigure is not None:
             reconfigure(encoding="utf-8")
+    load_nexent_env()
     args = build_parser().parse_args(argv)
     options = ImportOptions(
         config_url=args.config_url,
