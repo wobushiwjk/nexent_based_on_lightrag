@@ -489,11 +489,26 @@ def resolve_kb(
             details["check_reconciled_from"] = "available"
             model = None
         else:
-            try:
-                model = client.resolve_embedding_model(
-                    kb_config.get("embedding_model_display_name")
-                )
-            except NexentConfigError as exc:
+            model = None
+            last_error: NexentConfigError | None = None
+            for attempt in range(3):
+                try:
+                    model = client.resolve_embedding_model(
+                        kb_config.get("embedding_model_display_name")
+                    )
+                    break
+                except NexentConfigError as exc:
+                    last_error = exc
+                    if attempt == 2:
+                        break
+                    time.sleep(1)
+                    existing_info = client.find_index_by_display_name(display_name)
+                    if existing_info is not None:
+                        details["action"] = "reused"
+                        details["index_name"] = existing_info.get("name")
+                        details["check_reconciled_from"] = "available"
+                        break
+            if model is None and existing_info is None:
                 user = client.current_user()
                 models = client.list_models()
                 visible = [
@@ -509,7 +524,7 @@ def resolve_kb(
                     f"{user.get('tenant_id')!r} and Nexent exposes no embedding "
                     f"model; visible models: {visible}. Confirm the same tenant "
                     "is selected, or configure an embedding model in Nexent."
-                ) from exc
+                ) from last_error
         details["embedding_model"] = (
             model.get("display_name") or model.get("model_name")
             if model is not None

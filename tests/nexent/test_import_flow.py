@@ -107,6 +107,7 @@ class StubClient:
         self.index_status = "available"
         self.reconciled_index: dict | None = None
         self.embedding_available = True
+        self.embedding_failures_remaining = 0
         self.visible_models = [
             {
                 "model_id": 3,
@@ -194,6 +195,9 @@ class StubClient:
         return self.index_status
 
     def resolve_embedding_model(self, preferred=None):
+        if self.embedding_failures_remaining > 0:
+            self.embedding_failures_remaining -= 1
+            raise NexentConfigError("Nexent has no embedding model configured")
         if not self.embedding_available:
             raise NexentConfigError("Nexent has no embedding model configured")
         return {"model_id": 3, "display_name": "bge-m3"}
@@ -557,9 +561,33 @@ def test_resolve_kb_reuses_index_when_check_exist_disagrees():
     assert "create_index" not in client.calls
 
 
-def test_resolve_kb_reports_tenant_and_visible_models_when_embedding_is_absent():
+def test_resolve_kb_retries_transient_empty_model_list(monkeypatch):
+    client = StubClient()
+    client.embedding_failures_remaining = 2
+    monkeypatch.setattr(flow.time, "sleep", lambda _seconds: None)
+    config = {
+        "display_name": "industrial-fault-kb",
+        "files": ["nexent/kb/01-diagnosis-report-guide.md"],
+    }
+
+    details = flow.resolve_kb(
+        client,
+        config,
+        dry_run=True,
+        poll_interval=0.0,
+        wait_seconds=1,
+    )
+
+    assert details["action"] == "would_create"
+    assert details["embedding_model"] == "bge-m3"
+
+
+def test_resolve_kb_reports_tenant_and_visible_models_when_embedding_is_absent(
+    monkeypatch,
+):
     client = StubClient()
     client.embedding_available = False
+    monkeypatch.setattr(flow.time, "sleep", lambda _seconds: None)
     client.visible_models = [
         {"model_id": 9, "display_name": "qwen", "model_type": "llm"}
     ]
