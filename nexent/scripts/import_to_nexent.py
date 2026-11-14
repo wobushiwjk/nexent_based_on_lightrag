@@ -715,6 +715,17 @@ def step_agent(
     result = client.import_agent(payload)
     details["agent_id"] = result.get("agent_id")
     details["agent_id_mapping"] = result.get("agent_id_mapping")
+    if len(resolved_specs) > 1:
+        main_agent_id = int(result["agent_id"])
+        republished = client.publish_agent_version(
+            main_agent_id,
+            version_name="V2-managed-agents",
+            release_note=(
+                "Republish after importing managed Agent relations so the "
+                "runtime snapshot contains all child Agents."
+            ),
+        )
+        details["published_version_no"] = republished["version_no"]
     return details
 
 
@@ -763,6 +774,23 @@ def step_verify(
             "imported Agent graph does not match the declared relationships: "
             f"expected {sorted(child_ids)}, got {sorted(actual_child_ids)}"
         )
+    if int(main_found.get("latest_version_no") or 0) <= 0:
+        raise ImportStepError("main Agent has no published version")
+    published_detail = client.get_agent_version_detail(
+        int(main_found["agent_id"]),
+        int(main_found["latest_version_no"]),
+    )
+    published_child_ids = {
+        str(item.get("agent_id"))
+        for item in published_detail.get("sub_agent_relations") or []
+        if isinstance(item, dict) and item.get("agent_id") is not None
+    }
+    if len(specs) > 1 and published_child_ids != child_ids:
+        raise ImportStepError(
+            "published Agent snapshot does not contain the managed Agent "
+            f"relations: expected {sorted(child_ids)}, got "
+            f"{sorted(published_child_ids)}"
+        )
     details: dict[str, Any] = {
         "agent_id": main_found.get("agent_id"),
         "latest_version_no": main_found.get("latest_version_no"),
@@ -776,6 +804,7 @@ def step_verify(
             for spec in specs
         ],
         "sub_agent_ids": sorted(child_ids),
+        "published_relation_ids": sorted(published_child_ids),
     }
     details["mcp_tools"] = sorted({tool for spec in specs for tool in spec.mcp_tools})
     return details

@@ -167,6 +167,24 @@ def test_get_agent_call_relationship_uses_agent_route():
     assert transport.calls[0]["url"].endswith("/agent/call_relationship/7")
 
 
+def test_publish_agent_version_uses_publish_route():
+    transport = ScriptedTransport(json_response({"id": 11, "version_no": 2}))
+    client = NexentClient(transport=transport)
+
+    result = client.publish_agent_version(
+        7,
+        version_name="V2-managed-agents",
+        release_note="relation snapshot",
+    )
+
+    assert result["version_no"] == 2
+    assert transport.calls[0]["method"] == "POST"
+    assert transport.calls[0]["url"].endswith("/agent/7/publish")
+    assert json.loads(transport.calls[0]["body"])["version_name"] == (
+        "V2-managed-agents"
+    )
+
+
 def test_upload_files_propagates_http_errors(tmp_path):
     document = tmp_path / "policy.md"
     document.write_text("# policy\n", encoding="utf-8")

@@ -275,6 +275,32 @@ class StubClient:
             ],
         }
 
+    def publish_agent_version(self, agent_id, *, version_name, release_note):
+        self.calls.append(f"publish_agent_version:{agent_id}")
+        for item in self.agents.values():
+            if item.get("agent_id") == agent_id:
+                item["latest_version_no"] = int(item.get("latest_version_no", 1)) + 1
+                if self.agent and self.agent.get("agent_id") == agent_id:
+                    self.agent["latest_version_no"] = item["latest_version_no"]
+                return {
+                    "id": 200 + item["latest_version_no"],
+                    "version_no": item["latest_version_no"],
+                    "message": "Version published successfully",
+                }
+        raise AssertionError(f"unknown agent {agent_id}")
+
+    def get_agent_version_detail(self, agent_id, version_no):
+        return {
+            "version_no": version_no,
+            "sub_agent_relations": [
+                {
+                    "agent_id": child_id,
+                    "version_no": 1,
+                }
+                for child_id in self.agent_relations.get(agent_id, [])
+            ],
+        }
+
 
 def options(**overrides):
     base = flow.ImportOptions(
@@ -626,7 +652,7 @@ def test_run_import_end_to_end(tmp_path, monkeypatch):
         "verify",
     }
     assert report["steps"]["agent"]["agent_id"] == 5001
-    assert report["steps"]["verify"]["latest_version_no"] == 1
+    assert report["steps"]["verify"]["latest_version_no"] == 2
     assert report["steps"]["verify"]["sub_agent_ids"] == ["5002", "5003"]
 
     written = json.loads(report_path.read_text(encoding="utf-8"))

@@ -627,6 +627,42 @@ class NexentClient:
             raise NexentConfigError("/agent/call_relationship returned no object")
         return payload
 
+    def publish_agent_version(
+        self,
+        agent_id: int,
+        *,
+        version_name: str,
+        release_note: str,
+    ) -> dict[str, Any]:
+        """Publish the current Agent draft, including its relation snapshot."""
+
+        payload = self.request(
+            "POST",
+            f"/agent/{agent_id}/publish",
+            json_body={
+                "version_name": version_name,
+                "release_note": release_note,
+            },
+        )
+        if not isinstance(payload, dict) or "version_no" not in payload:
+            raise NexentConfigError("/agent/{agent_id}/publish returned no version_no")
+        return payload
+
+    def get_agent_version_detail(
+        self,
+        agent_id: int,
+        version_no: int,
+    ) -> dict[str, Any]:
+        """Return a published version snapshot with relation records."""
+
+        payload = self.request(
+            "GET",
+            f"/agent/{agent_id}/versions/{version_no}/detail",
+        )
+        if not isinstance(payload, dict):
+            raise NexentConfigError("/agent/{agent_id}/versions/... returned no object")
+        return payload
+
     def import_agent(self, payload: Mapping[str, Any]) -> dict[str, Any]:
         result = self.request("POST", "/agent/import", json_body=payload)
         if not isinstance(result, dict) or "agent_id" not in result:
