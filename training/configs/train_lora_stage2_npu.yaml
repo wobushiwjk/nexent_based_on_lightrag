@@ -1,0 +1,52 @@
+### model
+# Ascend NPU variant of train_qlora_stage2.yaml.
+# bitsandbytes 4-bit is CUDA-only, so this runs plain bf16 LoRA instead.
+# Stage 2 continues the stage-1 adapter; if LLaMA-Factory refuses
+# adapter_name_or_path during training, merge stage 1 first
+# (merge_lora_qwen2.5-1.5b.yaml) and point model_name_or_path at
+# saves/qwen2.5-1.5b-evidence-merged, leaving adapter_name_or_path out.
+model_name_or_path: ./models/Qwen2.5-1.5B-Instruct
+adapter_name_or_path: saves/qwen2.5-1.5b-evidence-lora
+trust_remote_code: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target: all
+
+### dataset
+dataset: industrial_fault_extraction_stage2_train
+eval_dataset: industrial_fault_extraction_stage2_val
+dataset_dir: data
+template: qwen
+cutoff_len: 4096
+overwrite_cache: true
+preprocessing_num_workers: 4
+
+### output
+output_dir: saves/qwen2.5-1.5b-evidence-stage2-lora
+logging_steps: 1
+save_steps: 50
+plot_loss: true
+overwrite_output_dir: true
+
+### train
+# Lower LR and fewer epochs than stage 1: the adapter is already trained,
+# and the repeated manual rows would otherwise be memorized.
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+gradient_checkpointing: true
+learning_rate: 5.0e-5
+num_train_epochs: 2.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+bf16: true
+
+### eval
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 50

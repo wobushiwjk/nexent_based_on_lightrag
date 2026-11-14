@@ -1,0 +1,89 @@
+# Structured fault-table sources for W7 manual ingestion.
+#
+# Every entry is a public PDF downloaded from its publisher.  `pages` is
+# 1-indexed and limits parsing to the pages that carry the fault table.
+# `format` selects a layout parser in scripts/ingest_pump_manuals.py; adding a
+# new manual with an existing layout means adding an entry here, not editing
+# the script.
+#
+# `holdout: true` keeps the whole manual out of the training files.  The Coox
+# handbook is the only held-out manual: it is a different pump family, a
+# different writing style (prose, not tables), and it was never used to build
+# the bootstrap labels, so it can measure cross-domain transfer honestly.
+version: 1
+
+manuals:
+  - id: grundfos-nk-6859942
+    title: 格兰富 NK/NKE/NKG/NKGE 泵服务手册（中文版）
+    path: training/corpus/raw/cn-pump-manuals/grundfos_6859942.pdf
+    format: grundfos_letter
+    pages: [30, 31]
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-manufacturer-manual
+    url: https://api.grundfos.com/literature/Grundfosliterature-6859942.pdf
+    notes: >
+      第 30–31 页为故障表：7 类故障、约 40 条原因，原因用 a)–j) 编号，
+      右侧“故障排除”列与原因逐行对齐。源文件为公开下载的中文服务手册。
+
+  - id: grundfos-s-5564721
+    title: 格兰富 S 泵安装与操作手册（中文版）
+    path: training/corpus/raw/cn-pump-manuals-2/grundfos-5564721/manual.pdf
+    format: grundfos_letter
+    pages: [19]
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-manufacturer-manual
+    url: https://api.grundfos.com/literature/Grundfosliterature-5564721.pdf
+    notes: >
+      第 19 页为故障表：7 类故障、31 条原因；同样使用 a)–j) 编号。
+      与 6859942 属于不同泵型，用来补充“原因表述”的多样性。
+
+  - id: grundfos-6859100
+    title: 格兰富水泵安装与操作手册（中文版，8.x 故障表）
+    path: training/corpus/raw/cn-pump-manuals-2/grundfos-6859100/manual.pdf
+    format: grundfos_section
+    pages: [26, 27, 28, 29]
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-manufacturer-manual
+    url: https://api.grundfos.com/literature/Grundfosliterature-6859100.pdf
+    notes: >
+      第 26–29 页 8.1–8.10 节：10 类故障、约 75 条原因，左列
+      “原因”、右列“纠正方法”按行对齐。覆盖面最大的一份目标域表格。
+
+  - id: tianjin-water-standard
+    title: 天津市供水泵站运行维护相关技术标准（表 5.2.2）
+    path: training/corpus/raw/cn-pump-manuals/tianjin_standard.pdf
+    format: tianjin_table
+    pages: [80, 81]
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-standard
+    url: https://zfcxjs.tj.gov.cn/ztzl_70/bzgf/xxbz/xxbzgf/202010/W020201029539399086365.pdf
+    notes: >
+      第 80–81 页表 5.2.2“水泵常见故障及排除方法”：7 类故障、45 条
+      原因，原因与排除方法分别从 1. 重新编号，需要按组配对。文件为
+      公开的地方技术标准，PDF 带空白密码，读取时用空密码解密。
+
+  - id: coox-centrifugal-pump
+    title: Coox 离心泵维护保养手册（故障分析章节）
+    path: training/corpus/raw/cn-pump-manuals/coox.pdf
+    format: coox_sections
+    pages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    domain: pump_maintenance
+    modality: text
+    public: true
+    license: public-manufacturer-manual
+    url: null
+    holdout: true
+    notes: >
+      Coox 离心泵使用说明书的“常见故障分析及排除方法”章节，共 13 类故障，
+      其中 11 类带明确的“原因/故障分析”列表；第 10、11 类只列检查步骤，
+      没有原因列表，解析器选择跳过而不是猜标签。行文为散文 + ①②③ 列表
+      而非表格。整份手册作为跨域留出集，不进入训练；它的抽取结果只用于
+      评测和错误分析。

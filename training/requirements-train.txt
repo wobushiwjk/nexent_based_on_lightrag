@@ -1,0 +1,22 @@
+# Training-only dependencies for W7.
+#
+# Do NOT add these to pyproject.toml: the LightRAG runtime must not require
+# torch/transformers/bitsandbytes.  Install them in an isolated environment
+# (conda/uv) on the GPU host.
+#
+# LLaMA-Factory is installed separately from source; see training/README.md:
+#   git clone https://github.com/hiyouga/LLaMA-Factory.git
+#   cd LLaMA-Factory && pip install -e ".[torch,metrics]"
+
+torch>=2.4
+transformers>=4.45
+datasets>=3.0
+accelerate>=1.0
+peft>=0.13
+trl>=0.12
+bitsandbytes>=0.44
+modelscope>=1.20
+pyyaml>=6.0
+httpx>=0.28
+# Corpus ingestion only (scripts/ingest_pump_manuals.py); CPU, no GPU needed.
+pdfplumber>=0.11

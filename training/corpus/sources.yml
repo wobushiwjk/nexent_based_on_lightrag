@@ -1,0 +1,120 @@
+# Provenance and export policy for W7 training sources.
+#
+# The project owner confirmed that every source below is public data.  The
+# `public: true` flag is the licence to send a chunk to the external teacher;
+# a source without it is local-only.  Record the licence and a URL/notes so the
+# model card can name the data truthfully.
+version: 1
+
+sources:
+  - id: seed-pump-manual
+    title: P-101A 冷却水泵维护手册（节选）
+    path: domain_packs/industrial_fault/seeds/documents/pump_manual_excerpt.md
+    domain: industrial_fault
+    modality: text
+    public: true
+    license: synthetic-demo
+    url: null
+    notes: 种子包自带的教学样例；不是真实企业文档，可直接用于训练和检索。
+
+  - id: seed-maintenance-record
+    title: P-101A 维修记录
+    path: domain_packs/industrial_fault/seeds/documents/maintenance_record.md
+    domain: industrial_fault
+    modality: text
+    public: true
+    license: synthetic-demo
+    url: null
+    notes: 种子包自带的教学样例；含 2026-09-12/10-03 两条故障记录。
+
+  - id: seed-inspection-table
+    title: P-101A 巡检表
+    path: domain_packs/industrial_fault/seeds/documents/inspection_table.md
+    domain: industrial_fault
+    modality: table
+    public: true
+    license: synthetic-demo
+    url: null
+    notes: 种子包自带的教学样例；W6 已能解析成带行号的证据。
+
+  - id: public-aviation-fault-tree-101
+    title: 航空维修故障树 SFT 数据集（101 条）
+    path: 训练数据集.json
+    domain: aviation_maintenance
+    modality: text
+    public: true
+    license: public-dataset
+    url: null
+    notes: >
+      仓库根目录已有的公开数据；101 条 instruction/input/context/output 样本，
+      输出是嵌套故障树。它用于学习“JSON 结构 + 逐字证据”的格式，不作为
+      工业泵域的评测集。用 scripts/import_public_fault_dataset.py 转换。
+
+  - id: cfdk-compressor-maintenance
+    title: CFDK 压缩机故障诊断知识数据集（6,191 条维修记录）
+    path: training/corpus/raw/cfdk/CFDK_dataset_BioNLP11_shared_task_standoff_format.zip
+    domain: compressor_maintenance
+    modality: text
+    public: true
+    license: CC BY-SA 3.0
+    url: https://github.com/chentao1999/CFDK
+    notes: >
+      Compressor Fault Diagnosis Knowledge，中文维修记录，专家标注
+      设备/需求/故障/原因/方案 片段，无关系标注。scripts/ingest_cfdk.py
+      只保留 故障/原因 并映射为 FaultEvent，关系按“单故障记录”保守生成。
+      论文 IEEE 9402822。
+
+  # Structured pump-manual fault tables.  Layout/pages live in
+  # training/corpus/manual_sources.yml; the entries here are the export gate
+  # used by scripts/label_with_teacher.py.
+  - id: grundfos-nk-6859942
+    title: 格兰富 NK/NKE/NKG/NKGE 泵服务手册（中文版）
+    path: training/corpus/raw/cn-pump-manuals/grundfos_6859942.pdf
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-manufacturer-manual
+    url: https://api.grundfos.com/literature/Grundfosliterature-6859942.pdf
+    notes: 公开下载的中文服务手册第 30–31 页故障表。
+
+  - id: grundfos-s-5564721
+    title: 格兰富 S 泵安装与操作手册（中文版）
+    path: training/corpus/raw/cn-pump-manuals-2/grundfos-5564721/manual.pdf
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-manufacturer-manual
+    url: https://api.grundfos.com/literature/Grundfosliterature-5564721.pdf
+    notes: 公开下载的中文手册第 19 页故障表。
+
+  - id: grundfos-6859100
+    title: 格兰富水泵安装与操作手册（中文版，8.x 故障表）
+    path: training/corpus/raw/cn-pump-manuals-2/grundfos-6859100/manual.pdf
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-manufacturer-manual
+    url: https://api.grundfos.com/literature/Grundfosliterature-6859100.pdf
+    notes: 公开下载的中文手册第 26–29 页 8.1–8.10 节故障表。
+
+  - id: tianjin-water-standard
+    title: 天津市供水泵站运行维护相关技术标准（表 5.2.2）
+    path: training/corpus/raw/cn-pump-manuals/tianjin_standard.pdf
+    domain: pump_maintenance
+    modality: table
+    public: true
+    license: public-standard
+    url: https://zfcxjs.tj.gov.cn/ztzl_70/bzgf/xxbz/xxbzgf/202010/W020201029539399086365.pdf
+    notes: 公开地方技术标准第 80–81 页水泵故障表。
+
+  - id: coox-centrifugal-pump
+    title: Coox 离心泵维护保养手册（故障分析章节）
+    path: training/corpus/raw/cn-pump-manuals/coox.pdf
+    domain: pump_maintenance
+    modality: text
+    public: true
+    license: public-manufacturer-manual
+    url: null
+    notes: >
+      公开下载的离心泵使用说明书。整份手册是跨域留出集，不进入训练；
+      若用教师补标，也只用于评测，不回流训练集。

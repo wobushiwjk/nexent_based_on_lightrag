@@ -1,0 +1,5 @@
+# Copy this file next to the quantized GGUF on the Orange Pi, then:
+#   ollama create industrial-extractor -f Modelfile
+FROM ./qwen2.5-1.5b-evidence-q4_k_m.gguf
+PARAMETER temperature 0
+PARAMETER num_ctx 4096
