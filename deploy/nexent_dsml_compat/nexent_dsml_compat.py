@@ -13,9 +13,11 @@ formats unchanged so Nexent can report its normal protocol error.
 from __future__ import annotations
 
 import ast
+import builtins
 import html
 import json
 import re
+import sys
 from typing import Any
 
 _BAR = r"[|｜]"
@@ -33,7 +35,9 @@ _PARAMETER_RE = re.compile(
     re.IGNORECASE,
 )
 _DSML_MARKER_RE = re.compile(rf"<{_BAR}\s*DSML\s*{_BAR}", re.IGNORECASE)
-_INSTALLED = False
+_HOOK_INSTALLED = False
+_PATCHED = False
+_ORIGINAL_IMPORT = builtins.__import__
 
 
 def normalize_dsml_tool_calls(output: Any) -> Any:
@@ -56,19 +60,50 @@ def normalize_dsml_tool_calls(output: Any) -> Any:
 
 
 def install() -> bool:
-    """Patch ``classify_model_output`` once and return whether it is active."""
+    """Install the patch now or when Nexent's protocol module is imported."""
 
-    global _INSTALLED
-    if _INSTALLED:
+    global _HOOK_INSTALLED
+    if _PATCHED or _HOOK_INSTALLED:
         return True
     try:
-        from nexent.core.agents import output_protocol
+        from nexent.core.agents import output_protocol  # noqa: F401
     except ImportError:
+        _install_import_hook()
+        return True
+    _patch_loaded_modules()
+    return _PATCHED
+
+
+def _install_import_hook() -> None:
+    global _HOOK_INSTALLED
+    if _HOOK_INSTALLED:
+        return
+
+    def import_with_dsml_compat(
+        name: str,
+        globals: dict[str, Any] | None = None,
+        locals: dict[str, Any] | None = None,
+        fromlist: tuple[str, ...] = (),
+        level: int = 0,
+    ) -> Any:
+        module = _ORIGINAL_IMPORT(name, globals, locals, fromlist, level)
+        if not _PATCHED:
+            _patch_loaded_modules()
+        return module
+
+    builtins.__import__ = import_with_dsml_compat
+    _HOOK_INSTALLED = True
+
+
+def _patch_loaded_modules() -> bool:
+    global _HOOK_INSTALLED, _PATCHED
+    output_protocol = sys.modules.get("nexent.core.agents.output_protocol")
+    if output_protocol is None:
         return False
 
     original = output_protocol.classify_model_output
     if getattr(original, "_nexent_dsml_compat", False):
-        _INSTALLED = True
+        _PATCHED = True
         return True
 
     def classify_with_dsml(output: Any, **kwargs: Any) -> Any:
@@ -78,7 +113,17 @@ def install() -> bool:
     classify_with_dsml.__name__ = getattr(original, "__name__", "classify_model_output")
     classify_with_dsml.__doc__ = getattr(original, "__doc__")
     output_protocol.classify_model_output = classify_with_dsml
-    _INSTALLED = True
+
+    # ``core_agent`` imports the function by name, so patch that binding too if
+    # the module was already loaded by the time this hook runs.
+    core_agent = sys.modules.get("nexent.core.agents.core_agent")
+    if core_agent is not None and hasattr(core_agent, "classify_model_output"):
+        core_agent.classify_model_output = classify_with_dsml
+
+    if _HOOK_INSTALLED:
+        builtins.__import__ = _ORIGINAL_IMPORT
+        _HOOK_INSTALLED = False
+    _PATCHED = True
     return True
 
 
