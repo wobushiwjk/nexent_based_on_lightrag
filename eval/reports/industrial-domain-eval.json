@@ -1,0 +1,86 @@
+{
+  "generated_by": "scripts/evaluate_domain.py",
+  "tenant_id": "tenant-demo",
+  "question": "P-101A 出口压力不足，可能的原因有哪些？",
+  "expected_retrieval_faults": [
+    "FAULT-LOW-PRESSURE",
+    "FAULT-CAVITATION"
+  ],
+  "expected_tree_cause_faults": [
+    "FAULT-FILTER-BLOCKED",
+    "FAULT-CAVITATION"
+  ],
+  "expected_top_event": "FAULT-LOW-PRESSURE",
+  "tree_validation": {
+    "draft_id": "TREE-P101A-LOW-PRESSURE-v1",
+    "top_event_uid": "FAULT-LOW-PRESSURE",
+    "valid": true,
+    "error_count": 0,
+    "warning_count": 0,
+    "issues_truncated": false,
+    "issues": [],
+    "checked": {
+      "rules": 2,
+      "entities": 9
+    }
+  },
+  "variants": {
+    "lexical_no_graph": {
+      "status": "retrieved",
+      "ok": true,
+      "latency_ms": 0.083,
+      "candidate_uids": [
+        "FAULT-CAVITATION",
+        "FAULT-LOW-PRESSURE"
+      ],
+      "retrieval_hit": 1.0,
+      "evidence": {
+        "covered_faults": 0,
+        "coverage": 0.0,
+        "quotes": 0,
+        "hash_valid_rate": 0.0,
+        "span_valid_rate": 0.0
+      },
+      "tree_valid": false,
+      "tree_top_event": null,
+      "tree_nodes": 0,
+      "tree_edges": 0,
+      "tree_structure_match": false,
+      "tree_cause_coverage": 0.0
+    },
+    "graph_evidence_full": {
+      "status": "diagnosed",
+      "ok": true,
+      "latency_ms": 7.161,
+      "candidate_uids": [
+        "FAULT-CAVITATION",
+        "FAULT-LOW-PRESSURE"
+      ],
+      "retrieval_hit": 1.0,
+      "evidence": {
+        "expected_faults": 2,
+        "covered_faults": 2,
+        "coverage": 1.0,
+        "quotes": 6,
+        "hash_valid_rate": 1.0,
+        "span_valid_rate": 1.0
+      },
+      "tree_valid": true,
+      "tree_top_event": "FAULT-LOW-PRESSURE",
+      "tree_nodes": 8,
+      "tree_edges": 8,
+      "tree_structure_match": true,
+      "tree_cause_coverage": 1.0
+    }
+  },
+  "checks": {
+    "tree_schema_valid": true,
+    "full_graph_retrieval": true,
+    "full_graph_evidence": true,
+    "full_graph_tree_causes": true,
+    "full_graph_end_to_end": true,
+    "graph_improves_evidence": true,
+    "graph_improves_tree": true
+  },
+  "ok": true
+}
