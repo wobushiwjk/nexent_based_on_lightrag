@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import threading
 from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any
@@ -148,11 +149,73 @@ class DomainStorageRepository:
             )
         self.ontology_document: dict[str, Any] = raw_ontology
 
+        indexes, stores, signature = self._load_snapshot_state()
+        self._tenants = indexes
+        self._stores = stores
+        self._snapshot_signature = signature
+        self._retired_stores: list[EvidenceStore] = []
+        self._refresh_lock = threading.RLock()
+        if default_tenant is not None:
+            default_tenant = default_tenant.strip() or None
+        if default_tenant is not None and default_tenant not in indexes:
+            raise DomainRepositoryError(
+                f"default tenant {default_tenant!r} has no runtime bundle"
+            )
+        if default_tenant is None and len(indexes) == 1:
+            default_tenant = next(iter(indexes))
+        self.default_tenant = default_tenant
+
+    def refresh_active_snapshots(self) -> bool:
+        """Reload tenant indexes when another process publishes a new run.
+
+        The ingestion MCP appends a new immutable snapshot while this server is
+        already serving the old one.  The active pointer is the publication
+        fence, so resolving it to a different bundle is a complete atomic
+        switch.
+
+        Retired SQLite handles stay open until shutdown.  A concurrent tool call
+        can still hold a ``TenantIndex`` from the previous snapshot; closing its
+        store mid-request would turn a normal refresh into a failed response.
+        Ingestion is infrequent, so retaining these handles is the safer
+        accepted residue.
+        """
+
+        signature = _snapshot_signature(self.storage_dir)
+        if signature == self._snapshot_signature:
+            return False
+        with self._refresh_lock:
+            signature = _snapshot_signature(self.storage_dir)
+            if signature == self._snapshot_signature:
+                return False
+            indexes, stores, signature = self._load_snapshot_state()
+            if self.default_tenant is not None and self.default_tenant not in indexes:
+                for store in stores.values():
+                    store.close()
+                raise DomainRepositoryError(
+                    f"default tenant {self.default_tenant!r} disappeared after "
+                    "an active snapshot refresh"
+                )
+            previous = self._stores
+            self._tenants = indexes
+            self._stores = stores
+            self._snapshot_signature = signature
+            self._retired_stores.extend(previous.values())
+            return True
+
+    def _load_snapshot_state(
+        self,
+    ) -> tuple[dict[str, TenantIndex], dict[str, EvidenceStore], tuple[Any, ...]]:
+        """Load one coherent set of active tenant snapshots."""
+
         tenant_paths = _tenant_bundle_paths(self.storage_dir)
         if not tenant_paths:
             raise DomainRepositoryError(
                 f"no runtime domain bundles found under {self.storage_dir}"
             )
+        signature = _snapshot_signature(
+            self.storage_dir,
+            bundle_paths=tenant_paths,
+        )
         indexes: dict[str, TenantIndex] = {}
         stores: dict[str, EvidenceStore] = {}
         try:
@@ -189,18 +252,7 @@ class DomainStorageRepository:
             for store in stores.values():
                 store.close()
             raise
-
-        self._tenants = indexes
-        self._stores = stores
-        if default_tenant is not None:
-            default_tenant = default_tenant.strip() or None
-        if default_tenant is not None and default_tenant not in indexes:
-            raise DomainRepositoryError(
-                f"default tenant {default_tenant!r} has no runtime bundle"
-            )
-        if default_tenant is None and len(indexes) == 1:
-            default_tenant = next(iter(indexes))
-        self.default_tenant = default_tenant
+        return indexes, stores, signature
 
     def refresh_active_ontology(self) -> bool:
         """Refresh the served ontology from the active governance pointer."""
@@ -275,13 +327,16 @@ class DomainStorageRepository:
 
     @property
     def tenants(self) -> tuple[str, ...]:
+        self.refresh_active_snapshots()
         return tuple(sorted(self._tenants))
 
     @property
     def quotes_loaded(self) -> int:
+        self.refresh_active_snapshots()
         return sum(store.quotes_loaded for store in self._stores.values())
 
     def tenant_index(self, tenant_id: str | None) -> TenantIndex:
+        self.refresh_active_snapshots()
         effective = (tenant_id or "").strip() or self.default_tenant
         if not effective:
             raise DomainError(
@@ -300,6 +355,8 @@ class DomainStorageRepository:
 
     def close(self) -> None:
         for store in self._stores.values():
+            store.close()
+        for store in self._retired_stores:
             store.close()
 
 
@@ -339,6 +396,28 @@ def _tenant_bundle_paths(storage_dir: Path) -> list[Path]:
                 f"active.json; re-run the importer"
             )
     return paths
+
+
+def _snapshot_signature(
+    storage_dir: Path,
+    *,
+    bundle_paths: list[Path] | None = None,
+) -> tuple[Any, ...]:
+    """Return the active bundle/database identity used for hot refresh."""
+
+    paths = (
+        bundle_paths if bundle_paths is not None else _tenant_bundle_paths(storage_dir)
+    )
+    values: list[Any] = []
+    for bundle_path in paths:
+        for path in (bundle_path, bundle_path.parent / "evidence.sqlite3"):
+            try:
+                stat = path.stat()
+            except OSError:
+                values.append((str(path), None, None))
+            else:
+                values.append((str(path), stat.st_mtime_ns, stat.st_size))
+    return tuple(values)
 
 
 def _active_bundle_path(tenant_dir: Path, active_path: Path) -> Path:

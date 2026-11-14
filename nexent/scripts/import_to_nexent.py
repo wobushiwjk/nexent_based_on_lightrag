@@ -68,8 +68,10 @@ from governance_mcp_server.bootstrap import bootstrap_ontology_governance
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_AGENT_CONFIG = REPO_ROOT / "nexent" / "config" / "agents.json"
+DEFAULT_SINGLE_AGENT_CONFIG = REPO_ROOT / "nexent" / "config" / "agent.json"
 DEFAULT_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "mcp.json"
 DEFAULT_GOVERNANCE_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "governance_mcp.json"
+DEFAULT_INGESTION_MCP_CONFIG = REPO_ROOT / "nexent" / "config" / "ingestion_mcp.json"
 DEFAULT_KB_CONFIG = REPO_ROOT / "nexent" / "config" / "knowledge_base.json"
 DEFAULT_SKILLS_CONFIG = REPO_ROOT / "nexent" / "config" / "skills.json"
 DEFAULT_SKILLS_OUT = REPO_ROOT / "nexent" / "build" / "skills"
@@ -94,6 +96,14 @@ GOVERNANCE_TOOLS = frozenset(
         "publish_ontology_change",
         "rollback_ontology_publication",
         "list_tenant_snapshot_history",
+    }
+)
+INGESTION_TOOLS = frozenset(
+    {
+        "list_uploaded_documents",
+        "read_uploaded_document",
+        "ingest_uploaded_document",
+        "get_upload_ingestion_status",
     }
 )
 
@@ -131,9 +141,11 @@ class ImportOptions:
     password: str = DEFAULT_PASSWORD
     mcp_url: str | None = None
     governance_mcp_url: str | None = None
+    ingestion_mcp_url: str | None = None
     governance_root: Path = DEFAULT_GOVERNANCE_ROOT
     governance_ontology: Path = DEFAULT_GOVERNANCE_ONTOLOGY
     skip_governance_mcp: bool = False
+    skip_ingestion_mcp: bool = False
     seed: str = "auto"
     seed_storage: Path = DEFAULT_SEED_STORAGE
     seed_timeout: int = 600
@@ -145,6 +157,7 @@ class ImportOptions:
     poll_interval: float = 3.0
     report_path: Path = DEFAULT_REPORT
     python: str = sys.executable
+    agent_config: Path = DEFAULT_AGENT_CONFIG
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -905,6 +918,11 @@ def run_import(
             governance_config.get("server_url") or ""
         )
         governance_name = str(governance_config["name"])
+        ingestion_config = _load_json(DEFAULT_INGESTION_MCP_CONFIG)
+        ingestion_url = options.ingestion_mcp_url or str(
+            ingestion_config.get("server_url") or ""
+        )
+        ingestion_name = str(ingestion_config["name"])
 
         out("[3/8] MCP registration")
         report["steps"]["mcp"] = step_mcp(
@@ -938,18 +956,49 @@ def run_import(
                 ),
             )
             out(f"      {report['steps']['governance_mcp']['action']}")
+        if options.skip_ingestion_mcp:
+            report["steps"]["ingestion_mcp"] = {"action": "skipped"}
+            out("      ingestion MCP skipped")
+        else:
+            if not ingestion_url:
+                raise ImportStepError(
+                    "no ingestion MCP url: set --ingestion-mcp-url or "
+                    "config/ingestion_mcp.json"
+                )
+            report["steps"]["ingestion_mcp"] = step_mcp(
+                active,
+                ingestion_config,
+                ingestion_url,
+                dry_run=options.dry_run,
+                startup_help=(
+                    "Start it with `python -m ingestion_mcp_server "
+                    "--transport streamable-http --host 0.0.0.0 --port 8767`"
+                ),
+            )
+            out(f"      {report['steps']['ingestion_mcp']['action']}")
 
         out("[4/8] tool catalog")
         report["steps"]["scan"] = step_scan_tools(active, dry_run=options.dry_run)
-        specs = load_agent_specs(DEFAULT_AGENT_CONFIG)
-        if options.skip_governance_mcp:
+        specs = load_agent_specs(options.agent_config)
+        skipped_tools = (
+            GOVERNANCE_TOOLS if options.skip_governance_mcp else frozenset()
+        ) | (INGESTION_TOOLS if options.skip_ingestion_mcp else frozenset())
+        skipped_servers = {
+            *((governance_name,) if options.skip_governance_mcp else ()),
+            *((ingestion_name,) if options.skip_ingestion_mcp else ()),
+        }
+        if skipped_tools or skipped_servers:
             specs = tuple(
                 dataclasses.replace(
                     spec,
                     mcp_tools=tuple(
-                        name for name in spec.mcp_tools if name not in GOVERNANCE_TOOLS
+                        name for name in spec.mcp_tools if name not in skipped_tools
                     ),
-                    additional_mcp_server_names=(),
+                    additional_mcp_server_names=tuple(
+                        name
+                        for name in spec.additional_mcp_server_names
+                        if name not in skipped_servers
+                    ),
                 )
                 for spec in specs
             )
@@ -994,9 +1043,18 @@ def run_import(
             catalog,
             kb_index_name=kb_index_name,
             mcp_url=server_url,
-            additional_mcp_server_urls=(
-                {} if options.skip_governance_mcp else {governance_name: governance_url}
-            ),
+            additional_mcp_server_urls={
+                **(
+                    {}
+                    if options.skip_governance_mcp
+                    else {governance_name: governance_url}
+                ),
+                **(
+                    {}
+                    if options.skip_ingestion_mcp
+                    else {ingestion_name: ingestion_url}
+                ),
+            },
             skills_payload=skills_payload,
             skill_resolutions=resolutions,
             replace=options.replace_agent,
@@ -1062,9 +1120,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("NEXENT_GOVERNANCE_MCP_URL"),
     )
     parser.add_argument(
+        "--ingestion-mcp-url",
+        default=os.environ.get("NEXENT_INGESTION_MCP_URL"),
+    )
+    parser.add_argument(
         "--skip-governance-mcp",
         action="store_true",
         help="Import only the original industrial domain MCP.",
+    )
+    parser.add_argument(
+        "--skip-ingestion-mcp",
+        action="store_true",
+        help="Do not register the Nexent upload ingestion MCP.",
     )
     parser.add_argument(
         "--governance-root",
@@ -1086,6 +1153,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--refresh-skills",
         action="store_true",
         help="Delete existing Skills first so edited SKILL.md content propagates.",
+    )
+    parser.add_argument(
+        "--single-agent",
+        action="store_true",
+        help=(
+            "Import the legacy one-Agent config for a matched single-Agent "
+            "versus managed-three-Agent evaluation. The main Agent name and "
+            "model remain the same."
+        ),
     )
     parser.add_argument("--skip-kb", action="store_true")
     parser.add_argument(
@@ -1114,9 +1190,11 @@ def main(argv: list[str] | None = None) -> int:
         password=args.password,
         mcp_url=args.mcp_url,
         governance_mcp_url=args.governance_mcp_url,
+        ingestion_mcp_url=args.ingestion_mcp_url,
         governance_root=Path(args.governance_root).expanduser().resolve(),
         governance_ontology=Path(args.governance_ontology).expanduser().resolve(),
         skip_governance_mcp=args.skip_governance_mcp,
+        skip_ingestion_mcp=args.skip_ingestion_mcp,
         seed=args.seed,
         seed_storage=Path(args.seed_storage).expanduser().resolve(),
         seed_timeout=args.seed_timeout,
@@ -1127,6 +1205,9 @@ def main(argv: list[str] | None = None) -> int:
         wait_kb_seconds=args.wait_kb_seconds,
         poll_interval=args.poll_interval,
         report_path=Path(args.report).expanduser().resolve(),
+        agent_config=(
+            DEFAULT_SINGLE_AGENT_CONFIG if args.single_agent else DEFAULT_AGENT_CONFIG
+        ),
     )
     report = run_import(options)
     print(json.dumps({"ok": report["ok"], "report": str(report["report_path"])}))

@@ -1,0 +1,13 @@
+{
+  "name": "industrial-fault-ingestion",
+  "description": "Nexent upload bridge: parse PDF/table/image/text files, run the local W7 evidence extractor, and append validated domain snapshots or return standard text for ontology drafting.",
+  "tags": ["industrial", "ingestion", "w7", "multimodal"],
+  "server_url": "http://host.docker.internal:8767/mcp",
+  "alternate_server_urls": {
+    "docker_desktop": "http://host.docker.internal:8767/mcp",
+    "native": "http://localhost:8767/mcp"
+  },
+  "transport": "streamable-http",
+  "host_port": 8767,
+  "healthcheck_path": "/mcp"
+}

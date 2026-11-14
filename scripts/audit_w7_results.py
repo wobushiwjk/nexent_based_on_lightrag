@@ -131,6 +131,7 @@ def audit(
         ),
         "a_cfdk_ablation_present": "A_cfdk" in runs,
         "b2_ablation_present": "B2_evidence_stage2" in runs,
+        "runtime_integration_present": _runtime_integration_present(),
     }
     blockers = [name for name, passed in checks.items() if not passed]
     selected = selection.get("selected") or {}
@@ -188,6 +189,24 @@ def audit(
         "status": "core_pass_with_acceptance_gaps" if blockers else "pass",
     }
     return summary, queue
+
+
+def _runtime_integration_present() -> bool:
+    """Check that the student has a Nexent-facing execution path."""
+
+    server = ROOT / "ingestion_mcp_server" / "server.py"
+    config = ROOT / "nexent" / "config" / "agents.json"
+    try:
+        text = config.read_text(encoding="utf-8")
+        env_example = (ROOT / "nexent" / ".env.example").read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return (
+        server.is_file()
+        and '"ingest_uploaded_document"' in text
+        and '"industrial-fault-ingestion"' in text
+        and "W7_STUDENT_ENDPOINT" in env_example
+    )
 
 
 def _build_queue(

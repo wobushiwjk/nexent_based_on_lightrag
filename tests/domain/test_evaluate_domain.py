@@ -16,6 +16,8 @@ def test_domain_evaluation_proves_graph_evidence_and_tree_uplift() -> None:
     assert report["checks"]["full_graph_end_to_end"] is True
     assert report["checks"]["graph_improves_evidence"] is True
     assert report["checks"]["graph_improves_tree"] is True
+    assert report["checks"]["scenario_suite"] is True
+    assert report["checks"]["evidence_failure_degrades"] is True
 
     baseline = report["variants"]["lexical_no_graph"]
     full = report["variants"]["graph_evidence_full"]
@@ -25,3 +27,5 @@ def test_domain_evaluation_proves_graph_evidence_and_tree_uplift() -> None:
     assert full["evidence"]["coverage"] == 1.0
     assert full["evidence"]["hash_valid_rate"] == 1.0
     assert full["tree_structure_match"] is True
+    assert report["scenario_suite"]["passed"] == report["scenario_suite"]["total"]
+    assert report["evidence_failure_injection"]["status"] == "rejected"

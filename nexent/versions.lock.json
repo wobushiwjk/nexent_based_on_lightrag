@@ -64,6 +64,19 @@
           "rollback_ontology_publication",
           "list_tenant_snapshot_history"
         ]
+      },
+      {
+        "server_name": "industrial-fault-ingestion",
+        "transport": "streamable-http",
+        "container_url": "http://host.docker.internal:8767/mcp",
+        "native_url": "http://localhost:8767/mcp",
+        "initialize_path": "/mcp",
+        "tools": [
+          "list_uploaded_documents",
+          "read_uploaded_document",
+          "ingest_uploaded_document",
+          "get_upload_ingestion_status"
+        ]
       }
     ]
   },
@@ -71,7 +84,7 @@
     "name": "industrial_fault_agent",
     "display_name": "工业设备故障诊断助手",
     "config": "nexent/config/agents.json",
-    "max_steps": 18,
+    "max_steps": 24,
     "managed_agents": [
       "evidence_review_agent",
       "ontology_expert_agent"
@@ -81,6 +94,12 @@
       "evidence-verification",
       "ontology-change-draft"
     ]
+  },
+  "w7_student_runtime": {
+    "model": "industrial-extractor",
+    "endpoint_env": "W7_STUDENT_ENDPOINT",
+    "contract": "FaultEvent + CAUSES with verbatim evidence",
+    "fallback_to_external_model": false
   },
   "knowledge_base": {
     "display_name": "industrial-fault-kb",

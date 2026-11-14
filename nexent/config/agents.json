@@ -6,7 +6,7 @@
       "display_name": "工业设备故障诊断助手",
       "description": "面向制造企业的工业设备认知主智能体，负责诊断、本体治理编排和最终答复。",
       "author": "lightrag-domain-pack",
-      "max_steps": 18,
+      "max_steps": 24,
       "prompt_file": "nexent/agent/system_prompt.md",
       "is_main_agent": true,
       "is_a2a": false,
@@ -16,7 +16,10 @@
       "enabled": true,
       "use_knowledge_base": true,
       "mcp_server_name": "industrial-fault-domain",
-      "additional_mcp_servers": ["ontology-governance"],
+      "additional_mcp_servers": [
+        "ontology-governance",
+        "industrial-fault-ingestion"
+      ],
       "mcp_tools": [
         "get_ontology",
         "get_equipment",
@@ -35,7 +38,11 @@
         "analyze_ontology_change_impact",
         "publish_ontology_change",
         "rollback_ontology_publication",
-        "list_tenant_snapshot_history"
+        "list_tenant_snapshot_history",
+        "list_uploaded_documents",
+        "read_uploaded_document",
+        "ingest_uploaded_document",
+        "get_upload_ingestion_status"
       ],
       "skills": [
         "fault-diagnosis",
@@ -49,7 +56,9 @@
         "根据这段标准节选生成本体 v0.2 的变更草案：条件监测系统应识别安装在旋转设备上的传感器。",
         "根据「条件监测系统应识别安装在旋转设备上的传感器。」创建 CHG-0003，只新增 Sensor、RotatingEquipment 和 INSTALLED_ON，并让两个辅助 Agent 联合复核。",
         "读取 industrial-fault-v0.2 的 entity Schema，确认 Sensor 和 RotatingEquipment 已进入 $defs 与 oneOf。",
-        "分析 CHG-... 的影响，并告诉我需要审核哪些实例和故障树。"
+        "分析 CHG-... 的影响，并告诉我需要审核哪些实例和故障树。",
+        "我已上传一份设备巡检表，请识别文件并导入，然后告诉我新增了哪些故障和证据。",
+        "我已上传一份标准 PDF，请先解析原文，再根据其中的条款生成本体变更草案。"
       ]
     },
     {
@@ -68,7 +77,10 @@
       "enabled": true,
       "use_knowledge_base": false,
       "mcp_server_name": "industrial-fault-domain",
-      "additional_mcp_servers": ["ontology-governance"],
+      "additional_mcp_servers": [
+        "ontology-governance",
+        "industrial-fault-ingestion"
+      ],
       "mcp_tools": [
         "get_ontology",
         "get_equipment",
@@ -80,7 +92,10 @@
         "get_ontology_version",
         "list_ontology_changes",
         "get_ontology_change",
-        "analyze_ontology_change_impact"
+        "analyze_ontology_change_impact",
+        "list_uploaded_documents",
+        "read_uploaded_document",
+        "get_upload_ingestion_status"
       ],
       "skills": ["evidence-verification"],
       "greeting_message": "",
@@ -102,7 +117,10 @@
       "enabled": true,
       "use_knowledge_base": false,
       "mcp_server_name": "industrial-fault-domain",
-      "additional_mcp_servers": ["ontology-governance"],
+      "additional_mcp_servers": [
+        "ontology-governance",
+        "industrial-fault-ingestion"
+      ],
       "mcp_tools": [
         "get_ontology",
         "get_fault_tree",
@@ -115,7 +133,9 @@
         "get_ontology_change",
         "create_ontology_change_draft",
         "analyze_ontology_change_impact",
-        "list_tenant_snapshot_history"
+        "list_tenant_snapshot_history",
+        "list_uploaded_documents",
+        "read_uploaded_document"
       ],
       "skills": ["ontology-change-draft"],
       "greeting_message": "",

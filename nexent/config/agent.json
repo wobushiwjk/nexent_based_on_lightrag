@@ -4,13 +4,14 @@
     "display_name": "工业设备故障诊断助手",
     "description": "面向先进制造企业设备维护的故障诊断助手。它基于受治理的工业故障本体、故障树草稿和逐字证据库，回答设备故障原因、追溯证据出处、校验故障树，并起草本体变更建议；所有结论必须落在可追溯的原文证据上。",
     "author": "lightrag-domain-pack",
-    "max_steps": 15,
+    "max_steps": 24,
     "prompt_file": "nexent/agent/system_prompt.md",
     "provide_run_summary": true,
     "enabled": true,
     "mcp_server_name": "industrial-fault-domain",
     "additional_mcp_servers": [
-      "ontology-governance"
+      "ontology-governance",
+      "industrial-fault-ingestion"
     ],
     "mcp_tools": [
       "get_ontology",
@@ -30,7 +31,11 @@
       "analyze_ontology_change_impact",
       "publish_ontology_change",
       "rollback_ontology_publication",
-      "list_tenant_snapshot_history"
+      "list_tenant_snapshot_history",
+      "list_uploaded_documents",
+      "read_uploaded_document",
+      "ingest_uploaded_document",
+      "get_upload_ingestion_status"
     ],
     "skills": [
       "fault-diagnosis",

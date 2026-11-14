@@ -4,6 +4,7 @@
 
 - **领域 MCP**：`mcp_server/` 暴露的 6 个只读领域工具；
 - **治理 MCP**：`governance_mcp_server/` 暴露版本查询、草案、审核、影响分析、迁移发布、回滚和快照历史工具；
+- **导入 MCP**：`ingestion_mcp_server/` 接收 Nexent 上传文件，本地解析后调用 W7 学生模型，并把通过证据校验的结果追加到租户快照；
 - **Skill**：`skills/` 下的 3 个确定性技能，由 `nexent/scripts/build_skills.py` 打包成 ZIP 上传；
 - **知识库**：`nexent/kb/` 下的 3 份写作规范/术语/证据政策文档；
 - **Agent**：`industrial_fault_agent`，提示词在 `nexent/agent/system_prompt.md`。
@@ -15,6 +16,12 @@
 - `ontology_expert_agent`：本体专家子 Agent。
 
 主 Agent 通过 Nexent `managed_agents` 管理两个子 Agent；子 Agent 无权发布或回滚。
+
+这里的协作协议是 Nexent 原生 **Managed Agent**：主 Agent 通过
+`managed_agents` 把已发布的子 Agent 作为受限能力调用。Web UI 中的
+“启用 A2A”用于把 Agent 暴露给独立的第三方 A2A Server，不是内部子 Agent
+协作的前置条件。本项目没有外部 A2A Server，因此 `is_a2a=false`；最终材料应写
+“Nexent managed Agents 三智能体协作”，不能写成“已接入外部 A2A Server”。
 
 Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓库是领域服务的唯一事实来源，Nexent 是消费者；删除 Nexent 里的任何配置都不会丢源码，重新导入即可恢复。
 
@@ -60,7 +67,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | `nexent-mcp` | 5011 | Nexent 自带的 MCP 管理服务，**不是**本仓库的 MCP Server |
 | `nexent-postgres` / `kong` 等 | — | 基础设施 |
 
-本仓库的领域 MCP 默认监听 **8765**，本体治理 MCP 默认监听 **8766**，均独立于上表。
+本仓库的领域 MCP 默认监听 **8765**，本体治理 MCP 默认监听 **8766**，上传导入 MCP 默认监听 **8767**，均独立于上表。
 
 ## 文件清单
 
@@ -69,6 +76,7 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 | `versions.lock.json` | 锁定的 Nexent 版本与接口约定 |
 | `config/mcp.json` | MCP 服务注册名、容器内可达 URL、传输方式 |
 | `config/governance_mcp.json` | 本体治理 MCP 注册名、容器内可达 URL、传输方式 |
+| `config/ingestion_mcp.json` | Nexent 上传导入 MCP 注册名、容器内可达 URL、传输方式 |
 | `config/agents.json` | 当前三 Agent 图、工具/Skill 权限、知识库和示例问题 |
 | `config/agent.json` | 早期单 Agent 配置，保留兼容 |
 | `config/knowledge_base.json` | 知识库显示名、待导入文档、切分策略 |
@@ -91,8 +99,9 @@ Nexent 本身**不在本仓库内**，也不需要把源码放进仓库。本仓
 1. Nexent 已部署并运行，版本 **v2.8.0**；Web UI 能登录。
 2. Nexent 里已配置**一个对话模型**和**一个 embedding 模型**。导入第 6 步建知识库要 embedding 模型，第 7 步导入 Agent 要对话模型；没有就先在「模型管理」里添加。
 3. 本仓库的 Python 环境可用（`.venv/Scripts/python.exe`），且已安装 `mcp` 依赖（`uv sync --extra api` 或按 `mcp_server/README.md`）。
-4. 端口 **8765、8766** 可从 Docker 容器访问到宿主机。Docker Desktop 用 `host.docker.internal`；首次启动两个 MCP Server 时 Windows 防火墙弹窗要允许专用网络。
+4. 端口 **8765、8766、8767** 可从 Docker 容器访问到宿主机。Docker Desktop 用 `host.docker.internal`；首次启动三个 MCP Server 时 Windows 防火墙弹窗要允许专用网络。
 5. 确认管理员账号。默认是 `suadmin@nexent.com` / `Nexent@123`；如果你在首次部署前设置过 `NEXENT_SUPER_ADMIN_PASSWORD`，用你设置的那个。
+6. 上传资料要真正调用 W7 时，先启动本地 OpenAI 兼容学生模型并设置 `W7_STUDENT_ENDPOINT`、`W7_STUDENT_MODEL`；运行 `python scripts/probe_w7_extractor.py` 验证合同。
 
 ## 配置
 
@@ -141,7 +150,23 @@ set -a; source nexent/.env; set +a
   --port 8766
 ```
 
-保持两个终端开着。第二遍导入的第 3 步会分别做连通性检查，失败时会直接给出原因；若失败，见「故障排查」。
+上传导入 MCP（第三个终端）：
+
+```bash
+# First terminal: serve the merged local student (vLLM or LLaMA-Factory).
+bash training/serve_w7_extractor.sh
+
+# Third MCP terminal:
+export W7_STUDENT_ENDPOINT=http://127.0.0.1:8000/v1
+export W7_STUDENT_MODEL=industrial-extractor
+export INGESTION_UPLOAD_DIRS=/opt/lightrag-domain/uploads/inbox:/var/lib/docker/volumes/nexent-agent-workspace/_data
+.venv/bin/python -m ingestion_mcp_server \
+  --transport streamable-http \
+  --host 0.0.0.0 \
+  --port 8767
+```
+
+保持三个终端开着。第二遍导入的第 3 步会分别做连通性检查，失败时会直接给出原因；若失败，见「故障排查」。
 
 ### 第二遍：注册全部组件
 
@@ -152,8 +177,8 @@ set -a; source nexent/.env; set +a
 
 这一遍第 2 步检测到 `storage/tenants/<tenant_id>/active.json` 存在会自动跳过，然后依次：
 
-1. 初始化空白治理库并注册两个 MCP（`add` 或 `update` + `enable`）；
-2. 扫描工具目录，确认 Agent 所需的 18 个 MCP 工具都在；
+1. 初始化空白治理库并注册三个 MCP（`add` 或 `update` + `enable`）；
+2. 扫描工具目录，确认 Agent 所需的 22 个 MCP 工具都在；
 3. 打包并上传 3 个 Skill（首次创建）；
 4. 创建知识库、上传 3 份文档、等待切分完成；
 5. 导入 Agent（自动发布 V1）；
@@ -226,6 +251,9 @@ docker compose restart
 | --- | --- |
 | 第 3 步领域 MCP `not reachable from Nexent` | 容器里解析不到 `host.docker.internal`，或 8765 没放行。先用容器内测试：`docker exec -it nexent-config curl -s http://host.docker.internal:8765/mcp`；不通就改用宿主机局域网 IP（`ipconfig` 的 IPv4），`--mcp-url http://<IP>:8765/mcp` |
 | 第 3 步治理 MCP `not reachable from Nexent` | 8766 没启动或没放行。先确认 `governance_mcp_server` 正在运行，再用容器内 `curl http://host.docker.internal:8766/mcp` 检查；也可传 `--governance-mcp-url` |
+| 第 3 步导入 MCP `not reachable from Nexent` | 8767 没启动或没放行。确认 `ingestion_mcp_server` 正在运行，并检查 `docker exec nexent-config curl -sS http://host.docker.internal:8767/mcp` |
+| 导入 MCP 返回 `extractor_not_configured` | 本地 W7 学生模型未配置；设置 `W7_STUDENT_ENDPOINT`/`W7_STUDENT_MODEL`，运行 `python scripts/probe_w7_extractor.py` |
+| `list_uploaded_documents` 为空 | 用户附件不在配置的收件目录；调整 `INGESTION_UPLOAD_DIRS`，通常要包含 Nexent workspace volume |
 | MCP 启动报 `no runtime domain bundles found` | 种子还没导入。先跑第一遍导入 |
 | 种子导入报文件被占用 | MCP Server 还开着。停掉它再导入 |
 | `tools are missing from the Nexent catalog` | MCP 已注册但未启用或扫描失败。`GET /mcp/healthcheck?mcp_id=...` 看状态，必要时 `POST /mcp/enable` 后重跑 |

@@ -66,3 +66,22 @@ def test_dsml_marker_and_missing_subagent_make_ablation_fail() -> None:
     assert report["all_runs_ok"] is False
     assert run["forbidden_phrase_hits"] == ["<｜DSML｜"]
     assert run["expected_subagents_missing"] == ["evidence_review_agent"]
+
+
+def test_missing_expected_subagent_fails_without_protocol_error() -> None:
+    report = evaluate_transcript(
+        {
+            "runs": [
+                {
+                    "query": "same question",
+                    "events": {"tool": 2},
+                    "errors": [],
+                    "final_answer": "有证据 [evidence:EV-1]",
+                }
+            ]
+        },
+        expected_subagents=["evidence_review_agent"],
+    )
+
+    assert report["runs"][0]["expected_subagents_missing"] == ["evidence_review_agent"]
+    assert report["all_runs_ok"] is False

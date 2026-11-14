@@ -65,6 +65,23 @@ domain_packs/*/storage/
 # scripts/make_multimodal_samples.py and scripts/import_domain_multimodal.py
 domain_packs/industrial_fault/seeds/multimodal/generated/
 
+# W7 training corpus, labels, weights and queues.  Configs, docs and
+# corpus/sources.yml stay tracked; everything below is generated or heavy.
+training/corpus/raw/
+training/corpus/parsed/
+training/data/
+training/models/
+training/saves/
+training/artifacts/
+training/*.tar
+training/*.tar.gz
+training/*.tar.*
+training/.env
+
+# Nexent upload bridge: copied source files, parsed transcripts and status.
+.ingestion/
+uploads/inbox/
+
 
 
 # User-defined UI template bundle (UI_TEMPLATES_DIR).

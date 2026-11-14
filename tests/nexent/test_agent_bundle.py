@@ -47,6 +47,13 @@ GOVERNANCE_TOOLS = (
     "list_tenant_snapshot_history",
 )
 
+INGESTION_TOOLS = (
+    "list_uploaded_documents",
+    "read_uploaded_document",
+    "ingest_uploaded_document",
+    "get_upload_ingestion_status",
+)
+
 KB_PARAMS = ["top_k", "index_names", "search_mode", "rerank"]
 
 
@@ -74,6 +81,18 @@ def catalog() -> list[dict]:
             "usage": "ontology-governance",
         }
         for name in GOVERNANCE_TOOLS
+    )
+    entries.extend(
+        {
+            "name": name,
+            "source": "mcp",
+            "description": f"{name} description",
+            "description_zh": f"{name} 描述",
+            "inputs": '{"type": "object"}',
+            "labels": ["ingestion"],
+            "usage": "industrial-fault-ingestion",
+        }
+        for name in INGESTION_TOOLS
     )
     entries.append(
         {
@@ -119,8 +138,11 @@ def test_real_config_is_valid():
     loaded = load_agent_spec()
 
     assert loaded.name == "industrial_fault_agent"
-    assert loaded.mcp_tools == MCP_TOOLS + GOVERNANCE_TOOLS
-    assert loaded.additional_mcp_server_names == ("ontology-governance",)
+    assert loaded.mcp_tools == MCP_TOOLS + GOVERNANCE_TOOLS + INGESTION_TOOLS
+    assert loaded.additional_mcp_server_names == (
+        "ontology-governance",
+        "industrial-fault-ingestion",
+    )
     assert loaded.agent_id == 1001
     assert loaded.is_main_agent is True
     assert loaded.managed_agents == (1002, 1003)
@@ -128,7 +150,7 @@ def test_real_config_is_valid():
     assert loaded.kb_tool is not None
     assert loaded.kb_tool.class_name == "KnowledgeBaseSearchTool"
     assert loaded.prompt.strip()
-    assert loaded.max_steps == 18
+    assert loaded.max_steps == 24
 
 
 def test_mcp_tools_get_empty_params_and_name_as_class_name():
@@ -338,7 +360,10 @@ def test_real_multi_agent_config_has_expected_graph():
         catalog(),
         kb_index_name="kb-index",
         mcp_server_url="http://domain",
-        additional_mcp_server_urls={"ontology-governance": "http://governance"},
+        additional_mcp_server_urls={
+            "ontology-governance": "http://governance",
+            "industrial-fault-ingestion": "http://ingestion",
+        },
     )
     assert bundle["agent_info"]["1001"]["managed_agents"] == [1002, 1003]
     assert bundle["agent_info"]["1001"]["is_a2a"] is False

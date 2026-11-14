@@ -24,11 +24,176 @@
       "entities": 9
     }
   },
+  "scenario_suite": {
+    "total": 11,
+    "passed": 11,
+    "all_passed": true,
+    "cases": [
+      {
+        "case_id": "equipment-by-tag",
+        "description": "locate P-101A by equipment tag",
+        "ok": true,
+        "actual": {
+          "equipment_uid": "EQ-P101A",
+          "matched_by": "equipment_tag",
+          "fault_uids": [
+            "FAULT-LOW-PRESSURE"
+          ],
+          "evidence_count": 1
+        },
+        "error": null
+      },
+      {
+        "case_id": "equipment-by-alias",
+        "description": "locate the same equipment by its Chinese alias",
+        "ok": true,
+        "actual": {
+          "equipment_uid": "EQ-P101A",
+          "matched_by": "name",
+          "fault_uids": [
+            "FAULT-LOW-PRESSURE"
+          ],
+          "evidence_count": 1
+        },
+        "error": null
+      },
+      {
+        "case_id": "unknown-equipment-rejected",
+        "description": "an unknown equipment tag fails closed",
+        "ok": true,
+        "actual": null,
+        "error": {
+          "code": "not_found",
+          "message": "equipment 'P-999Z' was not found in tenant 'tenant-demo'"
+        }
+      },
+      {
+        "case_id": "filter-fault-search",
+        "description": "find the blocked-filter branch",
+        "ok": true,
+        "actual": {
+          "count": 4,
+          "uids": [
+            "FAULT-FILTER-BLOCKED",
+            "FAULT-LOW-PRESSURE",
+            "FAULT-CAVITATION",
+            "FAULT-INLET-LEAK"
+          ]
+        },
+        "error": null
+      },
+      {
+        "case_id": "cavitation-fault-search",
+        "description": "find the cavitation branch",
+        "ok": true,
+        "actual": {
+          "count": 2,
+          "uids": [
+            "FAULT-CAVITATION",
+            "FAULT-LOW-PRESSURE"
+          ]
+        },
+        "error": null
+      },
+      {
+        "case_id": "unknown-fault-empty",
+        "description": "an unrelated symptom returns no fabricated fault",
+        "ok": true,
+        "actual": {
+          "count": 0,
+          "uids": []
+        },
+        "error": null
+      },
+      {
+        "case_id": "trace-fault-evidence",
+        "description": "trace the blocked-filter evidence",
+        "ok": true,
+        "actual": {
+          "target_type": "entity",
+          "target_id": "FAULT-FILTER-BLOCKED",
+          "evidence_count": 4,
+          "evidence_ids": [
+            "EV-TABLE-1",
+            "EV-RECORD-1",
+            "EV-MANUAL-1",
+            "EV-MANUAL-3"
+          ]
+        },
+        "error": null
+      },
+      {
+        "case_id": "trace-fact-evidence",
+        "description": "trace the causal fact evidence",
+        "ok": true,
+        "actual": {
+          "target_type": "fact",
+          "target_id": "FACT-1",
+          "evidence_count": 3,
+          "evidence_ids": [
+            "EV-TABLE-1",
+            "EV-RECORD-1",
+            "EV-MANUAL-1"
+          ]
+        },
+        "error": null
+      },
+      {
+        "case_id": "tree-by-draft",
+        "description": "read the expected tree by draft id",
+        "ok": true,
+        "actual": {
+          "draft_id": "TREE-P101A-LOW-PRESSURE-v1",
+          "top_event_uid": "FAULT-LOW-PRESSURE",
+          "counts": {
+            "nodes": 8,
+            "edges": 8,
+            "gates": 2,
+            "faults": 4,
+            "rules": 2
+          }
+        },
+        "error": null
+      },
+      {
+        "case_id": "tree-validation",
+        "description": "validate the stored fault tree",
+        "ok": true,
+        "actual": {
+          "valid": true,
+          "error_count": 0,
+          "warning_count": 0
+        },
+        "error": null
+      },
+      {
+        "case_id": "ontology-shape",
+        "description": "the active ontology has the expected class/relation shape",
+        "ok": true,
+        "actual": {
+          "classes": 9,
+          "relations": 11,
+          "constraints": 8
+        },
+        "error": null
+      }
+    ]
+  },
+  "evidence_failure_injection": {
+    "ok": true,
+    "removed_evidence_ids": [
+      "EV-MANUAL-3",
+      "EV-RECORD-2"
+    ],
+    "status": "rejected",
+    "verified_count": 0,
+    "rejected_count": 1
+  },
   "variants": {
     "lexical_no_graph": {
       "status": "retrieved",
       "ok": true,
-      "latency_ms": 0.083,
+      "latency_ms": 0.975,
       "candidate_uids": [
         "FAULT-CAVITATION",
         "FAULT-LOW-PRESSURE"
@@ -51,7 +216,7 @@
     "graph_evidence_full": {
       "status": "diagnosed",
       "ok": true,
-      "latency_ms": 7.161,
+      "latency_ms": 16.691,
       "candidate_uids": [
         "FAULT-CAVITATION",
         "FAULT-LOW-PRESSURE"
@@ -80,7 +245,9 @@
     "full_graph_tree_causes": true,
     "full_graph_end_to_end": true,
     "graph_improves_evidence": true,
-    "graph_improves_tree": true
+    "graph_improves_tree": true,
+    "scenario_suite": true,
+    "evidence_failure_degrades": true
   },
   "ok": true
 }

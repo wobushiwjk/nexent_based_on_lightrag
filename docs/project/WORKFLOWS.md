@@ -25,10 +25,10 @@
 | W4 | Skills 工作流 | ✅ 已完成并验收 | W2、W3 |
 | W5 | Nexent 编排与导入 | ✅ 已完成并验收 | W2、W4 |
 | W6 | 多模态数据管线 | ✅ 已完成并验收 | W3 |
-| W7 | 教师-学生与主动学习 | ⏳ 未开始 | W3、W6 |
-| W8 | 本体演化（上传标准→审核→迁移） | ⏳ 未开始 | W3、W5、W6 |
-| W9 | 评测与消融 | ⏳ 未开始 | W2–W8 |
-| W10 | 离线交付与演示 | ⏳ 未开始 | 全部 |
+| W7 | 教师-学生与主动学习 | 🟡 核心完成，Nexent 已接入；边缘/消融待补 | W3、W6 |
+| W8 | 本体演化（上传标准→审核→迁移） | ✅ 能力与实机流程已完成，验收材料需同步最终 CHG | W3、W5、W6 |
+| W9 | 评测与消融 | 🟡 确定性套件完成；真实单/三 Agent 同题转录待录制 | W2–W8 |
+| W10 | 离线交付与演示 | ⏳ 按用户要求暂缓 | 全部 |
 
 ## 各工作流验收标准
 
@@ -273,6 +273,13 @@ PYTHON=.venv/Scripts/python.exe ./scripts/test.sh tests/skills -q
 
 **状态**：✅ 已完成并验收（2026-11-12，用户确认）。
 
+**2026-11-14 扩展**：
+
+- 新增 `ingestion_mcp_server`，用户在 Nexent 中上传 PDF/CSV/XLSX/图片/文本后，可让 Agent 解析、导入或读取标准原文；
+- Agent 配置扩展为领域、治理、上传导入三个 MCP；
+- 导入结果经本地 W7 学生抽取、逐字证据校验后追加快照；
+- 领域 MCP 检测活动快照变化并热刷新，用户不需要在每次上传后重启服务。
+
 ### W6 多模态数据管线
 
 **目标**：解析 PDF、表格、图片，生成带页码/版面/字符区间的证据。
@@ -335,6 +342,21 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 
 **验收**：给出基线 vs 蒸馏后的抽取/诊断指标；模型卡写明数据来源、限制和隐私处理；低置信样本可进入审核队列。
 
+**当前进展（2026-11-13）**：
+
+- 训练工作区 `training/` 已建立：目录约定、LLaMA-Factory 的 Qwen2.5-1.5B QLoRA 配置（stage 1 + stage 2）、合并配置、Ollama Modelfile、模型卡和评测报告模板。
+- 教师模型定为 `deepseek-flash`（OpenAI 兼容端点，密钥只放 `training/.env`）；数据均为公开数据，`training/corpus/sources.yml` 记录来源/许可证/是否允许外发。
+- 学生模型只保留 Qwen2.5-1.5B-Instruct；不做 DeepSeek-R1-Distill 对照臂。
+- `scripts/import_public_fault_dataset.py` 把仓库内 101 条公开航空维修数据转成 97 条可用样本，作为格式/证据 bootstrap。
+- 中文语料已入库：CFDK 压缩机维修记录 6,191 条 → 5,967 chunk / 4,410 标签（3,561 只有实体、449 带 `CAUSES`、400 严格负样本）；5 份公开中文泵手册 → 180 条训练 chunk + 53 条 Coox 留出 chunk，标签校验 0 失败。`scripts/ingest_cfdk.py` 和 `scripts/ingest_pump_manuals.py` 负责转换，版面规格在 `training/corpus/manual_sources.yml`。
+- 数据集（已纳入教师标签）：A = CFDK-only 4,797/578/588（用 `--pin-from-manifest` 与 B 共用同一批 CFDK 评测文档）；B stage 1 = CFDK + 手册 4,868/623/652；B stage 2 = 手册行重配比 1,555（1,271 唯一）/623/652。天津标准强制进 val、Grundfos 8.x 强制进 test，保证目标域指标；Coox 整份留出。B stage 1 手册占比 1.46%，因此增加 stage 2（手册 ×5 + CFDK 1,200 replay，手册占 22.8%）。
+- `scripts/build_distillation_dataset.py` 现支持多 chunk 文件合并、`--force-split`、`--repeat-source`、`--cap-source`、`--pin-from-manifest`；`tests/domain/` 覆盖合并/切分/重配比、教师 CLI 和两个入库脚本的纯解析逻辑（136 通过）。教师标签使总负样本达到 1,732 / 6,143 = 28.2%。
+- `scripts/label_with_teacher.py` 已完成实跑：`--chunks` 可重复合并 CFDK/手册清单，`--skip-label-file` 跳过已有 bootstrap 标签；1,557 条待标注中 1,553 条成功、4 条因教师反复返回空内容保持未标注、0 条被公开来源门禁拦下。教师标签含 1,332 条严格负样本，已写入 `teacher_labels.jsonl` 并参与三个数据集构建。主动学习队列、训练与评测实跑、GGUF/香橙派吞吐实测仍待做。完成并验收后再改 ✅。
+- W7 学生已完成 QLoRA 复训与 652 条同集评测；实体 F1 `0.1702 → 0.6841`、关系 F1 `0 → 0.5212`、负样本准确率 `0.9745`。
+- 新增 `OpenAICompatibleStudentExtractor` 和 `ingestion_mcp_server`：用户上传设备资料后实际调用本地学生模型，再由既有投影/证据校验决定能否进入活动快照；不再只是离线脚本。
+- 新增 `scripts/probe_w7_extractor.py`、`training/serve_w7_extractor.sh` 和合同失败重试，便于服务器部署后自检。
+- 尚未通过：逐字率 1.0、规则准确率、GGUF、香橙派性能、A/B2 消融。
+
 ### W8 本体演化
 
 **目标**：用户上传标准/文档，系统生成本体变更草案，人工审核后版本升级并迁移实例。
@@ -352,6 +374,14 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 **交付物**：评测集、基线、消融配置、指标脚本、报告；至少覆盖检索命中、证据准确率、树结构正确率、端到端诊断。
 
 **验收**：一键复现指标；报告写明数据、参数、随机种子和失败案例；与基线对比有结论。
+
+**当前进展（2026-11-14）**：
+
+- `scripts/evaluate_domain.py` 扩展到 11 条正向、别名、负向、证据、树和本体形状用例；
+- 新增证据故障注入：删除“吸入管法兰漏气”分支证据后，`evidence_verification` 必须从通过降级为 `rejected`；
+- `scripts/evaluate_nexent_transcripts.py` 支持单 Agent/三 Agent 同一问题集比较、按臂要求子 Agent、DSML 失败检测和问题集一致性校验；
+- `import_to_nexent --single-agent` 可在同一 Agent 名称、模型和工具集下录制单 Agent 对照臂；`demo --output` 用于固定 transcript 路径；
+- 代码与确定性报告已完成；真实单/三 Agent 服务器同题转录尚未录制。
 
 ### W10 离线交付与演示
 
@@ -428,3 +458,6 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 | 2026-11-12 | W5 提示词改为按实测数值取证；多模态 CSV/XLSX 增加第 2 行压差 fixture | Nexent 答复此前漏引出口压力实测值与 `0.08 MPa` 压差；补齐后证据数 11→15 |
 | 2026-11-12 | W6 标记为已完成并验收 | 用户确认多模态导入与证据定位；4 份文档 `parsed`，15 条证据逐字校验通过 |
 | 2026-11-12 | W5 标记为已完成并验收 | 服务器 Nexent v2.8.0 导入成功，Agent 完成带逐字证据的 P-101A 诊断；用户确认 |
+| 2026-11-14 | 新增 Nexent 上传导入 MCP 与领域快照热刷新 | 把 W6/W7 能力接到用户唯一入口，导入后无需重启领域 MCP |
+| 2026-11-14 | W7 标记为“核心完成，Nexent 已接入” | 652 条评测与运行时学生抽取已落地；GGUF、边缘和完整消融仍缺 |
+| 2026-11-14 | W9 扩展到 11 用例、证据故障注入和单/三 Agent 对照工具 | 先完成可重复的确定性评测，真实 Nexent 同题转录仍需服务器录制 |

@@ -35,6 +35,10 @@ MCP_TOOLS = (
     "publish_ontology_change",
     "rollback_ontology_publication",
     "list_tenant_snapshot_history",
+    "list_uploaded_documents",
+    "read_uploaded_document",
+    "ingest_uploaded_document",
+    "get_upload_ingestion_status",
 )
 
 GOVERNANCE_TOOLS = {
@@ -51,6 +55,12 @@ GOVERNANCE_TOOLS = {
     "rollback_ontology_publication",
     "list_tenant_snapshot_history",
 }
+INGESTION_TOOLS = {
+    "list_uploaded_documents",
+    "read_uploaded_document",
+    "ingest_uploaded_document",
+    "get_upload_ingestion_status",
+}
 
 
 def catalog() -> list[dict]:
@@ -65,7 +75,11 @@ def catalog() -> list[dict]:
             "usage": (
                 "ontology-governance"
                 if name in GOVERNANCE_TOOLS
-                else "industrial-fault-domain"
+                else (
+                    "industrial-fault-ingestion"
+                    if name in INGESTION_TOOLS
+                    else "industrial-fault-domain"
+                )
             ),
         }
         for name in MCP_TOOLS
@@ -96,6 +110,7 @@ class StubClient:
     def __init__(self) -> None:
         self.mcp: dict | None = None
         self.governance_mcp: dict | None = None
+        self.ingestion_mcp: dict | None = None
         self.skills = [{"name": "fault-diagnosis"}]
         self.processed = False
         self.uploaded: list[Path] = []
@@ -140,6 +155,8 @@ class StubClient:
             and self.governance_mcp["remote_mcp_server_name"] == name
         ):
             return dict(self.governance_mcp)
+        if self.ingestion_mcp and self.ingestion_mcp["remote_mcp_server_name"] == name:
+            return dict(self.ingestion_mcp)
         return None
 
     def add_mcp(self, name, url, *, description="", tags=(), enabled=True):
@@ -147,11 +164,17 @@ class StubClient:
         record = {
             "remote_mcp_server_name": name,
             "remote_mcp_server": url,
-            "mcp_id": 12 if name == "ontology-governance" else 11,
+            "mcp_id": (
+                12
+                if name == "ontology-governance"
+                else (13 if name == "industrial-fault-ingestion" else 11)
+            ),
             "enabled": enabled,
         }
         if name == "ontology-governance":
             self.governance_mcp = record
+        elif name == "industrial-fault-ingestion":
+            self.ingestion_mcp = record
         else:
             self.mcp = record
 
@@ -160,7 +183,11 @@ class StubClient:
         record = (
             self.governance_mcp
             if self.governance_mcp and self.governance_mcp["mcp_id"] == mcp_id
-            else self.mcp
+            else (
+                self.ingestion_mcp
+                if self.ingestion_mcp and self.ingestion_mcp["mcp_id"] == mcp_id
+                else self.mcp
+            )
         )
         assert record is not None
         record["remote_mcp_server"] = url
@@ -170,7 +197,11 @@ class StubClient:
         record = (
             self.governance_mcp
             if self.governance_mcp and self.governance_mcp["mcp_id"] == mcp_id
-            else self.mcp
+            else (
+                self.ingestion_mcp
+                if self.ingestion_mcp and self.ingestion_mcp["mcp_id"] == mcp_id
+                else self.mcp
+            )
         )
         assert record is not None
         record["enabled"] = True
@@ -679,7 +710,10 @@ def test_step_agent_refuses_to_replace_by_default():
             catalog(),
             kb_index_name="kb-index",
             mcp_url="http://mcp",
-            additional_mcp_server_urls={"ontology-governance": "http://governance"},
+            additional_mcp_server_urls={
+                "ontology-governance": "http://governance",
+                "industrial-fault-ingestion": "http://ingestion",
+            },
             skills_payload=(),
             skill_resolutions=(),
             replace=False,
@@ -700,7 +734,8 @@ def test_step_agent_replaces_and_imports_bundle():
         kb_index_name="kb-index",
         mcp_url="http://host.docker.internal:8765/mcp",
         additional_mcp_server_urls={
-            "ontology-governance": "http://host.docker.internal:8766/mcp"
+            "ontology-governance": "http://host.docker.internal:8766/mcp",
+            "industrial-fault-ingestion": "http://host.docker.internal:8767/mcp",
         },
         skills_payload=(),
         skill_resolutions=(),
@@ -743,6 +778,7 @@ def test_run_import_end_to_end(tmp_path, monkeypatch):
         "mcp",
         "governance_store",
         "governance_mcp",
+        "ingestion_mcp",
         "scan",
         "catalog",
         "skills",

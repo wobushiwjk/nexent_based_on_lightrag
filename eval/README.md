@@ -28,6 +28,8 @@ eval/reports/industrial-domain-eval.json
 - quote hash 与字符区间一致率；
 - 端到端诊断状态；
 - 图谱路径相对词法路径的增量能力。
+- 11 条正向、别名、负向、证据、树和本体形状用例；
+- 删除“吸入管法兰漏气”分支证据后，证据复核必须从通过降级为拒绝。
 
 ## 已接入的 W7 消融
 
@@ -53,3 +55,26 @@ python scripts/audit_w7_results.py
 - 引用去重率；
 - 是否出现 DSML 协议失败；
 - 最终回答是否满足场景关键词和禁止词。
+
+单 Agent 臂通过同一导入器切换：
+
+```bash
+python -m nexent.scripts.import_to_nexent --single-agent --refresh-skills
+python -m nexent.scripts.demo --query "<固定问题>" \
+  --output nexent/build/eval-single-agent.json
+
+python -m nexent.scripts.import_to_nexent --refresh-skills
+python -m nexent.scripts.demo --query "<固定问题>" \
+  --output nexent/build/eval-three-agent.json
+```
+
+然后运行：
+
+```bash
+python scripts/evaluate_nexent_transcripts.py \
+  --run single=nexent/build/eval-single-agent.json \
+  --run three=nexent/build/eval-three-agent.json \
+  --expect-subagent-in three=evidence_review_agent \
+  --expect-subagent-in three=ontology_expert_agent \
+  --out eval/reports/nexent-agent-ablation.json
+```

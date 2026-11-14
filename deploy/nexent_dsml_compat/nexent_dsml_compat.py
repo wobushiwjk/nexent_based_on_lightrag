@@ -20,23 +20,26 @@ import re
 import sys
 from typing import Any
 
-COMPAT_VERSION = "2.2.0"
+COMPAT_VERSION = "2.3.0"
 
 _BAR = r"[|｜]"
 _OPEN = rf"<\s*{_BAR}\s*DSML\s*{_BAR}"
 _CLOSE = rf"</\s*{_BAR}\s*DSML\s*{_BAR}"
 _INVOKE_RE = re.compile(
-    rf"{_OPEN}\s*invoke\s+name=\"(?P<name>[A-Za-z_]\w*)\"\s*>"
+    rf"{_OPEN}\s*invoke(?P<attrs>\s+[^>]*)?\s*>"
     rf"(?P<body>[\s\S]*?)"
     rf"{_CLOSE}\s*invoke\s*>",
     re.IGNORECASE,
 )
 _PARAMETER_RE = re.compile(
-    rf"{_OPEN}\s*parameter\s+name=\"(?P<name>[A-Za-z_]\w*)\""
-    rf"(?:\s+string=\"(?P<string>true|false)\")?\s*>"
+    rf"{_OPEN}\s*parameter(?P<attrs>\s+[^>]*)?\s*>"
     rf"(?P<value>[\s\S]*?)"
     rf"{_CLOSE}\s*parameter\s*>",
     re.IGNORECASE,
+)
+_ATTRIBUTE_RE = re.compile(
+    r"""(?P<key>[A-Za-z_]\w*)\s*=\s*(?P<quote>["'])(?P<value>.*?)(?P=quote)""",
+    re.DOTALL,
 )
 _DSML_MARKER_RE = re.compile(_OPEN, re.IGNORECASE)
 _HOOK_INSTALLED = False
@@ -52,11 +55,24 @@ def normalize_dsml_tool_calls(output: Any) -> Any:
 
     calls: list[str] = []
     for invoke in _INVOKE_RE.finditer(output):
-        tool_name = invoke.group("name")
-        arguments = [
-            f"{parameter.group('name')}={_decode_parameter(parameter)}"
-            for parameter in _PARAMETER_RE.finditer(invoke.group("body"))
-        ]
+        attrs = _attributes(invoke.group("attrs"))
+        tool_name = str(attrs.get("name") or "")
+        if not re.fullmatch(r"[A-Za-z]\w*", tool_name):
+            continue
+        body = invoke.group("body")
+        arguments: list[str] = []
+        for parameter in _PARAMETER_RE.finditer(body):
+            parameter_attrs = _attributes(parameter.group("attrs"))
+            name = str(parameter_attrs.get("name") or "")
+            if not re.fullmatch(r"[A-Za-z]\w*", name):
+                continue
+            arguments.append(f"{name}={_decode_parameter(parameter, parameter_attrs)}")
+        if not arguments:
+            # Some DeepSeek-compatible gateways put one JSON object directly
+            # inside invoke instead of emitting parameter elements.
+            direct = _direct_json_arguments(body)
+            if direct:
+                arguments = [f"{name}={value!r}" for name, value in direct.items()]
         calls.append(f"{tool_name}({', '.join(arguments)})")
     if not calls:
         return output
@@ -131,9 +147,38 @@ def _patch_loaded_modules() -> bool:
     return True
 
 
-def _decode_parameter(match: re.Match[str]) -> str:
-    name = match.group("name")
-    marker = match.group("string")
+def _attributes(raw: str | None) -> dict[str, str]:
+    if not raw:
+        return {}
+    return {
+        match.group("key").casefold(): html.unescape(match.group("value"))
+        for match in _ATTRIBUTE_RE.finditer(raw)
+    }
+
+
+def _direct_json_arguments(body: str) -> dict[str, Any] | None:
+    value = html.unescape(body).strip()
+    if not value.startswith("{"):
+        return None
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(parsed, dict):
+        return None
+    return {
+        str(name): item
+        for name, item in parsed.items()
+        if re.fullmatch(r"[A-Za-z]\w*", str(name))
+    }
+
+
+def _decode_parameter(
+    match: re.Match[str],
+    attrs: dict[str, str],
+) -> str:
+    name = str(attrs.get("name") or "")
+    marker = str(attrs.get("string") or "").casefold()
     raw_value = html.unescape(match.group("value"))
     if marker == "true":
         value: Any = raw_value

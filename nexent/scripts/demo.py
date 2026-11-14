@@ -113,6 +113,7 @@ class DemoOptions:
     queries: tuple[str, ...] = (DEFAULT_QUERY, DEFAULT_GOVERNANCE_QUERY)
     timeout: float = 600.0
     out_dir: Path = DEFAULT_OUT_DIR
+    output: Path | None = None
 
 
 def _utc_stamp() -> str:
@@ -206,7 +207,8 @@ def run_demo(
         out(result["final_answer"] or "")
 
     options.out_dir.mkdir(parents=True, exist_ok=True)
-    target = options.out_dir / f"demo-{_utc_stamp()}.json"
+    target = options.output or (options.out_dir / f"demo-{_utc_stamp()}.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         json.dumps(transcript, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -242,6 +244,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--timeout", type=float, default=600.0)
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
+    parser.add_argument(
+        "--output",
+        help="Exact transcript path; useful for matched W9 ablation runs.",
+    )
     return parser
 
 
@@ -261,6 +267,7 @@ def main(argv: list[str] | None = None) -> int:
         queries=tuple(args.queries or (DEFAULT_QUERY, DEFAULT_GOVERNANCE_QUERY)),
         timeout=args.timeout,
         out_dir=Path(args.out_dir).expanduser().resolve(),
+        output=(Path(args.output).expanduser().resolve() if args.output else None),
     )
     try:
         transcript = run_demo(options)

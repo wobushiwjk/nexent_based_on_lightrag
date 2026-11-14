@@ -46,6 +46,7 @@ def evaluate_transcript(
         missing_phrases = [
             phrase for phrase in required_phrases if phrase not in answer
         ]
+        missing_subagents = sorted(set(expected_subagents) - mentioned_subagents)
         forbidden_hits = [
             phrase for phrase in forbidden_phrases if phrase in serialized
         ]
@@ -59,9 +60,7 @@ def evaluate_transcript(
                 "tool_event_count": tool_events,
                 "subagent_event_count": subagent_events,
                 "expected_subagents_seen": sorted(mentioned_subagents),
-                "expected_subagents_missing": sorted(
-                    set(expected_subagents) - mentioned_subagents
-                ),
+                "expected_subagents_missing": missing_subagents,
                 "required_phrases_missing": missing_phrases,
                 "forbidden_phrase_hits": forbidden_hits,
                 "error_count": len(errors) if isinstance(errors, list) else 0,
@@ -70,6 +69,7 @@ def evaluate_transcript(
                     and not missing_phrases
                     and not forbidden_hits
                     and not errors
+                    and not missing_subagents
                 ),
             }
         )
@@ -110,6 +110,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--required-phrase", action="append", default=[])
     parser.add_argument("--forbidden-phrase", action="append", default=[])
     parser.add_argument("--expect-subagent", action="append", default=[])
+    parser.add_argument(
+        "--expect-subagent-in",
+        action="append",
+        default=[],
+        metavar="ARM=NAME",
+        help=(
+            "Require a subagent only in one arm. Repeat for multiple names; "
+            "the single-Agent arm can therefore require none."
+        ),
+    )
     parser.add_argument("--out", type=Path)
     return parser
 
@@ -123,12 +133,25 @@ def _parse_run(value: str) -> tuple[str, Path]:
     return name.strip(), Path(path).expanduser().resolve()
 
 
+def _parse_arm_assignment(value: str) -> tuple[str, str]:
+    if "=" not in value:
+        raise ValueError(f"expected ARM=NAME, got {value!r}")
+    arm, name = value.split("=", 1)
+    if not arm.strip() or not name.strip():
+        raise ValueError(f"expected ARM=NAME, got {value!r}")
+    return arm.strip(), name.strip()
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if not args.run:
         raise SystemExit("at least one --run NAME=TRANSCRIPT.json is required")
     forbidden = args.forbidden_phrase or ["<|DSML|", "<｜DSML｜"]
     report: dict[str, Any] = {"arms": {}}
+    arm_subagents: dict[str, list[str]] = {}
+    for raw_assignment in args.expect_subagent_in:
+        arm, name = _parse_arm_assignment(raw_assignment)
+        arm_subagents.setdefault(arm, []).append(name)
     for raw_run in args.run:
         name, path = _parse_run(raw_run)
         transcript = json.loads(path.read_text(encoding="utf-8"))
@@ -140,12 +163,20 @@ def main(argv: list[str] | None = None) -> int:
                 transcript,
                 required_phrases=args.required_phrase,
                 forbidden_phrases=forbidden,
-                expected_subagents=args.expect_subagent,
+                expected_subagents=[
+                    *args.expect_subagent,
+                    *arm_subagents.get(name, []),
+                ],
             ),
         }
     if len(report["arms"]) == 2:
-        first, second = report["arms"].values()
+        first_name, first = next(iter(report["arms"].items()))
+        second_name, second = list(report["arms"].items())[1]
+        first_queries = [str(item.get("query") or "") for item in first["runs"]]
+        second_queries = [str(item.get("query") or "") for item in second["runs"]]
         report["comparison"] = {
+            "arms": [first_name, second_name],
+            "matched_queries": first_queries == second_queries,
             "evidence_citation_delta": second["aggregate"]["evidence_citation_count"]
             - first["aggregate"]["evidence_citation_count"],
             "tool_event_delta": second["aggregate"]["tool_event_count"]
@@ -158,7 +189,12 @@ def main(argv: list[str] | None = None) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(text, encoding="utf-8")
     print(text, end="")
-    return 0 if all(arm["all_runs_ok"] for arm in report["arms"].values()) else 1
+    matched = report.get("comparison", {}).get("matched_queries", True)
+    return (
+        0
+        if matched and all(arm["all_runs_ok"] for arm in report["arms"].values())
+        else 1
+    )
 
 
 if __name__ == "__main__":

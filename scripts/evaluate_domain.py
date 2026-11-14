@@ -19,8 +19,10 @@ from lightrag.fault_tree.importer import (  # noqa: E402
     write_bundle_outputs,
 )
 from mcp_server.errors import DomainError  # noqa: E402
+from mcp_server.repository import DomainRepository  # noqa: E402
 from mcp_server.service import DomainService  # noqa: E402
 from mcp_server.storage_repository import DomainStorageRepository  # noqa: E402
+from skills.evidence_verification import handler as evidence_skill  # noqa: E402
 from skills.fault_diagnosis import handler as diagnosis_skill  # noqa: E402
 from skills.runtime import quote_digest  # noqa: E402
 
@@ -254,6 +256,271 @@ def _lexical_only(service: DomainService, tenant_id: str) -> dict[str, Any]:
     }
 
 
+def _case(
+    case_id: str,
+    description: str,
+    action: Any,
+    predicate: Any,
+) -> dict[str, Any]:
+    try:
+        actual = action()
+        passed = bool(predicate(actual))
+        actual = _summarize_case_result(actual)
+        error = None
+    except DomainError as exc:
+        actual = None
+        passed = bool(predicate(exc))
+        error = {"code": exc.code, "message": exc.message}
+    return {
+        "case_id": case_id,
+        "description": description,
+        "ok": passed,
+        "actual": actual,
+        "error": error,
+    }
+
+
+def _summarize_case_result(value: Any) -> Any:
+    """Keep reports reviewable instead of embedding whole tenant records."""
+
+    if not isinstance(value, dict):
+        return value
+    if isinstance(value.get("equipment"), dict):
+        equipment = value["equipment"]
+        return {
+            "equipment_uid": equipment.get("uid"),
+            "matched_by": (value.get("match") or {}).get("matched_by"),
+            "fault_uids": [
+                item.get("uid")
+                for item in value.get("faults") or []
+                if isinstance(item, dict)
+            ],
+            "evidence_count": len(value.get("evidence") or []),
+        }
+    if isinstance(value.get("results"), list):
+        return {
+            "count": value.get("count"),
+            "uids": [
+                item.get("uid") for item in value["results"] if isinstance(item, dict)
+            ],
+        }
+    if value.get("target_type") and "evidence" in value:
+        return {
+            "target_type": value.get("target_type"),
+            "target_id": value.get("target_id"),
+            "evidence_count": value.get("count"),
+            "evidence_ids": [
+                item.get("evidence_id")
+                for item in value.get("evidence") or []
+                if isinstance(item, dict)
+            ],
+        }
+    if isinstance(value.get("draft"), dict):
+        return {
+            "draft_id": value["draft"].get("draft_id"),
+            "top_event_uid": value["draft"].get("top_event_uid"),
+            "counts": value.get("counts"),
+        }
+    if "errors" in value and "warnings" in value:
+        return {
+            "valid": value.get("valid"),
+            "errors": len(value.get("errors") or []),
+            "warnings": len(value.get("warnings") or []),
+        }
+    if isinstance(value.get("classes"), list) and isinstance(
+        value.get("relations"), list
+    ):
+        return {
+            "classes": len(value["classes"]),
+            "relations": len(value["relations"]),
+            "constraints": len(value.get("constraints") or []),
+        }
+    if "valid" in value and "error_count" in value:
+        return {
+            "valid": value.get("valid"),
+            "error_count": value.get("error_count"),
+            "warning_count": value.get("warning_count"),
+        }
+    return value
+
+
+def _core_case_suite(
+    service: DomainService,
+    tenant_id: str,
+) -> dict[str, Any]:
+    """Exercise positive, negative, alias and evidence lookups."""
+
+    cases = [
+        _case(
+            "equipment-by-tag",
+            "locate P-101A by equipment tag",
+            lambda: service.get_equipment(tenant_id, "P-101A"),
+            lambda data: data["equipment"]["uid"] == "EQ-P101A",
+        ),
+        _case(
+            "equipment-by-alias",
+            "locate the same equipment by its Chinese alias",
+            lambda: service.get_equipment(tenant_id, "冷却水泵"),
+            lambda data: data["equipment"]["uid"] == "EQ-P101A",
+        ),
+        _case(
+            "unknown-equipment-rejected",
+            "an unknown equipment tag fails closed",
+            lambda: service.get_equipment(tenant_id, "P-999Z"),
+            lambda value: isinstance(value, DomainError) and value.code == "not_found",
+        ),
+        _case(
+            "filter-fault-search",
+            "find the blocked-filter branch",
+            lambda: service.search_faults(tenant_id, "入口过滤器堵塞", limit=5),
+            lambda data: any(
+                item["uid"] == "FAULT-FILTER-BLOCKED" for item in data["results"]
+            ),
+        ),
+        _case(
+            "cavitation-fault-search",
+            "find the cavitation branch",
+            lambda: service.search_faults(tenant_id, "叶轮汽蚀", limit=5),
+            lambda data: any(
+                item["uid"] == "FAULT-CAVITATION" for item in data["results"]
+            ),
+        ),
+        _case(
+            "unknown-fault-empty",
+            "an unrelated symptom returns no fabricated fault",
+            lambda: service.search_faults(tenant_id, "zzzz-no-such-fault", limit=5),
+            lambda data: data["count"] == 0,
+        ),
+        _case(
+            "trace-fault-evidence",
+            "trace the blocked-filter evidence",
+            lambda: service.trace_evidence(tenant_id, "entity", "FAULT-FILTER-BLOCKED"),
+            lambda data: data["count"] >= 1,
+        ),
+        _case(
+            "trace-fact-evidence",
+            "trace the causal fact evidence",
+            lambda: service.trace_evidence(tenant_id, "fact", "FACT-1"),
+            lambda data: data["count"] >= 1,
+        ),
+        _case(
+            "tree-by-draft",
+            "read the expected tree by draft id",
+            lambda: service.get_fault_tree(
+                tenant_id,
+                draft_id="TREE-P101A-LOW-PRESSURE-v1",
+            ),
+            lambda data: data["draft"]["top_event_uid"] == EXPECTED_TOP_EVENT,
+        ),
+        _case(
+            "tree-validation",
+            "validate the stored fault tree",
+            lambda: service.validate_fault_tree(
+                tenant_id,
+                draft_id="TREE-P101A-LOW-PRESSURE-v1",
+            ),
+            lambda data: data["valid"] is True,
+        ),
+        _case(
+            "ontology-shape",
+            "the active ontology has the expected class/relation shape",
+            lambda: service.get_ontology(),
+            lambda data: len(data["classes"]) == 9 and len(data["relations"]) == 11,
+        ),
+    ]
+    return {
+        "total": len(cases),
+        "passed": sum(1 for item in cases if item["ok"]),
+        "all_passed": all(item["ok"] for item in cases),
+        "cases": cases,
+    }
+
+
+def _evidence_failure_injection(
+    *,
+    pack_dir: Path,
+    imported: Any,
+    tenant_id: str,
+) -> dict[str, Any]:
+    """Remove one branch's evidence and prove verification no longer passes."""
+
+    bundle = imported.bundle.model_copy(deep=True)
+    target_uid = "FAULT-INLET-LEAK"
+    target = next(
+        (entity for entity in bundle.entities if entity.uid == target_uid),
+        None,
+    )
+    if target is None:
+        return {
+            "ok": False,
+            "reason": f"{target_uid} is missing from the seed bundle",
+        }
+    removed_ids = set(target.evidence_ids)
+    if not removed_ids:
+        return {
+            "ok": False,
+            "reason": f"{target_uid} has no evidence to remove",
+        }
+    bundle.entities = [
+        entity.model_copy(
+            update={
+                "evidence_ids": [
+                    item for item in entity.evidence_ids if item not in removed_ids
+                ]
+            }
+        )
+        for entity in bundle.entities
+    ]
+    bundle.facts = [
+        fact.model_copy(
+            update={
+                "evidence_ids": [
+                    item for item in fact.evidence_ids if item not in removed_ids
+                ]
+            }
+        )
+        for fact in bundle.facts
+    ]
+    bundle.rules = [
+        rule.model_copy(
+            update={
+                "evidence_ids": [
+                    item for item in rule.evidence_ids if item not in removed_ids
+                ]
+            }
+        )
+        for rule in bundle.rules
+    ]
+    bundle.evidence = [
+        item for item in bundle.evidence if item.evidence_id not in removed_ids
+    ]
+    repository = DomainRepository(pack_dir, [bundle], default_tenant=tenant_id)
+    service = DomainService(repository)
+    result = asyncio.run(
+        evidence_skill.run(
+            {
+                "tenant_id": tenant_id,
+                "claims": [
+                    {
+                        "claim_id": "inlet-leak-after-evidence-removal",
+                        "target_type": "entity",
+                        "target_id": target_uid,
+                    }
+                ],
+            },
+            ServiceToolClient(service, tenant_id),
+        )
+    )
+    data = result.data.model_dump(mode="json") if result.data else {}
+    return {
+        "ok": result.status == "rejected" and data.get("verified_count") == 0,
+        "removed_evidence_ids": sorted(removed_ids),
+        "status": result.status,
+        "verified_count": data.get("verified_count"),
+        "rejected_count": data.get("rejected_count"),
+    }
+
+
 def evaluate(
     *,
     pack_dir: Path = PACK,
@@ -309,6 +576,21 @@ def evaluate(
         ) / len(TREE_CAUSE_FAULTS)
         baseline["tree_structure_match"] = False
         baseline["tree_cause_coverage"] = 0.0
+        scenario_suite = _core_case_suite(service, effective_tenant)
+        evaluation_bundle = (
+            imported
+            if storage_dir is None
+            else build_imported_domain(
+                pack_dir,
+                extraction_dir,
+                tenant_id=effective_tenant,
+            )
+        )
+        failure_injection = _evidence_failure_injection(
+            pack_dir=pack_dir,
+            imported=evaluation_bundle,
+            tenant_id=effective_tenant,
+        )
         report = {
             "generated_by": "scripts/evaluate_domain.py",
             "tenant_id": effective_tenant,
@@ -317,6 +599,8 @@ def evaluate(
             "expected_tree_cause_faults": list(TREE_CAUSE_FAULTS),
             "expected_top_event": EXPECTED_TOP_EVENT,
             "tree_validation": validation,
+            "scenario_suite": scenario_suite,
+            "evidence_failure_injection": failure_injection,
             "variants": {
                 "lexical_no_graph": baseline,
                 "graph_evidence_full": full,
@@ -335,6 +619,8 @@ def evaluate(
                 > baseline["evidence"]["coverage"],
                 "graph_improves_tree": full["tree_structure_match"]
                 and not baseline["tree_structure_match"],
+                "scenario_suite": scenario_suite["all_passed"],
+                "evidence_failure_degrades": failure_injection["ok"],
             },
         }
         report["ok"] = all(report["checks"].values())
@@ -376,10 +662,8 @@ def main(argv: list[str] | None = None) -> int:
         tenant_id=args.tenant_id,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    with args.out.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False, indent=2))
     print(f"wrote {args.out}")
     return 0 if report["ok"] else 1
