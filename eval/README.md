@@ -1,5 +1,53 @@
 # W9 评测与消融
 
+## 真正未参与 W7 的新中文测试集
+
+`w9_unseen_web_20261115` 使用 6 份独立中文泵技术资料，来源包括科普中国和
+5 家泵制造企业。它们不在 CFDK、Grundfos、天津标准、Coox、P-101A 或
+W7 `training/data/` 中，且不参与训练、教师标注、适配器选择或提示词调优。
+
+这批资料是公开的厂商技术说明和科普文章，不是虚构工单，也不是某家企业的
+真实私有维修记录。它适合验证“未见中文手册/故障表”的抽取、证据定位和
+来源检索；真实工单泛化能力仍需另找有授权的维修记录数据，不能由本测试集
+单独证明。
+
+来源清单与用途边界：
+
+- `eval/w9_sources.json`
+
+完整重建：
+
+```bash
+PYTHON=python bash scripts/run_w9_unseen.sh
+```
+
+下载并清洗 HTML，原始页面和全文保存在被 Git 忽略的 `eval/corpus/`：
+
+```bash
+python scripts/fetch_w9_sources.py
+```
+
+30 条冻结案例：
+
+- `eval/datasets/w9_unseen_web_20261115.jsonl`
+- 每个 gold quote 必须能在下载文本中逐字找到；
+- 每条 case 记录 publisher、来源 ID、问题、标准术语和禁止结论；
+- 重新生成 manifest 会校验 quote、来源、SHA-256 和 W7 来源重叠：
+
+```bash
+python scripts/build_w9_web_manifest.py
+```
+
+检索基线只使用六来源 corpus，不读取 gold terms：
+
+```bash
+python scripts/evaluate_w9_unseen_sources.py
+```
+
+当前基线为 `source_hit@1=0.8`、`source_hit@3=0.967`。这不是最终系统结论，
+而是证明新语料可检索、案例可执行的未调参基线。该数据只用于 W9 验收，
+不得回流到 W7 训练或教师标注。
+
 ## 确定性领域评测
 
 运行：

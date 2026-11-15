@@ -1,0 +1,515 @@
+{
+  "generated_by": "scripts/build_w9_web_manifest.py",
+  "generated_at": "2026-11-15T08:58:57+00:00",
+  "frozen_on": "2026-11-15",
+  "language": "zh-CN",
+  "usage_policy": "Evaluation-only. Source URLs and content hashes are committed; full HTML and extracted text stay outside Git. Case annotations may quote only the shortest source fragments needed for evidence scoring.",
+  "cases_path": "eval/datasets/w9_unseen_web_20261115.jsonl",
+  "cases_sha256": "ade226fdf82887b696894a0417dd65856f59e674ef228597989a16c24d18b02d",
+  "sources_path": "eval/w9_sources.json",
+  "sources_sha256": "34c186c87c267c84884f5ba8f7e1dae163d8fc5a6fc036dc628cef263c0e7223",
+  "corpus_fingerprint": "c99d090c0b0f88d4e45e42380281fd7b85ac5690288acefe39161b3e456e2bad",
+  "case_count": 30,
+  "source_count": 6,
+  "sources": [
+    {
+      "source_id": "cssbc-centrifugal-faults",
+      "title": "离心泵故障原因及处理办法",
+      "publisher": "长沙水泵厂",
+      "url": "https://www.cssbc.cn/news/knowledge/d_686f7f60e3670209e62cc782.html",
+      "case_count": 5,
+      "raw_sha256": "bbcc45c28b5e26f4579e7776750a314e59d838faf9615da26effc090fd768b71",
+      "text_sha256": "e44546536bfd9a0300a0f6f020e6c5ad3efb931c6433e0e56ff0bb443a1a70b9"
+    },
+    {
+      "source_id": "hsdpump-centrifugal-faults",
+      "title": "离心泵的故障现象、原因及排除办法",
+      "publisher": "北京海圣达泵业有限公司",
+      "url": "http://www.hsdpump.com/news/20.html",
+      "case_count": 4,
+      "raw_sha256": "91348ed3a0e591c90193ba7ab5b034355378878a4df5485cf3213ce6d4f461c7",
+      "text_sha256": "b92a93c967975defe53279cf93edf06de7e446da5be9e4778f27dc331336916e"
+    },
+    {
+      "source_id": "kenflo-centrifugal-faults",
+      "title": "离心泵常见故障及解决方法",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "url": "http://www.kenflopump.com/news-47.html",
+      "case_count": 6,
+      "raw_sha256": "539c60eebd60c2b9825770911b6c0916a5f2bc6ac4a4c725900332828c9ed219",
+      "text_sha256": "199e6b831fdac2ddabaade2c48a96a4db644924495c01a50d084c0c187767873"
+    },
+    {
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "title": "离心水泵常见故障以及怎样排除",
+      "publisher": "科普中国",
+      "url": "https://www.kepuchina.cn/article/articleinfo?ar_id=273892&business_type=100",
+      "case_count": 7,
+      "raw_sha256": "b018ec8df81ba6c979755fedf96265026a00c3d7f462064d64a60332df985887",
+      "text_sha256": "b5cbbe98318a63a4f4dd1c8e7a45dc416bd487b28145efb237929b95e3fdddbe"
+    },
+    {
+      "source_id": "liancheng-centrifugal-faults",
+      "title": "离心泵常见故障有哪些？怎么排除？",
+      "publisher": "上海连成（集团）有限公司",
+      "url": "https://liancheng.pump.so/news/96-cn.html",
+      "case_count": 4,
+      "raw_sha256": "7cb3073c273c5dc83b87dc703a24700c93c1a70a4aa4b3521fa23139d4802743",
+      "text_sha256": "5216fba3151fd98c664e28dd2ba9c2d573aa0501d71d38826306b2f45e8532b0"
+    },
+    {
+      "source_id": "ptcm-centrifugal-maintenance",
+      "title": "离心工业泵的日常故障及维修注意事项",
+      "publisher": "上海帕特泵业",
+      "url": "http://www.ptcm.com/news-show/lixingongyebengderichangguzhangjiweixiuzhuyishixiang.html",
+      "case_count": 4,
+      "raw_sha256": "be32d3c3610e4086a1b17b319511f1593748dd997ae0eb773958e71ceee0cc82",
+      "text_sha256": "4dedd5ec90dad39c692096e6f61ab7c962b844e738f5163d719fb8201fe7f7f7"
+    }
+  ],
+  "category_counts": {
+    "cause_action": 4,
+    "fault_cause": 26
+  },
+  "w7_overlap": [],
+  "cases": [
+    {
+      "case_id": "W9-WEB-KP-01",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "离心泵不吸水，但真空表显示高度真空，常见原因有哪些？",
+      "gold_terms": [
+        "底阀未开或淤塞",
+        "吸水管阻力太大",
+        "吸水高度太高"
+      ],
+      "gold_quote_sha256": "654fd3fbdd023540087af8dbd46833eb443ef59485aac21287301f08c0eee693",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KP-02",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "离心泵不出水，压力表和真空表指针剧烈跳动，可能是什么原因？",
+      "gold_terms": [
+        "注入泵的水量不够",
+        "进水管漏气"
+      ],
+      "gold_quote_sha256": "36ab31765f905b461de4f36fac2418d7faa87dfb593dd1e7cd18135bd80855b3",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KP-03",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "泵内声音异常并且吸不上水，应排查哪些故障原因？",
+      "gold_terms": [
+        "吸水阻力大",
+        "吸水高度过高",
+        "吸气管漏气",
+        "气蚀"
+      ],
+      "gold_quote_sha256": "e29730b0e75e4e8a633b1ee5b46d4e8ea81f0391e2bc24abc6e15d6b0e359d82",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KP-04",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "泵不出水，但出口压力表有压力，常见原因是什么？",
+      "gold_terms": [
+        "泵轴放置方向不对",
+        "出水管阻力太大",
+        "叶轮淤塞",
+        "水泵转速不够"
+      ],
+      "gold_quote_sha256": "73efd37c6b384f760f5ae371b9b77dd54560f5dec91a5215f7ba34f3698245f7",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KP-05",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "离心泵振动严重时应检查哪些原因？",
+      "gold_terms": [
+        "气蚀",
+        "叶轮不平衡",
+        "泵轴与电动机轴不同心",
+        "地脚螺栓松动"
+      ],
+      "gold_quote_sha256": "168719cee2ec97ad325bb21856c884c8ac66705bf4dad53f7c97ee4c3dc3ba0d",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KP-06",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "离心泵流量减少或扬程下降，可能由哪些问题造成？",
+      "gold_terms": [
+        "叶轮或进、出水管阻塞",
+        "密封环叶轮磨损严重",
+        "泵轴转速低于规定值"
+      ],
+      "gold_quote_sha256": "d212c78c122768c59e1e9ff7772478135badbfaa29815889bb4d37989667abeb",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KP-07",
+      "source_id": "kepuchina-centrifugal-pump-2021",
+      "publisher": "科普中国",
+      "category": "fault_cause",
+      "question": "泵消耗功率过大，应检查哪些原因？",
+      "gold_terms": [
+        "填料压得太紧",
+        "密封环损坏",
+        "流量过大"
+      ],
+      "gold_quote_sha256": "26c087b537e916eaf265ae6bf321b20f76f04bb9d96a5e2b281f8efbce52d932",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-LC-01",
+      "source_id": "liancheng-centrifugal-faults",
+      "publisher": "上海连成（集团）有限公司",
+      "category": "fault_cause",
+      "question": "离心泵完全不出水，常见原因和排查方向有哪些？",
+      "gold_terms": [
+        "未灌引水",
+        "吸入管路漏气",
+        "底阀卡死",
+        "吸程过高"
+      ],
+      "gold_quote_sha256": "a700430426eb2db3b9811153ddb996fb7c748e7ac777173ca975ad4c61c0df60",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-LC-02",
+      "source_id": "liancheng-centrifugal-faults",
+      "publisher": "上海连成（集团）有限公司",
+      "category": "fault_cause",
+      "question": "流量和扬程同时不足时，常见原因是什么？",
+      "gold_terms": [
+        "叶轮磨损或堵塞",
+        "转速不足",
+        "口环间隙过大",
+        "管路阻力偏大"
+      ],
+      "gold_quote_sha256": "150f1d4f6bc6d3d072d3b3b775be73fcece8e6a73b16f08479e1b31ccf3f889b",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-LC-03",
+      "source_id": "liancheng-centrifugal-faults",
+      "publisher": "上海连成（集团）有限公司",
+      "category": "fault_cause",
+      "question": "振动与噪音突然增大，常见原因有哪些？",
+      "gold_terms": [
+        "基础螺栓松动",
+        "泵与电机不同心",
+        "轴承磨损",
+        "汽蚀"
+      ],
+      "gold_quote_sha256": "a0b4c597cde0c507f509f2b7961042be23555b87d74a905f5aaa40538a145354",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-LC-04",
+      "source_id": "liancheng-centrifugal-faults",
+      "publisher": "上海连成（集团）有限公司",
+      "category": "fault_cause",
+      "question": "离心泵轴封泄漏时应检查什么问题？",
+      "gold_terms": [
+        "机封磨损"
+      ],
+      "gold_quote_sha256": "66cd98278c794db646078bfdc26a497d478fbb8dd4562ece7c9c2426fd51dbe9",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-CS-01",
+      "source_id": "cssbc-centrifugal-faults",
+      "publisher": "长沙水泵厂",
+      "category": "fault_cause",
+      "question": "离心泵无液体排出，常见故障原因有哪些？",
+      "gold_terms": [
+        "叶轮或进口阀被异物堵塞",
+        "吸液高度过大",
+        "吸人管路漏入空气",
+        "泵没有灌满液体"
+      ],
+      "gold_quote_sha256": "79c697b5662f711e9be1eff48f8ddc0d21fb4942cd706d28ecb99fa2116c3c93",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-CS-02",
+      "source_id": "cssbc-centrifugal-faults",
+      "publisher": "长沙水泵厂",
+      "category": "fault_cause",
+      "question": "离心泵流量不足，应该检查哪些机械原因？",
+      "gold_terms": [
+        "叶轮反转",
+        "叶轮腐蚀，磨损严重",
+        "人口密封环磨损过大"
+      ],
+      "gold_quote_sha256": "a2ba68e6ca7aded076cb8e4bc3db02d7af966ea09667c5121af794555d4a7b18",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-CS-03",
+      "source_id": "cssbc-centrifugal-faults",
+      "publisher": "长沙水泵厂",
+      "category": "fault_cause",
+      "question": "离心泵运转声音异常，可能的机械故障是什么？",
+      "gold_terms": [
+        "异物进人泵体",
+        "叶轮背帽脱落",
+        "叶轮与泵体摩擦",
+        "滚动轴承损坏"
+      ],
+      "gold_quote_sha256": "f27c4e1a0991b92e2f8ccd95a8a7d855d8f9bc79270a4a36c5b5d00b0729e5af",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-CS-04",
+      "source_id": "cssbc-centrifugal-faults",
+      "publisher": "长沙水泵厂",
+      "category": "fault_cause",
+      "question": "泵体振动可能与哪些安装或转子问题有关？",
+      "gold_terms": [
+        "联轴器找正不良",
+        "轴承间隙过大",
+        "泵轴弯曲",
+        "叶轮腐蚀、磨损后转子不平衡"
+      ],
+      "gold_quote_sha256": "793528bf8dd4915dc830245b3123723edac4aa15d5469b7fdf80fe8579675763",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-CS-05",
+      "source_id": "cssbc-centrifugal-faults",
+      "publisher": "长沙水泵厂",
+      "category": "fault_cause",
+      "question": "离心泵轴承过热有哪些常见原因？",
+      "gold_terms": [
+        "中心线偏移",
+        "缺油或油中杂质过多",
+        "轴承损坏",
+        "轴承压盖压得过紧"
+      ],
+      "gold_quote_sha256": "5a39d4fa0743e45da3fb3c5f4936fe61aad7ee6782db11461e9abe01edaaceb6",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KF-01",
+      "source_id": "kenflo-centrifugal-faults",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "category": "fault_cause",
+      "question": "离心泵不能启动或启动负荷大，可能是什么原因？",
+      "gold_terms": [
+        "原动机或电源不正常",
+        "泵卡住",
+        "填料压得太紧",
+        "排出阀未关",
+        "平衡管不通畅"
+      ],
+      "gold_quote_sha256": "d4f8564f3fc8f42f47edb4a70d7cd4986b55c7f1caf8bf45cc54952e7c352429",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KF-02",
+      "source_id": "kenflo-centrifugal-faults",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "category": "fault_cause",
+      "question": "离心泵不排液，需要检查哪些问题？",
+      "gold_terms": [
+        "灌泵不足",
+        "泵转向不对",
+        "泵转速太低",
+        "滤网堵塞",
+        "吸上高度太高"
+      ],
+      "gold_quote_sha256": "be0a86cc752c960d189e5329bd1b979d6d62bae1f2c0184fea0a28276e95db35",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KF-03",
+      "source_id": "kenflo-centrifugal-faults",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "category": "fault_cause",
+      "question": "泵排液后突然中断，常见原因有哪些？",
+      "gold_terms": [
+        "吸入管路漏气",
+        "吸入侧气体未排尽",
+        "吸入侧突然被异物堵住",
+        "吸入大量气体"
+      ],
+      "gold_quote_sha256": "61f0e31e879bcc5c0d873ce03a15871dc5deb51675d21fc20d18fcf84aae6bfe",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KF-04",
+      "source_id": "kenflo-centrifugal-faults",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "category": "fault_cause",
+      "question": "离心泵流量不足，应从系统和泵体哪些方面排查？",
+      "gold_terms": [
+        "系统静扬程增加",
+        "阻力损失增加",
+        "泵叶轮堵塞、磨损、腐蚀",
+        "壳体和叶轮耐磨环磨损过大"
+      ],
+      "gold_quote_sha256": "92cc786ccfb881874d9277a55c2cb6c9df88f7f4f29750e8871d1cc2f741d029",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KF-05",
+      "source_id": "kenflo-centrifugal-faults",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "category": "fault_cause",
+      "question": "运行中泵振动或出现异常声响，可能与哪些频率相关问题有关？",
+      "gold_terms": [
+        "过大的轴承间隙",
+        "不对中",
+        "密封装置摩擦",
+        "压力脉动",
+        "齿轮啮合不良或磨损"
+      ],
+      "gold_quote_sha256": "22c1d74a266a69b95fdcfb8d01904f471b5d1c3c994b6998e24afd66186188e4",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-KF-06",
+      "source_id": "kenflo-centrifugal-faults",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "category": "fault_cause",
+      "question": "离心泵轴承发热，应检查哪些装配和润滑问题？",
+      "gold_terms": [
+        "轴承瓦块刮研不合要求",
+        "轴承间隙过小",
+        "润滑油量不足",
+        "轴承装配不良",
+        "轴承磨损或松动"
+      ],
+      "gold_quote_sha256": "9e26001339b153ad538ca2bf22df6d0e117509fadfb2044e3d4cf87532f734a5",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-PT-01",
+      "source_id": "ptcm-centrifugal-maintenance",
+      "publisher": "上海帕特泵业",
+      "category": "fault_cause",
+      "question": "离心泵开机后不出水，应检查哪些原因？",
+      "gold_terms": [
+        "泵内空气未排出",
+        "吸水管接头、法兰处漏水气",
+        "泵转速低",
+        "吸入高度太大",
+        "电机反转",
+        "吸水网被堵"
+      ],
+      "gold_quote_sha256": "34d216d4a069f7fcae9ddca5ba00ecbb90b3cb84c4603ea8d8a1d91e18159728",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-PT-02",
+      "source_id": "ptcm-centrifugal-maintenance",
+      "publisher": "上海帕特泵业",
+      "category": "fault_cause",
+      "question": "离心泵出水量不足时应排查哪些问题？",
+      "gold_terms": [
+        "叶轮被堵",
+        "空气进入泵体",
+        "泵的转速低",
+        "叶轮与密封环间隙过大",
+        "出水阀门开启不够"
+      ],
+      "gold_quote_sha256": "6a527cbd118ddcb40a6ea25ca082865ee1dbd782511945e335eec231d0ea5342",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-PT-03",
+      "source_id": "ptcm-centrifugal-maintenance",
+      "publisher": "上海帕特泵业",
+      "category": "fault_cause",
+      "question": "离心泵电机负荷过大，可能与哪些问题有关？",
+      "gold_terms": [
+        "泵的装配和安装不合适",
+        "给水高度过大或流量大",
+        "泵的转速过高"
+      ],
+      "gold_quote_sha256": "83c6d80ee7a29631623881db69aa1e8cdf507e91020308f7090f1bc473ba79a2",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-PT-04",
+      "source_id": "ptcm-centrifugal-maintenance",
+      "publisher": "上海帕特泵业",
+      "category": "fault_cause",
+      "question": "泵启动后突然停止出水，常见原因是什么？",
+      "gold_terms": [
+        "吸水管接头突然松脱漏空气",
+        "吸水管中有空气囊",
+        "灌水时太急",
+        "空气没有排尽"
+      ],
+      "gold_quote_sha256": "1acfb669f326e23b35d2c7ed9d22be117684292c1643cdc09c27f101d3107b14",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-HSD-01",
+      "source_id": "hsdpump-centrifugal-faults",
+      "publisher": "北京海圣达泵业有限公司",
+      "category": "cause_action",
+      "question": "泵内或吸入管内有空气时，应采取什么处理措施？",
+      "gold_terms": [
+        "重新灌泵",
+        "排出空气"
+      ],
+      "gold_quote_sha256": "5315d17362d438c692177a6c72a449ea243c9827a16bb6a3445e52a3016140da",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-HSD-02",
+      "source_id": "hsdpump-centrifugal-faults",
+      "publisher": "北京海圣达泵业有限公司",
+      "category": "cause_action",
+      "question": "进口管路漏汽应如何处理？",
+      "gold_terms": [
+        "检查并拧紧法兰螺栓",
+        "更换法兰垫"
+      ],
+      "gold_quote_sha256": "d2ef97c9aa31ffb9d8de7310a412afb9bd4afc043559522df6ad95cf62b5d798",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-HSD-03",
+      "source_id": "hsdpump-centrifugal-faults",
+      "publisher": "北京海圣达泵业有限公司",
+      "category": "cause_action",
+      "question": "泵轴与原动机轴不对中时，应执行什么处理？",
+      "gold_terms": [
+        "重新找正"
+      ],
+      "gold_quote_sha256": "b34de1588d09b561cd106d945df84548491de970d33d063e303d687d1e733237",
+      "expected_status": "diagnosed"
+    },
+    {
+      "case_id": "W9-WEB-HSD-04",
+      "source_id": "hsdpump-centrifugal-faults",
+      "publisher": "北京海圣达泵业有限公司",
+      "category": "cause_action",
+      "question": "转动部分不平衡时应采取什么措施？",
+      "gold_terms": [
+        "检查并消除之"
+      ],
+      "gold_quote_sha256": "9b6eac1ac8126a9f5477da969f2d402aabb99c830976995bfd489e5307b573e6",
+      "expected_status": "diagnosed"
+    }
+  ],
+  "ok": true
+}

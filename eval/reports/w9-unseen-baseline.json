@@ -1,0 +1,557 @@
+{
+  "generated_by": "scripts/evaluate_w9_unseen_sources.py",
+  "cases_file": "w9_unseen_web_20261115.jsonl",
+  "source_count": 6,
+  "case_count": 30,
+  "metrics": {
+    "source_hit_at_1": 0.8,
+    "source_hit_at_3": 0.9666666666666667,
+    "source_hit_at_all": 1.0,
+    "mean_reciprocal_rank": 0.8861111111111111
+  },
+  "misses": [
+    {
+      "case_id": "W9-WEB-KP-04",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "hsdpump-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-05",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-CS-02",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 4,
+      "hit_at_1": false,
+      "hit_at_3": false
+    },
+    {
+      "case_id": "W9-WEB-CS-05",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-03",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-06",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 3,
+      "hit_at_1": false,
+      "hit_at_3": true
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "W9-WEB-KP-01",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "kepuchina-centrifugal-pump-2021",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-02",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "kepuchina-centrifugal-pump-2021",
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-03",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-04",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "hsdpump-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-05",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-06",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "kepuchina-centrifugal-pump-2021",
+        "liancheng-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kenflo-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KP-07",
+      "expected_source": "kepuchina-centrifugal-pump-2021",
+      "ranked_sources": [
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-LC-01",
+      "expected_source": "liancheng-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "ptcm-centrifugal-maintenance",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-LC-02",
+      "expected_source": "liancheng-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "ptcm-centrifugal-maintenance"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-LC-03",
+      "expected_source": "liancheng-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-LC-04",
+      "expected_source": "liancheng-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-CS-01",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "cssbc-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "ptcm-centrifugal-maintenance",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-CS-02",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 4,
+      "hit_at_1": false,
+      "hit_at_3": false
+    },
+    {
+      "case_id": "W9-WEB-CS-03",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "cssbc-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-CS-04",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "cssbc-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kenflo-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-CS-05",
+      "expected_source": "cssbc-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-01",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-02",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "kenflo-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "cssbc-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-03",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 2,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-04",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "kenflo-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-05",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-KF-06",
+      "expected_source": "kenflo-centrifugal-faults",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 3,
+      "hit_at_1": false,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-PT-01",
+      "expected_source": "ptcm-centrifugal-maintenance",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-PT-02",
+      "expected_source": "ptcm-centrifugal-maintenance",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-PT-03",
+      "expected_source": "ptcm-centrifugal-maintenance",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "hsdpump-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-PT-04",
+      "expected_source": "ptcm-centrifugal-maintenance",
+      "ranked_sources": [
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "cssbc-centrifugal-faults",
+        "hsdpump-centrifugal-faults"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-HSD-01",
+      "expected_source": "hsdpump-centrifugal-faults",
+      "ranked_sources": [
+        "hsdpump-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-HSD-02",
+      "expected_source": "hsdpump-centrifugal-faults",
+      "ranked_sources": [
+        "hsdpump-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "liancheng-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "ptcm-centrifugal-maintenance"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-HSD-03",
+      "expected_source": "hsdpump-centrifugal-faults",
+      "ranked_sources": [
+        "hsdpump-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021",
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "ptcm-centrifugal-maintenance"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    },
+    {
+      "case_id": "W9-WEB-HSD-04",
+      "expected_source": "hsdpump-centrifugal-faults",
+      "ranked_sources": [
+        "hsdpump-centrifugal-faults",
+        "kenflo-centrifugal-faults",
+        "ptcm-centrifugal-maintenance",
+        "liancheng-centrifugal-faults",
+        "cssbc-centrifugal-faults",
+        "kepuchina-centrifugal-pump-2021"
+      ],
+      "gold_source_rank": 1,
+      "hit_at_1": true,
+      "hit_at_3": true
+    }
+  ],
+  "ok": true
+}

@@ -82,6 +82,12 @@ training/.env
 .ingestion/
 uploads/inbox/
 
+# W9 evaluation web corpus. Only source metadata, hashes and short gold quotes
+# are tracked; downloaded pages and extracted full text are local artifacts.
+eval/corpus/raw/
+eval/corpus/parsed/
+eval/corpus/manifest.json
+
 
 
 # User-defined UI template bundle (UI_TEMPLATES_DIR).

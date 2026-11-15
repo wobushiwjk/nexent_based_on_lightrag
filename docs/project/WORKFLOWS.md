@@ -381,6 +381,8 @@ PDF/表格本地解析，图片走本地 OpenAI 兼容 VLM（离线验收用转�
 - 新增证据故障注入：删除“吸入管法兰漏气”分支证据后，`evidence_verification` 必须从通过降级为 `rejected`；
 - `scripts/evaluate_nexent_transcripts.py` 支持单 Agent/三 Agent 同一问题集比较、按臂要求子 Agent、DSML 失败检测和问题集一致性校验；
 - `import_to_nexent --single-agent` 可在同一 Agent 名称、模型和工具集下录制单 Agent 对照臂；`demo --output` 用于固定 transcript 路径；
+- 新增 6 份未进入 W7 的独立中文泵技术资料和 30 条新 W9 案例；原始 HTML/全文不进入 Git，只提交来源 URL、案例、哈希和短证据；
+- `scripts/run_w9_unseen.sh` 可重新下载、校验 30 条逐字 gold，并运行六来源检索基线；当前 `source_hit@1=0.8`、`source_hit@3=0.967`；
 - 代码与确定性报告已完成；真实单/三 Agent 服务器同题转录尚未录制。
 
 ### W10 离线交付与演示

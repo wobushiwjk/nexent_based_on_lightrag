@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "frozen_on": "2026-11-15",
+  "language": "zh-CN",
+  "usage_policy": "Evaluation-only. Source URLs and content hashes are committed; full HTML and extracted text stay outside Git. Case annotations may quote only the shortest source fragments needed for evidence scoring.",
+  "sources": [
+    {
+      "id": "kepuchina-centrifugal-pump-2021",
+      "title": "离心水泵常见故障以及怎样排除",
+      "publisher": "科普中国",
+      "url": "https://www.kepuchina.cn/article/articleinfo?ar_id=273892&business_type=100",
+      "published_at": "2021-12-31",
+      "required_keywords": ["离心", "故障原因", "排除方法"]
+    },
+    {
+      "id": "hsdpump-centrifugal-faults",
+      "title": "离心泵的故障现象、原因及排除办法",
+      "publisher": "北京海圣达泵业有限公司",
+      "url": "http://www.hsdpump.com/news/20.html",
+      "published_at": null,
+      "required_keywords": ["离心泵", "可能发生的原因", "消除方法"]
+    },
+    {
+      "id": "liancheng-centrifugal-faults",
+      "title": "离心泵常见故障有哪些？怎么排除？",
+      "publisher": "上海连成（集团）有限公司",
+      "url": "https://liancheng.pump.so/news/96-cn.html",
+      "published_at": "2026-10-30",
+      "required_keywords": ["离心泵", "可能原因", "排除方法"]
+    },
+    {
+      "id": "kenflo-centrifugal-faults",
+      "title": "离心泵常见故障及解决方法",
+      "publisher": "佛山市肯富来水泵厂有限公司",
+      "url": "http://www.kenflopump.com/news-47.html",
+      "published_at": null,
+      "required_keywords": ["离心泵", "解决方法", "故障"]
+    },
+    {
+      "id": "cssbc-centrifugal-faults",
+      "title": "离心泵故障原因及处理办法",
+      "publisher": "长沙水泵厂",
+      "url": "https://www.cssbc.cn/news/knowledge/d_686f7f60e3670209e62cc782.html",
+      "published_at": "2025-07-11",
+      "required_keywords": ["离心泵", "故障原因", "处理方法"]
+    },
+    {
+      "id": "ptcm-centrifugal-maintenance",
+      "title": "离心工业泵的日常故障及维修注意事项",
+      "publisher": "上海帕特泵业",
+      "url": "http://www.ptcm.com/news-show/lixingongyebengderichangguzhangjiweixiuzhuyishixiang.html",
+      "published_at": null,
+      "required_keywords": ["离心", "故障", "维修"]
+    }
+  ]
+}
