@@ -163,6 +163,7 @@ def download_sources(
     registry_path: Path = DEFAULT_SOURCES,
     output_dir: Path = DEFAULT_OUTPUT,
     fetcher: Callable[[str], tuple[bytes, str]] | None = None,
+    allow_content_change: bool = False,
 ) -> tuple[dict, list[DownloadedSource]]:
     registry = _read_json(registry_path)
     raw_items = registry.get("sources")
@@ -193,13 +194,22 @@ def download_sources(
             parser.feed(raw_bytes.decode("gb18030", errors="replace"))
         text = parser.visible_text()
         _validate_text(source_id, source, text)
+        text_digest = _sha256(text.encode("utf-8"))
+        previous_item = previous_by_id.get(source_id) or {}
+        content_changed = bool(
+            previous_item and previous_item.get("text_sha256") != text_digest
+        )
+        if content_changed and not allow_content_change:
+            raise SourceError(
+                f"{source_id} content changed; review the source and rerun "
+                "with --allow-content-change to freeze a new version"
+            )
         raw_path = raw_dir / f"{source_id}.html"
         text_path = parsed_dir / f"{source_id}.txt"
         raw_path.parent.mkdir(parents=True, exist_ok=True)
         raw_path.write_bytes(raw_bytes)
         _write_text(text_path, text)
         raw_digest = _sha256(raw_bytes)
-        previous_item = previous_by_id.get(source_id) or {}
         item = DownloadedSource(
             source_id=source_id,
             title=title,
@@ -208,15 +218,12 @@ def download_sources(
             final_url=final_url,
             fetched_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
             raw_sha256=raw_digest,
-            text_sha256=_sha256(text.encode("utf-8")),
+            text_sha256=text_digest,
             raw_bytes=len(raw_bytes),
             text_characters=len(text),
             text_path=_display_path(text_path),
             raw_path=_display_path(raw_path),
-            content_changed=bool(
-                previous_item
-                and previous_item.get("text_sha256") != _sha256(text.encode("utf-8"))
-            ),
+            content_changed=content_changed,
         )
         downloaded.append(item)
     manifest = {
@@ -282,6 +289,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--allow-content-change",
+        action="store_true",
+        help="Allow a changed live page to replace a previously frozen source.",
+    )
     return parser
 
 
@@ -291,6 +303,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         manifest, downloaded = download_sources(
             registry_path=args.sources.resolve(),
             output_dir=args.out_dir.resolve(),
+            allow_content_change=args.allow_content_change,
         )
     except SourceError as exc:
         print(f"[error] {exc}", file=sys.stderr)

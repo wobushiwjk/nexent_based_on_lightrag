@@ -27,6 +27,9 @@ PYTHON=python bash scripts/run_w9_unseen.sh
 python scripts/fetch_w9_sources.py
 ```
 
+脚本会比对已冻结的正文 SHA-256。来源页面改版时默认直接失败，避免评测集
+静默变化；人工确认新内容后才可加 `--allow-content-change` 重新冻结。
+
 30 条冻结案例：
 
 - `eval/datasets/w9_unseen_web_20261115.jsonl`
